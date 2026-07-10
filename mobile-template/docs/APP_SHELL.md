@@ -24,6 +24,10 @@ abstract class FeatureModule {
 
   /// Sections this feature contributes to the settings screen.
   List<SettingsSection> get settingsSections;
+
+  /// Route paths reachable without a session (e.g. /login, /signup).
+  /// Everything else is protected by the auth redirect.
+  List<String> get publicRoutePaths;
 }
 ```
 
@@ -31,8 +35,8 @@ abstract class FeatureModule {
 
 - **Router** (`lib/app/router.dart`): GoRouter assembled from every module's `routes`, plus a global auth redirect driven by `AuthRepository.authStateChanges` (signed-out users land on login; deep links are preserved).
 - **DI**: `MultiRepositoryProvider` from all `repositories`; `globalBlocs` mounted at the app root.
-- **Bottom navigation** (`lib/app/shell_scaffold.dart`): built from the registered `navItem`s in module order.
-- **Settings screen**: composed from all `settingsSections` — a feature never edits the settings screen directly.
+- **Bottom navigation** (`lib/app/shell_scaffold.dart`): built from the registered `navItem`s in module order. A module with a `navItem` gets its routes mounted inside its own tab branch (its navigation stack survives tab switches); modules without one mount top-level.
+- **Settings screen**: composed from all `settingsSections` (read via the root-provided `ModuleRegistry`) — a feature never edits the settings screen directly.
 
 ### Adding a business feature (the whole recipe)
 

@@ -16,7 +16,7 @@ This document outlines the design system and visual identity rules for the appli
     - **Input Labels**: Medium, 14pt.
 
 ## 3. Color Palette
-Colors are centralized in `lib/core/utils/app_colors.dart`. Replace the placeholder values with your brand palette; do not add colors anywhere else.
+Colors are centralized in `lib/core/theme/app_colors.dart`. Replace the placeholder values with your brand palette; do not add colors anywhere else.
 
 | Token | Light Mode | Dark Mode |
 | :--- | :--- | :--- |
@@ -74,4 +74,4 @@ The application supports dynamic switching between **Light** and **Dark** modes.
 - **Dark Mode**: OLED-friendly, dark gray backgrounds with vibrant primary accents.
 
 ---
-*For technical implementation details, refer to `lib/core/utils/app_theme.dart`.*
+*For technical implementation details, refer to `lib/core/theme/app_theme.dart`.*

@@ -39,20 +39,20 @@ Add a `l10n.yaml` file to the root of your project to configure the localization
 **File:** `root/l10n.yaml`
 
 ```yaml
-arb-dir: lib/l10n
+arb-dir: lib/core/l10n
 template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
 ```
 
-> **Note:** Recent Flutter versions generate the localization code into `lib/l10n/` (the deprecated "synthetic package" `package:flutter_gen` is no longer used). Import the generated file with a normal package import, e.g. `import 'package:your_app/l10n/app_localizations.dart';`.
+> **Note:** Recent Flutter versions generate the localization code into the ARB directory (`lib/core/l10n/` here) (the deprecated "synthetic package" `package:flutter_gen` is no longer used). Import the generated file with a normal package import, e.g. `import 'package:your_app/core/l10n/app_localizations.dart';`.
 
 ## 3\. Creating ARB Files
 
-The App Resource Bundle (`.arb`) files contain the localized resources. Place them in `lib/l10n`.
+The App Resource Bundle (`.arb`) files contain the localized resources. Place them in `lib/core/l10n`.
 
 ### Basic String
 
-**File:** `lib/l10n/app_en.arb` (English Template)
+**File:** `lib/core/l10n/app_en.arb` (English Template)
 
 ```json
 {
@@ -63,7 +63,7 @@ The App Resource Bundle (`.arb`) files contain the localized resources. Place th
 }
 ```
 
-**File:** `lib/l10n/app_es.arb` (Spanish)
+**File:** `lib/core/l10n/app_es.arb` (Spanish)
 
 ```json
 {
@@ -144,7 +144,7 @@ Import the generated localizations file and configure the `MaterialApp` or `Cupe
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:your_app/l10n/app_localizations.dart';
+import 'package:your_app/core/l10n/app_localizations.dart';
 
 void main() {
   runApp(const MyApp());
