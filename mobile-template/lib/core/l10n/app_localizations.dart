@@ -260,6 +260,24 @@ abstract class AppLocalizations {
   /// **'Log out'**
   String get logout;
 
+  /// No description provided for @mapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get mapTitle;
+
+  /// No description provided for @mapRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh nearby items'**
+  String get mapRefresh;
+
+  /// No description provided for @locationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Location is unavailable. Enable location services to see items near you.'**
+  String get locationUnavailable;
+
   /// No description provided for @checkoutTitle.
   ///
   /// In en, this message translates to:

@@ -32,6 +32,10 @@
   "profileUpdated": "Profile updated",
   "logout": "Log out",
 
+  "mapTitle": "Map",
+  "mapRefresh": "Refresh nearby items",
+  "locationUnavailable": "Location is unavailable. Enable location services to see items near you.",
+
   "checkoutTitle": "Checkout",
   "orderReference": "Order",
   "payNow": "Pay now",

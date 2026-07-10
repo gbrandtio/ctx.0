@@ -32,6 +32,10 @@
   "profileUpdated": "Perfil actualizado",
   "logout": "Cerrar sesión",
 
+  "mapTitle": "Mapa",
+  "mapRefresh": "Actualizar elementos cercanos",
+  "locationUnavailable": "La ubicación no está disponible. Activa los servicios de ubicación para ver elementos cerca de ti.",
+
   "checkoutTitle": "Pago",
   "orderReference": "Pedido",
   "payNow": "Pagar ahora",

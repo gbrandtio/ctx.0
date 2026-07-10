@@ -95,6 +95,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get logout => 'Cerrar sesión';
 
   @override
+  String get mapTitle => 'Mapa';
+
+  @override
+  String get mapRefresh => 'Actualizar elementos cercanos';
+
+  @override
+  String get locationUnavailable =>
+      'La ubicación no está disponible. Activa los servicios de ubicación para ver elementos cerca de ti.';
+
+  @override
   String get checkoutTitle => 'Pago';
 
   @override

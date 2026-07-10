@@ -92,6 +92,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logout => 'Log out';
 
   @override
+  String get mapTitle => 'Map';
+
+  @override
+  String get mapRefresh => 'Refresh nearby items';
+
+  @override
+  String get locationUnavailable =>
+      'Location is unavailable. Enable location services to see items near you.';
+
+  @override
   String get checkoutTitle => 'Checkout';
 
   @override
