@@ -260,6 +260,36 @@ abstract class AppLocalizations {
   /// **'Log out'**
   String get logout;
 
+  /// No description provided for @checkoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout'**
+  String get checkoutTitle;
+
+  /// No description provided for @orderReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get orderReference;
+
+  /// No description provided for @payNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay now'**
+  String get payNow;
+
+  /// No description provided for @paymentSuccessful.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment successful'**
+  String get paymentSuccessful;
+
+  /// No description provided for @checkoutExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'You will be charged the amount of the order shown above. Payment is processed securely by Stripe.'**
+  String get checkoutExplanation;
+
   /// No description provided for @notificationsTitle.
   ///
   /// In en, this message translates to:

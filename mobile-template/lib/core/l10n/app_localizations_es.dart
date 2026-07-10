@@ -95,6 +95,22 @@ class AppLocalizationsEs extends AppLocalizations {
   String get logout => 'Cerrar sesión';
 
   @override
+  String get checkoutTitle => 'Pago';
+
+  @override
+  String get orderReference => 'Pedido';
+
+  @override
+  String get payNow => 'Pagar ahora';
+
+  @override
+  String get paymentSuccessful => 'Pago realizado con éxito';
+
+  @override
+  String get checkoutExplanation =>
+      'Se te cobrará el importe del pedido mostrado arriba. El pago se procesa de forma segura mediante Stripe.';
+
+  @override
   String get notificationsTitle => 'Notificaciones';
 
   @override

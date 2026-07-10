@@ -61,6 +61,6 @@ Future<void> main() async {
     modules: appModules,
     authRepository: authRepository,
     prefs: prefs,
-    apiClient: apiFactory.client,
+    apiClient: apiFactory.cachingClient,
   ));
 }

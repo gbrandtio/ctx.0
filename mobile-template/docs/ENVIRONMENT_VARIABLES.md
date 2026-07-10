@@ -26,6 +26,12 @@ These variables are consumed by the Dart layer using `String.fromEnvironment`. T
 | `RASP_ANDROID_SIGNING_HASH` | Comma-separated list of SHA-256 fingerprints. | Base64 List | `SecurityConstants` |
 | `RASP_IOS_BUNDLE_ID` | iOS Bundle Identifier for Talsec verification. | String | `SecurityConstants` |
 | `RASP_IOS_TEAM_ID` | Apple Developer Team ID for Talsec verification. | String | `SecurityConstants` |
+| `APP_NAME` | Display name (window title, PaymentSheet merchant name). | String | `AppConfig` |
+| `PRIVACY_POLICY_URL` / `TERMS_OF_SERVICE_URL` | GDPR/legal links shown in Settings (see `APP_SHELL.md` §4). | String | `AppConfig` |
+| `STRIPE_PUBLISHABLE_KEY` | Stripe **publishable** key for the payments module. The secret key exists only on the API. | String | `AppConfig` |
+| `APPLE_PAY_MERCHANT_ID` | Apple Pay merchant identifier (empty disables Apple Pay). | String | `AppConfig` |
+| `MERCHANT_COUNTRY_CODE` | ISO country code for Google Pay / Apple Pay (default `US`). | String | `AppConfig` |
+| `USE_MOCK_DATA` | Switch ApiServices to simulated data (default `false`). | bool | `ApiConstants` |
 
 > **Note on request signing**: Request signing uses per-device asymmetric ECDSA P-256 key pairs generated at runtime and stored in hardware-backed storage (see `docs/SECURITY.md`). There is **no shared signing secret** to configure and never add one. A build-time shared HMAC secret can be extracted by decompiling the app and must not be reintroduced.
 

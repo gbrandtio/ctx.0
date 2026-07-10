@@ -92,6 +92,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logout => 'Log out';
 
   @override
+  String get checkoutTitle => 'Checkout';
+
+  @override
+  String get orderReference => 'Order';
+
+  @override
+  String get payNow => 'Pay now';
+
+  @override
+  String get paymentSuccessful => 'Payment successful';
+
+  @override
+  String get checkoutExplanation =>
+      'You will be charged the amount of the order shown above. Payment is processed securely by Stripe.';
+
+  @override
   String get notificationsTitle => 'Notifications';
 
   @override

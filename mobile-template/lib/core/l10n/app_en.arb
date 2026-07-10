@@ -32,6 +32,12 @@
   "profileUpdated": "Profile updated",
   "logout": "Log out",
 
+  "checkoutTitle": "Checkout",
+  "orderReference": "Order",
+  "payNow": "Pay now",
+  "paymentSuccessful": "Payment successful",
+  "checkoutExplanation": "You will be charged the amount of the order shown above. Payment is processed securely by Stripe.",
+
   "notificationsTitle": "Notifications",
   "notificationsEmpty": "No notifications yet",
 

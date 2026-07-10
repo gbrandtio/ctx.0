@@ -1,5 +1,6 @@
 import '../features/auth/auth_module.dart';
 import '../features/notifications/notifications_module.dart';
+import '../features/payments/payments_module.dart';
 import '../features/profile/profile_module.dart';
 import '../features/settings/settings_module.dart';
 import 'feature_module.dart';
@@ -11,5 +12,6 @@ const List<FeatureModule> appModules = [
   AuthModule(),
   ProfileModule(),
   NotificationsModule(),
+  PaymentsModule(),
   SettingsModule(),
 ];

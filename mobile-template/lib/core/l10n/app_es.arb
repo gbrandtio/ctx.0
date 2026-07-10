@@ -32,6 +32,12 @@
   "profileUpdated": "Perfil actualizado",
   "logout": "Cerrar sesión",
 
+  "checkoutTitle": "Pago",
+  "orderReference": "Pedido",
+  "payNow": "Pagar ahora",
+  "paymentSuccessful": "Pago realizado con éxito",
+  "checkoutExplanation": "Se te cobrará el importe del pedido mostrado arriba. El pago se procesa de forma segura mediante Stripe.",
+
   "notificationsTitle": "Notificaciones",
   "notificationsEmpty": "Aún no hay notificaciones",
 

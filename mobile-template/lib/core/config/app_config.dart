@@ -22,4 +22,17 @@ abstract final class AppConfig {
     'terms_and_privacy': true, // required
     'marketing_emails': false, // optional
   };
+
+  // ---- Payments (docs/ENVIRONMENT_VARIABLES.md; payments module) ----
+  /// Publishable key only — the secret key lives exclusively on the API.
+  static const String stripePublishableKey =
+      String.fromEnvironment('STRIPE_PUBLISHABLE_KEY');
+
+  /// Apple Pay merchant identifier (empty disables Apple Pay).
+  static const String applePayMerchantId =
+      String.fromEnvironment('APPLE_PAY_MERCHANT_ID');
+
+  /// ISO country code for Google Pay / Apple Pay.
+  static const String merchantCountryCode =
+      String.fromEnvironment('MERCHANT_COUNTRY_CODE', defaultValue: 'US');
 }
