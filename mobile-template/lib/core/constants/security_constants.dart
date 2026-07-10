@@ -16,6 +16,10 @@ abstract final class SecurityConstants {
   static const String raspIosTeamId =
       String.fromEnvironment('RASP_IOS_TEAM_ID');
 
+  /// Email that receives Talsec security reports.
+  static const String raspWatcherMail =
+      String.fromEnvironment('RASP_WATCHER_MAIL');
+
   static List<String> get raspAndroidSigningHashes =>
       raspAndroidSigningHash.isEmpty
           ? const []

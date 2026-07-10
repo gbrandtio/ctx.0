@@ -26,6 +26,7 @@ These variables are consumed by the Dart layer using `String.fromEnvironment`. T
 | `RASP_ANDROID_SIGNING_HASH` | Comma-separated list of SHA-256 fingerprints. | Base64 List | `SecurityConstants` |
 | `RASP_IOS_BUNDLE_ID` | iOS Bundle Identifier for Talsec verification. | String | `SecurityConstants` |
 | `RASP_IOS_TEAM_ID` | Apple Developer Team ID for Talsec verification. | String | `SecurityConstants` |
+| `RASP_WATCHER_MAIL` | Email receiving Talsec security reports; RASP stays inactive while empty. | String | `SecurityConstants` |
 | `APP_NAME` | Display name (window title, PaymentSheet merchant name). | String | `AppConfig` |
 | `PRIVACY_POLICY_URL` / `TERMS_OF_SERVICE_URL` | GDPR/legal links shown in Settings (see `APP_SHELL.md` §4). | String | `AppConfig` |
 | `STRIPE_PUBLISHABLE_KEY` | Stripe **publishable** key for the payments module. The secret key exists only on the API. | String | `AppConfig` |

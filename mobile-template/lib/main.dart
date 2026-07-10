@@ -11,6 +11,7 @@ import 'data/repositories/auth_repository.dart';
 import 'data/services/api/api_service_factory.dart';
 import 'data/services/api/user_api_service.dart';
 import 'data/services/security/device_identity_service.dart';
+import 'data/services/security/rasp_service.dart';
 import 'data/services/storage/hive_cache_service.dart';
 import 'data/services/storage/prefs_service.dart';
 import 'data/services/storage/secure_storage_service.dart';
@@ -21,6 +22,10 @@ import 'data/services/storage/secure_storage_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Bloc.observer = const AppBlocObserver();
+
+  // RASP first (docs/SECURITY.md §4.1): a compromised environment must be
+  // detected before any secret leaves secure storage.
+  await RaspService().init();
 
   // Push notifications need the platform Firebase config
   // (google-services.json / GoogleService-Info.plist). Until it is added,
