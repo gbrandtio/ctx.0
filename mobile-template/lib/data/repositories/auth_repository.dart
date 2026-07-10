@@ -49,7 +49,25 @@ class AuthRepository {
   final CachingClient _cachingClient;
 
   final _controller = StreamController<AuthState>.broadcast();
+  final _logoutHooks = <Future<void> Function()>[];
   AuthState _current = const AuthUnknown();
+
+  /// Registers work that must run while the session is still valid, just
+  /// before logout purges it (e.g. the notifications module unregisters
+  /// its FCM token). Hooks are best-effort: a failing hook never blocks
+  /// logout.
+  void registerLogoutHook(Future<void> Function() hook) =>
+      _logoutHooks.add(hook);
+
+  Future<void> _runLogoutHooks() async {
+    for (final hook in _logoutHooks) {
+      try {
+        await hook();
+      } on Exception {
+        // Best-effort by contract.
+      }
+    }
+  }
 
   AuthState get currentState => _current;
 
@@ -167,6 +185,7 @@ class AuthRepository {
   }
 
   Future<Result<void>> logout() async {
+    await _runLogoutHooks();
     final refreshToken = await _secureStorage.readRefreshToken();
     try {
       if (refreshToken != null) await _userApi.logout(refreshToken);
@@ -181,6 +200,7 @@ class AuthRepository {
   /// GDPR delete account (docs/APP_SHELL.md §4): anonymizing server
   /// delete, then full local purge, then logout.
   Future<Result<void>> deleteAccount() async {
+    await _runLogoutHooks();
     try {
       await _userApi.deleteMe();
     } on Exception catch (e) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 
 import '../core/config/app_config.dart';
 import '../core/l10n/l10n.dart';
@@ -22,11 +23,16 @@ class App extends StatefulWidget {
     required this.modules,
     required this.authRepository,
     required this.prefs,
+    required this.apiClient,
   });
 
   final List<FeatureModule> modules;
   final AuthRepository authRepository;
   final PrefsService prefs;
+
+  /// The fully-intercepted HTTP client (docs/HTTP_HANDLING.md); modules
+  /// build their ApiServices from it.
+  final http.Client apiClient;
 
   @override
   State<App> createState() => _AppState();
@@ -50,6 +56,7 @@ class _AppState extends State<App> {
       providers: [
         RepositoryProvider<AuthRepository>.value(value: widget.authRepository),
         RepositoryProvider<PrefsService>.value(value: widget.prefs),
+        RepositoryProvider<http.Client>.value(value: widget.apiClient),
         RepositoryProvider<ModuleRegistry>.value(
           value: ModuleRegistry(widget.modules),
         ),

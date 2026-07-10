@@ -32,6 +32,9 @@
   "profileUpdated": "Perfil actualizado",
   "logout": "Cerrar sesión",
 
+  "notificationsTitle": "Notificaciones",
+  "notificationsEmpty": "Aún no hay notificaciones",
+
   "settingsTitle": "Ajustes",
   "settingsAccountSection": "Cuenta",
   "settingsPersonalisationSection": "Personalización",

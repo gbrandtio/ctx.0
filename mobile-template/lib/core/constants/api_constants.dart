@@ -25,6 +25,9 @@ abstract final class ApiConstants {
   static const String me = '/users/me';
   static const String myExports = '/users/me/exports';
   static const String notifications = '/users/notifications';
+  static const String firebaseToken = '/users/firebase/token';
+  static const String paymentIntents = '/payments/intents';
+  static const String itemsNearby = '/items/nearby';
   static const String securityMetadata = '/security/metadata';
   static const String appInstances = '/security/app-instances';
 

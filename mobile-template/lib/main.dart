@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,6 +21,15 @@ import 'data/services/storage/secure_storage_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Bloc.observer = const AppBlocObserver();
+
+  // Push notifications need the platform Firebase config
+  // (google-services.json / GoogleService-Info.plist). Until it is added,
+  // the app runs without push (PushTokenService degrades gracefully).
+  try {
+    await Firebase.initializeApp();
+  } on Exception catch (e) {
+    debugPrint('Firebase not configured — push disabled: $e');
+  }
 
   final prefs = await PrefsService.create();
   final secureStorage = SecureStorageService();
@@ -51,5 +61,6 @@ Future<void> main() async {
     modules: appModules,
     authRepository: authRepository,
     prefs: prefs,
+    apiClient: apiFactory.client,
   ));
 }

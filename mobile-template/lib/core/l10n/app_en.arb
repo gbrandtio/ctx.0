@@ -32,6 +32,9 @@
   "profileUpdated": "Profile updated",
   "logout": "Log out",
 
+  "notificationsTitle": "Notifications",
+  "notificationsEmpty": "No notifications yet",
+
   "settingsTitle": "Settings",
   "settingsAccountSection": "Account",
   "settingsPersonalisationSection": "Personalisation",

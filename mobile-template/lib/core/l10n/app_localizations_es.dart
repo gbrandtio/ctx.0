@@ -95,6 +95,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get logout => 'Cerrar sesión';
 
   @override
+  String get notificationsTitle => 'Notificaciones';
+
+  @override
+  String get notificationsEmpty => 'Aún no hay notificaciones';
+
+  @override
   String get settingsTitle => 'Ajustes';
 
   @override
