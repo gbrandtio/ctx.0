@@ -26,7 +26,7 @@ The database schema is **code-first**: the EF Core model plus its **migrations**
 ```bash
 # 1. Modify entities / configurations
 # 2. Add the migration (run from the solution root)
-dotnet ef migrations add AddPlaceOpeningHours --project Infrastructure --startup-project AppApi
+dotnet ef migrations add AddItemLocation --project Infrastructure --startup-project AppApi
 
 # 3. Inspect the generated Up()/Down() methods
 

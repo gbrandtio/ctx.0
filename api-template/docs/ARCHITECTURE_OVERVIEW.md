@@ -98,7 +98,7 @@ graph TB
 
 #### Entities `Domain/Entities/`
 - `User` - Core user entity with personal data (PII encrypted at rest, see [Envelope Encryption](security/ENVELOPE_ENCRYPTION_ARCHITECTURE.md))
-- Your domain aggregates (e.g., `Order`, `Item`, `Place`)
+- Your domain aggregates (e.g., `Order`, `Item`, `Project`)
 - Identity entities (e.g., `UserGoogleIdentity`, `UserFirebaseIdentity`, `RefreshToken`)
 
 #### Value Objects `Domain/ValueObjects/`
@@ -140,7 +140,7 @@ One folder per aggregate, one file per use case. Example for `Users/`:
 - `Google/` - Google OAuth
 - `Firebase/` - FCM token registration
 
-Additional feature folders follow the same shape (e.g., `Orders/`, `Places/`, `Payments/`).
+Additional feature folders follow the same shape (e.g., `Orders/`, `Projects/`, `Payments/`).
 
 #### Abstractions `Application/Abstractions/`
 - Repository interfaces (ports for infrastructure)
@@ -229,7 +229,7 @@ Additional feature folders follow the same shape (e.g., `Orders/`, `Places/`, `P
 **Key Components**:
 
 #### Endpoints `AppApi/Endpoints/v1/`
-- One endpoints file per aggregate (e.g., `Users/`, `Orders/`, `Places/`)
+- One endpoints file per aggregate (e.g., `Users/`, `Orders/`, `Projects/`)
 - **`SecurityEndpoints`**: Exposes `/v1/security/metadata` for mobile app security discovery.
 - **[Filters & Middleware](architecture/FILTERS_AND_MIDDLEWARE.md)**: Details custom endpoint filters and request pipeline components.
 

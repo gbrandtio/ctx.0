@@ -4,7 +4,7 @@
 Accepted
 
 ## Context
-The API needs to send real-time push notifications to users when certain events occur (e.g., transaction completed, badge earned). Sending push notifications involves interacting with external APIs (Firebase Cloud Messaging - FCM), which introduces network latency, potential downtime, and failure modes. If notifications were sent synchronously during the main HTTP request lifecycle (e.g., inside a transaction endpoint handler), it would significantly degrade response times, couple the API availability to external dependencies, and risk transaction failures or data inconsistency.
+The API needs to send real-time push notifications to users when certain events occur (e.g., payment completed, milestone reached). Sending push notifications involves interacting with external APIs (Firebase Cloud Messaging - FCM), which introduces network latency, potential downtime, and failure modes. If notifications were sent synchronously during the main HTTP request lifecycle (e.g., inside a transaction endpoint handler), it would significantly degrade response times, couple the API availability to external dependencies, and risk transaction failures or data inconsistency.
 
 Furthermore, device FCM tokens are considered Personally Identifiable Information (PII) and must be securely stored in the database.
 

@@ -1,6 +1,6 @@
 # Authentication
 
-This document describes how authentication works in the API. The template ships with one primary principal type (**User** — the mobile app consumer) and supports additional principal types (e.g., staff/admin users for a companion app) via the same security model: short-lived JWT access tokens paired with long-lived, rotatable refresh tokens discriminated by `user_type`.
+This document describes how authentication works in the API. The template ships with one primary principal type (**User** — the mobile app consumer) and supports additional principal types (e.g., member/admin users for a companion app) via the same security model: short-lived JWT access tokens paired with long-lived, rotatable refresh tokens discriminated by `user_type`.
 
 ---
 
@@ -49,13 +49,13 @@ This separation limits the blast radius of a leaked access token (max 15-minute 
 | `unique_name` | Username |
 | `uid` | User ID (numeric string, duplicate for convenience) |
 | `role` | The principal type, e.g. `"User"` (add roles per companion app, e.g. `"AdminUser"`) |
-| `type` | Optional sub-role (e.g. `"Admin"`, `"Manager"`, `"Staff"`) |
+| `type` | Optional sub-role (e.g. `"Admin"`, `"Manager"`, `"Member"`) |
 | `iss` | `app-api` (configurable) |
 | `aud` | `app-mobile-client` (configurable) |
 | `nbf` | Not-before timestamp |
 | `exp` | Expiration timestamp |
 
-Add resource-scoping claims as needed for ownership checks (see [Authorization](AUTHORIZATION.md)) — e.g., an `orgId` claim for staff users. Keep the JWT small: only claims the authorization layer actually reads.
+Add resource-scoping claims as needed for ownership checks (see [Authorization](AUTHORIZATION.md)) — e.g., an `orgId` claim for organization-scoped users. Keep the JWT small: only claims the authorization layer actually reads.
 
 ### Signing Algorithm
 
@@ -115,7 +115,7 @@ sequenceDiagram
 
 ### Additional Principal Types
 
-Companion apps (e.g., a staff/admin app) follow the identical flow on their own endpoints (e.g., `POST /v1/admin/users/authenticate`). The JWT carries the corresponding `role` claim, and the refresh token row is stored with the matching `user_type` discriminator. A refresh token presented to the wrong principal type's endpoint is rejected with `401`.
+Companion apps (e.g., an admin/back-office app) follow the identical flow on their own endpoints (e.g., `POST /v1/admin/users/authenticate`). The JWT carries the corresponding `role` claim, and the refresh token row is stored with the matching `user_type` discriminator. A refresh token presented to the wrong principal type's endpoint is rejected with `401`.
 
 ### Google OAuth (Users)
 

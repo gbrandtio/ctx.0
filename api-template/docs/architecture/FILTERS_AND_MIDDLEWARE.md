@@ -77,4 +77,4 @@ Handles the decryption of incoming request bodies and the encryption of outgoing
 1. **Apply filters at the group level** whenever possible to ensure consistent enforcement across related endpoints.
 2. **Explicitly mark anonymous endpoints** using `.AllowAnonymous()` when they are part of a group that has security filters applied.
 3. **Never trust user IDs in request bodies**. Always prefer extracting the identity (UID) from the JWT claims.
-4. **Enforce resource ownership** using the standardized authorization policies (e.g., `Policies.UserSelf`, `Policies.PlaceRead`) which verify route parameters against authenticated identity claims.
+4. **Enforce resource ownership** using the standardized authorization policies (e.g., `Policies.UserSelf`, `Policies.ProjectRead`) which verify route parameters against authenticated identity claims.

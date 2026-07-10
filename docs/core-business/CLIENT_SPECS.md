@@ -3,7 +3,7 @@
 > **TEMPLATE — fill this in before any feature work.**
 > This is the top-level functional spec of the mobile client: which screens exist, what each does, and the primary flows. Agents read this to know what the app *is* before diving into per-feature specs in `docs/features/`.
 
-**<Product> mobile app** is a Flutter application, designed primarily for mobile use. <One-paragraph summary of what the app lets users do, and whether other client apps exist (e.g., a separate merchant app).>
+**<Product> mobile app** is a Flutter application, designed primarily for mobile use. <One-paragraph summary of what the app lets users do, and whether other client apps exist (e.g., a separate admin app).>
 
 ## Application Flows
 
@@ -16,11 +16,11 @@ The Home page features a bottom navigation bar with the following sections:
 
 * **Home**: <What the user sees first — e.g., key stats, recent activity list.>
 * **Notifications**: Shows user-specific notifications.
-* **<Section 3, e.g., Map>**: <Description.> (Spec: `docs/features/MAPS.md`)
+* **<Section 3, e.g., a map or catalog view>**: <Description.> (Spec: `docs/features/<FEATURE>.md` — copy `docs/features/FEATURE_SPEC_TEMPLATE.md`)
 * **Profile**: Displays the user's personal data and allows editing. (Spec: `docs/features/USER_PROFILE.md`)
 
-### 3. <Primary Action Flow, e.g., QR Scan & Payment>
-<Numbered end-to-end flow of the app's core action. Reference `docs/features/QR_PAYMENT.md` if payments apply.>
+### 3. <Primary Action Flow>
+<Numbered end-to-end flow of the app's core action. Spec it in `docs/features/<FEATURE>.md` (copy `docs/features/FEATURE_SPEC_TEMPLATE.md` if it doesn't exist yet).>
 
 ### 4. User Profile
 **Personal Data Displayed:** <list>

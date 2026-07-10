@@ -27,8 +27,8 @@ app.UseOutputCache();
 
 ### Targeted Endpoints
 Endpoints that benefit most from output caching (all public, all `GET`):
-- **`GET /v1/places/nearby?lat=..&lng=..&radiusKm=..`**: Cached (varying by query) to prevent redundant spatial queries for users in the same vicinity.
-- **`GET /v1/places/countries`**: Cached as country lists change very infrequently.
+- **`GET /v1/items/nearby?lat=..&lng=..&radiusKm=..`**: Cached (varying by query) to prevent redundant spatial queries for users in the same vicinity.
+- **`GET /v1/countries`**: Reference data, cached as it changes very infrequently.
 - **Public directory listings** (e.g., `GET /v1/organizations`).
 
 ---
@@ -46,7 +46,7 @@ For data that is frequently accessed across different requests but doesn't warra
 
 ## 3. Cache Invalidation Rules
 
-Since the current implementation uses a 30-second fixed window for Output Caching, invalidation is primarily **time-based**. If a cached endpoint's data must reflect a mutation sooner, tag the policy (`.Tag("places")`) and evict via `IOutputCacheStore.EvictByTagAsync` in the mutating handler.
+Since the current implementation uses a 30-second fixed window for Output Caching, invalidation is primarily **time-based**. If a cached endpoint's data must reflect a mutation sooner, tag the policy (`.Tag("items")`) and evict via `IOutputCacheStore.EvictByTagAsync` in the mutating handler.
 
 ### When to Bypass Cache
 Clients can bypass the cache (if configured in the policy) using the `Cache-Control: no-cache` header, though this is typically restricted to administrative users to prevent "cache-busting" attacks.

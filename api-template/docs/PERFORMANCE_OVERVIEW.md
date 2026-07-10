@@ -5,7 +5,7 @@ The API template is designed for high throughput and low latency, utilizing mult
 ## Performance Pillars
 
 ### 1. Response Caching
-We use **Output Caching** to serve frequently requested, non-sensitive data (like public place lists or directories) directly from memory, bypassing the entire application logic and database.
+We use **Output Caching** to serve frequently requested, non-sensitive data (like public catalog or directory listings) directly from memory, bypassing the entire application logic and database.
 *   **See:** [Caching Strategy](performance/CACHING_STRATEGY.md)
 
 ### 2. Database Optimization
