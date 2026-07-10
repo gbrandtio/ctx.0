@@ -50,7 +50,7 @@ Certain endpoints are explicitly excluded from caching by always including the `
 
 ### 2. Event-Driven Invalidation
 When the client performs state-changing operations, it automatically invalidates the cached patterns of every resource the operation affects. Examples:
-- **Successful payment/order**: Invalidates the user's balance/stats endpoints and the history list (`/orders/` or `/transactions/`).
+- **Successful payment/order**: Invalidates the user's balance/stats endpoints and the history list (`/orders/`).
 - **User Profile Update (`updateUser`)**: Invalidates the user details (`/users/{id}`) and related aggregates.
 - **Account Deletion**: Performs a full cache purge.
 

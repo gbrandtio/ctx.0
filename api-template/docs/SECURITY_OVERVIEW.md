@@ -70,9 +70,9 @@ sequenceDiagram
 ### Layer 3: Data Integrity
 *   **Input Sanitization**: A global `IEndpointFilter` using `HtmlSanitizer` automatically strips malicious HTML/JS from all incoming request DTOs, preventing XSS attacks at the source.
 *   **Secure Exception Disclosure**: A centralized `IExceptionHandler` prevents the broadcasting of internal exception messages, stack traces, and system details. Only explicitly whitelisted `DomainException` messages are returned to clients via the standardized `ProblemDetails` format.
-*   **Atomic Updates**: Critical counters and single-use artifacts (e.g., one-time payment codes) use atomic database operations (`ExecuteUpdateAsync`) to prevent race conditions (Double Spending / Lost Updates).
+*   **Atomic Updates**: Critical counters and single-use artifacts (e.g., server-issued order records) use atomic database operations (`ExecuteUpdateAsync`) to prevent race conditions (Double Spending / Lost Updates).
 *   **Source of Truth Validation**: Sensitive operation parameters (e.g., payment amount, target resource) are parsed from the validated server-side record, never from client-provided request bodies.
-*   **Payment Verification (Stripe)**: External payment collection complies with PCI-DSS by delegating card data handling directly to Stripe. Webhook endpoints (`/v1/payments/stripe-webhook`) verify payload integrity using Stripe signatures. Server-side validation matches payment intent metadata and amounts directly against database records, while double-spending is blocked by checking for existing ledger entries and atomic invalidation of single-use codes.
+*   **Payment Verification (Stripe)**: External payment collection complies with PCI-DSS by delegating card data handling directly to Stripe. Webhook endpoints (`/v1/payments/stripe-webhook`) verify payload integrity using Stripe signatures. Server-side validation matches payment intent metadata and amounts directly against database records, while double-spending is blocked by checking for existing ledger entries and atomic invalidation of single-use order records.
 
 ### Layer 4: Data at Rest (Encryption)
 *   **Envelope Encryption**: Every user record is encrypted with a unique Data Encryption Key (DEK). DEKs are encrypted with a master Key Encryption Key (KEK).

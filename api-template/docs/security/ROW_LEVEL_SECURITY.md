@@ -34,7 +34,7 @@ The API abstracts identity extraction via `ICurrentUserProvider`.
 > **Developer Rule:** During registration or any process that creates new rows for an anonymous user, you **must** manually set the RLS context using `IRlsContextManager.UseUserContext(newId)` within a `using` block. This ensures the database's RLS policies allow the session to "see" the newly inserted rows for row-count verification.
 
 ### System Bypass
-For maintenance tasks or cross-entity business flows that require global visibility (e.g., KEK Rotation, transaction processing spanning multiple owners), the system provides a bypass mechanism:
+For maintenance tasks or cross-entity business flows that require global visibility (e.g., KEK Rotation, payment processing spanning multiple owners), the system provides a bypass mechanism:
 ```csharp
 using (rlsManager.UseSystemContext())
 {
@@ -119,7 +119,7 @@ sequenceDiagram
 
 ## 4. Key Security Benefits
 
-1.  **IDOR Prevention**: Even if an attacker guesses a `PlaceId` or `UserId` and attempts to pass it to an endpoint, the database will refuse to return data that doesn't belong to the JWT's identity.
+1.  **IDOR Prevention**: Even if an attacker guesses a `ProjectId` or `UserId` and attempts to pass it to an endpoint, the database will refuse to return data that doesn't belong to the JWT's identity.
 2.  **Decoupled Logic**: Business logic doesn't need to be polluted with repetitive `.Where(x => x.UserId == currentUserId)` filters; the database handles this globally.
 3.  **Fail-Safe**: If a developer forgets to add an authorization check in a new API endpoint, the RLS policies provide an automatic fallback that prevents data leakage.
 4.  **Connection Pool Safety**: By using a transaction-local `set_config`, the connection is guaranteed to be "clean" when returned to the EF Core connection pool.

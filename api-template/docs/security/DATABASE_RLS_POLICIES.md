@@ -68,7 +68,7 @@ All policies are applied with `FORCE ROW LEVEL SECURITY` to ensure they apply ev
 
 ## 3. System Bypass Policy
 
-A dedicated role `app_internal_worker` is created for system-level background tasks (e.g., automated cleanups, KEK rotation, cross-owner transaction processing) that require visibility across all rows.
+A dedicated role `app_internal_worker` is created for system-level background tasks (e.g., automated cleanups, KEK rotation, cross-owner payment processing) that require visibility across all rows.
 
 For **every table** listed above, an additional policy is created:
 *   **Name**: `internal_worker_bypass_<table_name>`

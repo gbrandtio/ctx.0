@@ -112,19 +112,30 @@ Recommended folder structure for a scalable app:
 
 ```text
 lib/
-├── main.dart
-├── core/                     # Shared utilities, extensions, UI widgets
-│   ├── utils/
-│   └── widgets/
+├── main.dart                 # Bootstrap: AppConfig, BlocObserver, runApp
+├── app/                      # The shipped, configurable shell (see docs/APP_SHELL.md)
+│   ├── app.dart              # MaterialApp.router, theme/locale binding
+│   ├── router.dart           # GoRouter composed from module routes + auth redirect
+│   ├── shell_scaffold.dart   # Bottom-nav scaffold built from registered NavItems
+│   └── modules.dart          # THE plug-n-play point: ordered List<FeatureModule>
+├── core/                     # Shared utilities, config, theme, l10n, Result, UI widgets
+│   ├── config/
+│   ├── theme/
+│   ├── l10n/
+│   ├── result/
+│   └── widgets/              # Design-system components (AppHeader, buttons, fields)
 ├── data/                     # Global data implementation
-│   ├── services/             # (e.g. ApiService, DatabaseService, SharedPreferencesService)
-│   └── repositories/         # (e.g. AuthRepository)
+│   ├── services/             # (e.g. ApiClient + interceptors, SecureStorageService)
+│   └── repositories/         # (e.g. AuthRepository — auth state SSOT)
 └── features/
-    └── feature_name/         # (e.g. 'login', 'feed')
+    └── feature_name/         # (e.g. 'login', 'profile', or your business feature)
         ├── bloc/             # Bloc/Cubit, events, states (one Bloc per feature screen)
         ├── data/             # Feature-specific DTOs/Repositories
-        └── views/            # Widgets (Screens & Components)
+        ├── views/            # Widgets (Screens & Components)
+        └── <feature>_module.dart  # FeatureModule registration (docs/APP_SHELL.md)
 ```
+
+Features are registered in `lib/app/modules.dart` via the `FeatureModule` contract — see `docs/APP_SHELL.md` for the registration points (routes, repositories, nav items, settings sections).
 
 ## 6. Dependency Injection & Reactive Optimization
 

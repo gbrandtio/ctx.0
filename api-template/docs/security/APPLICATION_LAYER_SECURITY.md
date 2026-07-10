@@ -55,14 +55,14 @@ This phase occurs once per app installation or when the device identity is lost.
 3.  **Server Validation:** The API decrypts the ALE payload, extracts the public key, and persists it in the `app_instances` table linked to the `DeviceId`.
 
 #### Phase 2: Transactional (Per-Request Signing)
-For every subsequent API request (e.g., fetching profile, processing transactions):
+For every subsequent API request (e.g., fetching profile, submitting payments):
 
 1.  **Client-Side Preparation (Sign Plaintext):**
     *   **Timestamp:** The app generates a current UTC Unix timestamp (seconds).
     *   **Signing String:** The app constructs a canonical string for signing:
         `METHOD|PATH|TIMESTAMP|BODY`
         *   `METHOD`: Uppercase (e.g., `POST`).
-        *   `PATH`: Lowercase (e.g., `/v1/transactions/process`).
+        *   `PATH`: Lowercase (e.g., `/v1/payments/intents`).
         *   `TIMESTAMP`: The Unix timestamp generated above.
         *   `BODY`: The **raw, unencrypted JSON plaintext** request body. The string should be **trimmed** of leading/trailing whitespace.
 2.  **Client-Side Signing:** The app signs the UTF-8 bytes of the signing string using its ECDSA private key and Base64-encodes the resulting signature.
@@ -112,7 +112,7 @@ The API provides infrastructure to verify that requests originate from a genuine
 *   **Supported Providers:**
     *   **Google Play Integrity API** (Android)
     *   **Apple App Attest** (iOS)
-*   **Verification Logic:** Critical endpoints (e.g., registration, transactions) can be configured to require an attestation token, which is verified against the respective cloud providers via the `IDeviceAttestationService`.
+*   **Verification Logic:** Critical endpoints (e.g., registration, payments) can be configured to require an attestation token, which is verified against the respective cloud providers via the `IDeviceAttestationService`.
 
 ---
 
