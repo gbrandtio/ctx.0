@@ -1,6 +1,11 @@
-# ctx.0
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+    <img src="assets/logo-light.svg" alt="ctx.0" width="396">
+  </picture>
+</p>
 
-**Build secure applications fast, with minimum tokens burned.**
+<p align="center"><strong>Build secure applications fast, with minimum tokens burned.</strong></p>
 
 ctx.0 is a pair of production-grade, security-first application templates designed to be driven by LLM coding agents. Every architectural, security, and performance decision is pre-made and documented in a token-efficient way, so agents (and humans) spend their effort on your business logic and not on rediscovering how to build a secure CRUD app.
 
