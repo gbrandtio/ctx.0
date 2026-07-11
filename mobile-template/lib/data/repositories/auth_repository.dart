@@ -94,16 +94,17 @@ class AuthRepository {
     _controller.add(state);
   }
 
-  /// Restores the session at bootstrap: with a stored token, fetch the
-  /// profile; otherwise settle on unauthenticated.
+  /// Restores the session at bootstrap: with a stored token and user id,
+  /// re-fetch the profile; otherwise settle on unauthenticated.
   Future<void> restoreSession() async {
     final token = await _secureStorage.readAccessToken();
-    if (token == null) {
+    final userId = await _secureStorage.readUserId();
+    if (token == null || userId == null) {
       _emit(const Unauthenticated());
       return;
     }
     try {
-      final user = await _userApi.getMe(forceRefresh: true);
+      final user = await _userApi.getUser(userId, forceRefresh: true);
       _emit(Authenticated(user));
     } on Exception {
       // Expired/invalid session or offline: the AuthRefreshClient will
@@ -112,60 +113,55 @@ class AuthRepository {
     }
   }
 
-  Future<Result<User>> login(String email, String password) =>
-      _establishSession(() => _userApi.login(email, password));
+  /// Registration step 1 (AUTHENTICATION.md): request a verification code.
+  /// The account is created later by [register] with that code.
+  Future<Result<void>> sendSignupCode(String email) async {
+    try {
+      await _userApi.sendSignupCode(email);
+      return const Result.success(null);
+    } on Exception catch (e) {
+      return Result.failure(e);
+    }
+  }
 
-  Future<Result<User>> signup({
+  Future<Result<User>> login(String usernameOrEmail, String password) =>
+      _establishSession(() => _userApi.login(usernameOrEmail, password));
+
+  /// Registration step 2: create the account with the code and start the
+  /// session. [username] is derived by the caller from the email when the
+  /// signup form does not collect one.
+  Future<Result<User>> register({
+    required String username,
     required String email,
     required String password,
+    required String verificationCode,
     String? displayName,
     required Map<String, bool> consents,
   }) =>
-      _establishSession(() => _userApi.signup(
+      _establishSession(() => _userApi.register(
+            username: username,
             email: email,
             password: password,
-            displayName: displayName,
+            verificationCode: verificationCode,
+            name: displayName,
             consents: consents,
           ));
 
   Future<Result<User>> signInWithGoogle(String idToken) =>
       _establishSession(() => _userApi.googleSignIn(idToken));
 
-  Future<Result<void>> verifyEmail(String code) async {
-    try {
-      await _userApi.verifyEmail(code);
-      final current = _current;
-      if (current is Authenticated) {
-        _emit(Authenticated(current.user.copyWith(emailVerified: true)));
-      }
-      return const Result.success(null);
-    } on Exception catch (e) {
-      return Result.failure(e);
-    }
-  }
-
-  Future<Result<void>> resendVerification() async {
-    try {
-      await _userApi.resendVerification();
-      return const Result.success(null);
-    } on Exception catch (e) {
-      return Result.failure(e);
-    }
-  }
-
   /// Refreshes the current user (e.g. after profile edit); merges via
   /// copyWith so bare models never clobber richer local state
   /// (docs/FLUTTER_ARCHITECTURE.md §6D).
   Future<Result<User>> refreshUser({bool forceRefresh = false}) async {
+    final current = _current;
+    if (current is! Authenticated) {
+      return Result.failure(StateError('No active session.'));
+    }
     try {
-      final fetched = await _userApi.getMe(forceRefresh: forceRefresh);
-      final current = _current;
-      final merged = current is Authenticated
-          ? current.user.copyWith(
-              displayName: fetched.displayName,
-              emailVerified: fetched.emailVerified,
-            )
-          : fetched;
+      final fetched =
+          await _userApi.getUser(current.user.id, forceRefresh: forceRefresh);
+      final merged = current.user.copyWith(displayName: fetched.displayName);
       _emit(Authenticated(merged));
       return Result.success(merged);
     } on Exception catch (e) {
@@ -174,8 +170,13 @@ class AuthRepository {
   }
 
   Future<Result<User>> updateProfile({String? displayName}) async {
+    final current = _current;
+    if (current is! Authenticated) {
+      return Result.failure(StateError('No active session.'));
+    }
     try {
-      final user = await _userApi.updateMe(displayName: displayName);
+      final user =
+          await _userApi.updateUser(current.user.id, displayName: displayName);
       _emit(Authenticated(user));
       await _cachingClient.invalidatePattern('/users/');
       return Result.success(user);
@@ -200,9 +201,13 @@ class AuthRepository {
   /// GDPR delete account (docs/APP_SHELL.md §4): anonymizing server
   /// delete, then full local purge, then logout.
   Future<Result<void>> deleteAccount() async {
+    final current = _current;
+    if (current is! Authenticated) {
+      return Result.failure(StateError('No active session.'));
+    }
     await _runLogoutHooks();
     try {
-      await _userApi.deleteMe();
+      await _userApi.deleteUser(current.user.id);
     } on Exception catch (e) {
       return Result.failure(e);
     }
@@ -214,8 +219,12 @@ class AuthRepository {
 
   /// GDPR data export request; delivery is notified via push.
   Future<Result<void>> requestDataExport() async {
+    final current = _current;
+    if (current is! Authenticated) {
+      return Result.failure(StateError('No active session.'));
+    }
     try {
-      await _userApi.requestDataExport();
+      await _userApi.requestDataExport(current.user.id);
       return const Result.success(null);
     } on Exception catch (e) {
       return Result.failure(e);
@@ -241,6 +250,7 @@ class AuthRepository {
         accessToken: session.accessToken,
         refreshToken: session.refreshToken,
       );
+      await _secureStorage.writeUserId(session.user.id);
       _emit(Authenticated(session.user));
       return Result.success(session.user);
     } on Exception catch (e) {

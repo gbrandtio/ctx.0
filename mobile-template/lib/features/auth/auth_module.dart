@@ -8,6 +8,7 @@ import 'bloc/login_bloc.dart';
 import 'bloc/signup_bloc.dart';
 import 'bloc/verify_email_cubit.dart';
 import 'data/google_auth_service.dart';
+import 'data/pending_registration.dart';
 import 'views/login_screen.dart';
 import 'views/signup_screen.dart';
 import 'views/verify_email_screen.dart';
@@ -42,9 +43,14 @@ class AuthModule extends FeatureModule {
         ),
         GoRoute(
           path: '/verify-email',
+          // Reached only from the signup screen, which passes the pending
+          // registration as `extra`; a direct hit falls back to signup.
+          redirect: (context, state) =>
+              state.extra is PendingRegistration ? null : '/signup',
           builder: (context, state) => BlocProvider(
             create: (context) => VerifyEmailCubit(
               authRepository: context.read<AuthRepository>(),
+              pending: state.extra as PendingRegistration,
             ),
             child: const VerifyEmailScreen(),
           ),

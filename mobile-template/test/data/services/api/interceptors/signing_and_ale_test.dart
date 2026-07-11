@@ -161,7 +161,7 @@ void main() {
 
       metadata = SecurityMetadataService(
         MockClient((request) async =>
-            http.Response(jsonEncode({'publicKey': pem}), 200)),
+            http.Response(jsonEncode({'alePublicKey': pem}), 200)),
       );
     });
 

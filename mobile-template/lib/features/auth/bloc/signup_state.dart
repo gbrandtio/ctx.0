@@ -15,8 +15,14 @@ final class SignupLoading extends SignupState {
   const SignupLoading();
 }
 
-final class SignupSuccess extends SignupState {
-  const SignupSuccess();
+/// The code was emailed; the UI navigates to the verify screen carrying
+/// [pending] so registration can complete with the entered code.
+final class SignupCodeSent extends SignupState {
+  const SignupCodeSent(this.pending);
+  final PendingRegistration pending;
+
+  @override
+  List<Object?> get props => [pending];
 }
 
 final class SignupFailure extends SignupState {

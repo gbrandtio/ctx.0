@@ -2,7 +2,10 @@ import 'package:equatable/equatable.dart';
 
 import 'user.dart';
 
-/// Login/signup/refresh response: rotating token pair + the user.
+/// Login/signup/refresh response. The API returns a FLAT shape
+/// (docs/API/swagger.json — AuthResponse: accessToken, refreshToken,
+/// expiresAtUtc, userId, username, email); the user is reconstructed from
+/// those fields.
 class AuthSession extends Equatable {
   const AuthSession({
     required this.accessToken,
@@ -14,7 +17,11 @@ class AuthSession extends Equatable {
     return AuthSession(
       accessToken: json['accessToken'] as String,
       refreshToken: json['refreshToken'] as String,
-      user: User.fromJson(json['user'] as Map<String, dynamic>),
+      user: User(
+        id: json['userId'].toString(),
+        email: json['email'] as String,
+        username: json['username'] as String?,
+      ),
     );
   }
 

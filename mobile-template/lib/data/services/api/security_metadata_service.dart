@@ -31,7 +31,9 @@ class SecurityMetadataService {
       );
     }
     final json = jsonDecode(response.body) as Map<String, dynamic>;
-    final pem = json['publicKey'] as String;
+    // Field name per the API's /v1/security/metadata contract
+    // (APPLICATION_LAYER_SECURITY.md §3).
+    final pem = json['alePublicKey'] as String;
     final key = CryptoUtils.parseRsaPublicKeyPem(pem);
     _cachedKey = key;
     return key;

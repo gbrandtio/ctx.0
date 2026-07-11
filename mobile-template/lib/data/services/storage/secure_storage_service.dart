@@ -17,8 +17,15 @@ class SecureStorageService {
 
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
+  static const _userIdKey = 'user_id';
   static const _deviceIdKey = 'device_id';
   static const _devicePrivateKeyKey = 'device_private_key';
+
+  /// The authenticated user's id, needed to address `/users/{id}` on
+  /// session restore. Not a secret, but its lifecycle matches the tokens.
+  Future<String?> readUserId() => _storage.read(key: _userIdKey);
+  Future<void> writeUserId(String id) =>
+      _storage.write(key: _userIdKey, value: id);
 
   Future<String?> readAccessToken() => _storage.read(key: _accessTokenKey);
   Future<String?> readRefreshToken() => _storage.read(key: _refreshTokenKey);
@@ -34,6 +41,7 @@ class SecureStorageService {
   Future<void> deleteTokens() async {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
+    await _storage.delete(key: _userIdKey);
   }
 
   Future<String?> readDeviceId() => _storage.read(key: _deviceIdKey);

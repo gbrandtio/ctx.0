@@ -8,7 +8,8 @@ import '../../../models/user.dart';
 import 'interceptors/caching_client.dart';
 import 'mixins/api_base_mixin.dart';
 
-/// User & auth endpoints. Auth/session calls always bypass the cache
+/// User & auth endpoints, matching the shipped API (docs/API/swagger.json).
+/// Auth/session calls always bypass the cache
 /// (docs/CACHING_IMPLEMENTATION.md "Mandatory Bypass").
 class UserApiService with ApiBaseMixin {
   UserApiService(this._client);
@@ -18,31 +19,51 @@ class UserApiService with ApiBaseMixin {
   static const _jsonHeaders = {'Content-Type': 'application/json'};
   static const _noCacheHeaders = {CachingClient.bypassHeader: 'true'};
 
-  Future<AuthSession> login(String email, String password) async {
+  /// Step 1 of registration: emails a verification code
+  /// (AUTHENTICATION.md — /users/register/send-code).
+  Future<void> sendSignupCode(String email) async {
     final response = await _client.post(
-      ApiConstants.uri(ApiConstants.login),
+      ApiConstants.uri(ApiConstants.sendSignupCode),
       headers: _jsonHeaders,
-      body: jsonEncode({'email': email, 'password': password}),
+      body: jsonEncode({'email': email}),
     );
-    return AuthSession.fromJson(
-      decodeResponse(response) as Map<String, dynamic>,
-    );
+    decodeResponse(response);
   }
 
-  Future<AuthSession> signup({
+  /// Step 2: creates the account with the verification code, returning a
+  /// session (POST /users).
+  Future<AuthSession> register({
+    required String username,
     required String email,
     required String password,
-    String? displayName,
+    required String verificationCode,
+    String? name,
     required Map<String, bool> consents,
   }) async {
     final response = await _client.post(
       ApiConstants.uri(ApiConstants.users),
       headers: _jsonHeaders,
       body: jsonEncode({
+        'username': username,
         'email': email,
         'password': password,
-        'displayName': displayName,
+        'verificationCode': verificationCode,
+        'name': name,
         'consents': consents,
+      }),
+    );
+    return AuthSession.fromJson(
+      decodeResponse(response) as Map<String, dynamic>,
+    );
+  }
+
+  Future<AuthSession> login(String usernameOrEmail, String password) async {
+    final response = await _client.post(
+      ApiConstants.uri(ApiConstants.login),
+      headers: _jsonHeaders,
+      body: jsonEncode({
+        'usernameOrEmail': usernameOrEmail,
+        'password': password,
       }),
     );
     return AuthSession.fromJson(
@@ -61,23 +82,6 @@ class UserApiService with ApiBaseMixin {
     );
   }
 
-  Future<void> verifyEmail(String code) async {
-    final response = await _client.post(
-      ApiConstants.uri(ApiConstants.verifyEmail),
-      headers: _jsonHeaders,
-      body: jsonEncode({'code': code}),
-    );
-    decodeResponse(response);
-  }
-
-  Future<void> resendVerification() async {
-    final response = await _client.post(
-      ApiConstants.uri(ApiConstants.resendVerification),
-      headers: _jsonHeaders,
-    );
-    decodeResponse(response);
-  }
-
   Future<void> logout(String refreshToken) async {
     final response = await _client.post(
       ApiConstants.uri(ApiConstants.logout),
@@ -87,33 +91,34 @@ class UserApiService with ApiBaseMixin {
     decodeResponse(response);
   }
 
-  Future<User> getMe({bool forceRefresh = false}) async {
+  Future<User> getUser(String userId, {bool forceRefresh = false}) async {
     final response = await _client.get(
-      ApiConstants.uri(ApiConstants.me),
+      ApiConstants.uri(ApiConstants.user(userId)),
       headers: forceRefresh ? _noCacheHeaders : null,
     );
     return User.fromJson(decodeResponse(response) as Map<String, dynamic>);
   }
 
-  Future<User> updateMe({String? displayName}) async {
+  Future<User> updateUser(String userId, {String? displayName}) async {
     final response = await _client.patch(
-      ApiConstants.uri(ApiConstants.me),
+      ApiConstants.uri(ApiConstants.user(userId)),
       headers: _jsonHeaders,
-      body: jsonEncode({'displayName': displayName}),
+      body: jsonEncode({'name': displayName}),
     );
     return User.fromJson(decodeResponse(response) as Map<String, dynamic>);
   }
 
   /// GDPR anonymizing delete (docs/APP_SHELL.md §4).
-  Future<void> deleteMe() async {
-    final response = await _client.delete(ApiConstants.uri(ApiConstants.me));
+  Future<void> deleteUser(String userId) async {
+    final response =
+        await _client.delete(ApiConstants.uri(ApiConstants.user(userId)));
     decodeResponse(response);
   }
 
   /// GDPR data export request; completion is delivered via push.
-  Future<void> requestDataExport() async {
+  Future<void> requestDataExport(String userId) async {
     final response = await _client.post(
-      ApiConstants.uri(ApiConstants.myExports),
+      ApiConstants.uri(ApiConstants.userExports(userId)),
       headers: _jsonHeaders,
     );
     decodeResponse(response);

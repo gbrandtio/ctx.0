@@ -14,22 +14,25 @@ abstract final class ApiConstants {
   static const bool useMockData =
       bool.fromEnvironment('USE_MOCK_DATA', defaultValue: false);
 
-  // ---- Endpoints (paths are relative to `$baseUrl/$apiVersion`) ----
+  // ---- Endpoints (paths match the shipped API's swagger.json;
+  // see docs/API/swagger.json and the API's AUTHENTICATION.md) ----
   static const String users = '/users';
-  static const String login = '/users/login';
-  static const String refreshToken = '/users/refresh-token';
+  static const String sendSignupCode = '/users/register/send-code';
+  static const String login = '/users/authenticate';
+  static const String refreshToken = '/users/refresh';
   static const String logout = '/users/logout';
-  static const String verifyEmail = '/users/verify-email';
-  static const String resendVerification = '/users/resend-verification';
-  static const String googleSignIn = '/users/google-sign-in';
-  static const String me = '/users/me';
-  static const String myExports = '/users/me/exports';
+  static const String googleSignIn = '/users/google/authenticate';
   static const String notifications = '/users/notifications';
   static const String firebaseToken = '/users/firebase/token';
   static const String paymentIntents = '/payments/intents';
   static const String itemsNearby = '/items/nearby';
   static const String securityMetadata = '/security/metadata';
   static const String appInstances = '/security/app-instances';
+
+  /// Per-user resources are addressed by id ({userId} + UserSelf policy),
+  /// not a `/me` alias.
+  static String user(String userId) => '/users/$userId';
+  static String userExports(String userId) => '/users/$userId/exports';
 
   static Uri uri(String path, [Map<String, dynamic>? query]) =>
       Uri.parse('$baseUrl/$apiVersion$path').replace(

@@ -62,12 +62,9 @@ class ProfileScreen extends StatelessWidget {
                       leading: const Icon(Icons.email_outlined),
                       title: Text(user.email),
                       subtitle: Text(l10n.emailLabel),
-                      trailing: user.emailVerified
-                          ? const Icon(Icons.verified_outlined)
-                          : TextButton(
-                              onPressed: () => context.go('/verify-email'),
-                              child: Text(l10n.verifyEmailTitle),
-                            ),
+                      // The API verifies the email during registration, so
+                      // an authenticated account is always verified.
+                      trailing: const Icon(Icons.verified_outlined),
                     ),
                   ),
                 ],

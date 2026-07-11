@@ -5,13 +5,14 @@ import 'package:equatable/equatable.dart';
 import '../../../core/result/result.dart';
 import '../../../core/utils/app_exception.dart';
 import '../../../data/repositories/auth_repository.dart';
+import '../data/pending_registration.dart';
 
 part 'signup_event.dart';
 part 'signup_state.dart';
 
-/// Signup screen Bloc; submission is droppable (docs/STATE_MANAGEMENT.md
-/// §4). Consents collected here are sent with the signup request
-/// (docs/features/SIGNUP.md; the set is configured in AppConfig).
+/// Signup step 1 (AUTHENTICATION.md): validate the form and request an
+/// email verification code. The account is created on the verify screen
+/// with that code. Submission is droppable (docs/STATE_MANAGEMENT.md §4).
 class SignupBloc extends Bloc<SignupEvent, SignupState> {
   SignupBloc({required AuthRepository authRepository})
       : _authRepository = authRepository,
@@ -26,15 +27,16 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
     Emitter<SignupState> emit,
   ) async {
     emit(const SignupLoading());
-    final result = await _authRepository.signup(
+    final pending = PendingRegistration.fromForm(
       email: event.email,
       password: event.password,
       displayName: event.displayName,
       consents: event.consents,
     );
+    final result = await _authRepository.sendSignupCode(event.email);
     switch (result) {
       case Success():
-        emit(const SignupSuccess());
+        emit(SignupCodeSent(pending));
       case Failure(:final error):
         emit(SignupFailure(AppException.from(error).userFriendlyMessage));
     }

@@ -42,6 +42,7 @@ void main() {
           accessToken: any(named: 'accessToken'),
           refreshToken: any(named: 'refreshToken'),
         )).thenAnswer((_) async {});
+    when(() => secureStorage.writeUserId(any())).thenAnswer((_) async {});
     when(() => secureStorage.deleteTokens()).thenAnswer((_) async {});
     when(() => secureStorage.clearAll()).thenAnswer((_) async {});
     when(() => prefs.clear()).thenAnswer((_) async {});
@@ -93,11 +94,12 @@ void main() {
   test('restoreSession without a stored token settles unauthenticated',
       () async {
     when(() => secureStorage.readAccessToken()).thenAnswer((_) async => null);
+    when(() => secureStorage.readUserId()).thenAnswer((_) async => null);
 
     await repository.restoreSession();
 
     expect(repository.currentState, isA<Unauthenticated>());
-    verifyNever(() => userApi.getMe(
+    verifyNever(() => userApi.getUser(any(),
         forceRefresh: any(named: 'forceRefresh')));
   });
 
@@ -120,12 +122,16 @@ void main() {
   });
 
   test('deleteAccount purges secure storage entirely (GDPR)', () async {
-    when(() => userApi.deleteMe()).thenAnswer((_) async {});
+    // A session must exist first — delete addresses /users/{id}.
+    when(() => userApi.login(any(), any())).thenAnswer((_) async => _session);
+    when(() => userApi.deleteUser('u1')).thenAnswer((_) async {});
+    await repository.login('a@b.com', 'pw');
 
     final result = await repository.deleteAccount();
 
     expect(result, isA<Success<void>>());
     expect(repository.currentState, isA<Unauthenticated>());
+    verify(() => userApi.deleteUser('u1')).called(1);
     verify(() => secureStorage.clearAll()).called(1);
     verify(() => cachingClient.clearCache()).called(1);
   });

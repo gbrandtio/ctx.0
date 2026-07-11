@@ -80,8 +80,10 @@ class _SignupScreenState extends State<SignupScreen> {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(SnackBar(content: Text(state.message)));
-          } else if (state is SignupSuccess) {
-            context.go('/verify-email');
+          } else if (state is SignupCodeSent) {
+            // Carry the pending registration to the verify screen, which
+            // completes the account with the emailed code.
+            context.go('/verify-email', extra: state.pending);
           }
         },
         child: SafeArea(
