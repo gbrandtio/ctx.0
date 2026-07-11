@@ -14,7 +14,7 @@ public sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<App
     public AppDbContext CreateDbContext(string[] args)
     {
         var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-            ?? "Host=localhost;Port=5432;Database=app;Username=app;Password=app";
+            ?? "Host=localhost;Port=55432;Database=app;Username=app;Password=app";
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(connectionString, npgsql => npgsql.UseNetTopologySuite())
             .UseSnakeCaseNamingConvention()
