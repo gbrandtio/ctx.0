@@ -1,0 +1,27 @@
+# Local development database (DATABASE_CODE_FIRST.md): Postgres with
+# PostGIS. Apply migrations with:
+#   dotnet ef database update --project Infrastructure --startup-project AppApi
+# The connection string then uses host port 55432, e.g.
+#   Host=localhost;Port=55432;Database=app;Username=app;Password=app
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: ctx0-postgres
+    environment:
+      POSTGRES_DB: app
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    ports:
+      # Host port 55432 keeps this project's database independent of any
+      # other Postgres already bound to the default 5432 on the host.
+      - "55432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:

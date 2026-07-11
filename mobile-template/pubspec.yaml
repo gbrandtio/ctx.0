@@ -1,0 +1,70 @@
+name: app_template
+description: "Production app template — configurable shell + plug-n-play feature modules. See AGENTS.md."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.8
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management (docs/STATE_MANAGEMENT.md)
+  flutter_bloc: ^9.1.0
+  bloc: ^9.0.0
+  bloc_concurrency: ^0.3.0
+  equatable: ^2.0.7
+
+  # Navigation (docs/APP_SHELL.md)
+  go_router: ^16.0.0
+
+  # Networking & interceptors (docs/HTTP_HANDLING.md)
+  http: ^1.2.0
+
+  # Persistence (docs/CACHING_IMPLEMENTATION.md, docs/SECURITY.md §2)
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: ^9.2.0
+  shared_preferences: ^2.3.0
+
+  # Cryptography: ECDSA P-256 request signing + hybrid ALE (docs/SECURITY.md §1, §4)
+  pointycastle: ^4.0.0
+
+  # Device identity (docs/HTTP_HANDLING.md — X-App-Device-Id, UUID v4)
+  uuid: ^4.5.0
+
+  # Auth module: Google Sign-In (docs/features/AUTHENTICATION.md)
+  google_sign_in: ^7.2.0
+
+  # Settings module: privacy policy / terms links (docs/APP_SHELL.md §4)
+  url_launcher: ^6.3.0
+
+  # Brand SVG assets (docs/UI_UX_GUIDELINES.md §4D)
+  flutter_svg: ^2.0.0
+
+  intl: any
+  cupertino_icons: ^1.0.8
+  firebase_core: ^4.11.0
+  firebase_messaging: ^16.4.1
+  flutter_stripe: ^13.0.0
+  google_maps_flutter: ^2.17.1
+  geolocator: ^14.0.2
+  freerasp: ^8.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
+
+flutter:
+  generate: true # gen-l10n (docs/FLUTTER_LOCALIZATION.md)
+  uses-material-design: true
+
+  assets:
+    - assets/brand/
