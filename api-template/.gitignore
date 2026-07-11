@@ -3,3 +3,6 @@ obj/
 *.user
 .vs/
 appsettings.*.local.json
+
+# Local dev secrets / API config
+api-template/AppApi/appsettings.*.local.json

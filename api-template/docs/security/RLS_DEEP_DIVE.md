@@ -40,6 +40,8 @@ private void EnforceRls(DbCommand command, string userId)
 4.  **Batching Compatibility:** EF Core can batch its `INSERT/UPDATE` operations normally. The interceptor ensures the security context is "hot" on the connection before EF Core sends its batch.
 5.  **No Identity Leakage:** The `is_local: true` argument scopes the setting to the current transaction, so it is discarded when the transaction ends or the connection returns to the pool.
 
+> **Deployment requirement — the login role must not be a superuser.** RLS is silently skipped for any session whose role is a superuser or has `BYPASSRLS`. The default PostgreSQL superuser (and the default `POSTGRES_USER` in Docker images) bypasses every policy. In production the API must connect as a dedicated login role that is a **member of `app_user`** (a `NOLOGIN` role holding the policies) and is **neither a superuser nor the table owner**; the `AddRowLevelSecurity` migration grants `app_user` (and `app_internal_worker`) the table privileges such a login needs. The bypass worker path additionally `SET LOCAL ROLE app_internal_worker`, which requires an explicit transaction.
+
 ## 3. Architecture: ICurrentUserProvider
 
 To support RLS in various execution contexts (Web Requests, Background Jobs, Unit Tests), the identity retrieval is abstracted via `ICurrentUserProvider`.
