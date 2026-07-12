@@ -5,7 +5,7 @@ using Xunit;
 namespace IntegrationTests;
 
 /// <summary>
-/// RLS is the final, independent defense (AUTHORIZATION.md §10): even a
+/// RLS is the final, independent defense (AUTHORIZATION.md §11): even a
 /// direct SQL client that skips the API sees only its own rows. These
 /// tests set app.current_user_id exactly as the RlsInterceptor does and
 /// assert cross-tenant reads return nothing.

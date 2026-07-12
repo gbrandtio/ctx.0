@@ -6,7 +6,7 @@ namespace Infrastructure.Persistence.Migrations
 {
     /// <summary>
     /// Row-Level Security is the final, independent enforcement layer
-    /// (AUTHORIZATION.md §10, DATABASE_RLS_POLICIES.md). Roles, STABLE
+    /// (AUTHORIZATION.md §11, DATABASE_RLS_POLICIES.md). Roles, STABLE
     /// helper functions, and granular per-operation policies are applied
     /// via raw SQL (DATABASE_CODE_FIRST.md §5). Every owned table also
     /// gets an internal_worker_bypass_<table> policy for background jobs.

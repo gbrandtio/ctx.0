@@ -60,7 +60,7 @@ sequenceDiagram
 *   **Security Metadata Endpoint**: Provides dynamic SSL pinning hashes, ALE public keys, and security policies to the mobile application.
 
 ### Layer 2: Identity & Access Management (IAM)
-*   **Permission-Based Authorization**: Moving beyond simple roles, the system uses granular permissions (e.g., `orders:read`, `items:update`) mapped to roles.
+*   **Permission-Based Authorization**: Moving beyond simple roles, the system uses granular permissions (e.g., `orders:view`, `projects:update`) bundled into grant roles by a startup-validated **Role Catalog**. Default roles (`Admin`, `ReadWrite`, `ReadSelf`, `Payments`) ship out of the box; custom roles are defined via the `Rbac` configuration section, and only catalog-defined roles are usable ([Authorization](security/AUTHORIZATION.md) §4).
 *   **Automated Resource Ownership Verification**: Custom authorization handlers automatically verify that a user owns the resource they are accessing (e.g., matching a JWT claim against a route parameter) before the request reaches business logic. This provides robust protection against IDOR (Insecure Direct Object Reference) attacks.
 *   **Short-lived JWTs**: Access tokens expire in 15 minutes, limiting the window for stolen tokens.
 *   **Refresh Token Rotation**: Every refresh token usage generates a new one.

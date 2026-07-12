@@ -12,7 +12,7 @@ The template ships with a two-level **example hierarchy** that fits most multi-t
 
 The authorization model is built on three pillars:
 
-1.  **Permissions over Roles**: Authorization gating is performed against granular permissions (e.g., `projects:read`, `analytics:view`) rather than broad roles. This allows for flexible mapping of permissions to roles without changing endpoint code.
+1.  **Permissions over Roles**: Authorization gating is performed against granular permissions (e.g., `projects:read`, `analytics:view`) rather than broad roles. Roles are named permission bundles defined in a single **Role Catalog** (Section 4), so permissions can be remapped without changing endpoint code.
 2.  **Stateless Resource Ownership**: JWT claims carry enough context (`orgId`, `projectId`, `uid`) to verify resource ownership (IDOR protection) at the authorization layer without extra database lookups in most cases.
 3.  **Decoupled Enforcement**: Authorization logic is separate from both business logic (Application layer) and database-level security (RLS).
 
@@ -30,6 +30,7 @@ graph TD
 
     subgraph "Authorization Logic"
         PH[PermissionHandler]
+        RC[RoleCatalog<br/>defaults + Rbac config]
         RH[Resource Handlers<br/>Project/Org/User]
     end
 
@@ -40,7 +41,8 @@ graph TD
 
     Claims --> PH
     Claims --> RH
-    PH --> Perms
+    PH --> RC
+    RC --> Perms
     Perms --> Pols
     RH --> Pols
     Pols --> Endpoints[Minimal API Endpoints]
@@ -66,11 +68,67 @@ Permissions are defined as strongly-typed constants in `Domain.Constants.Securit
 - `orders:manage`: Create and invalidate single-use, server-side order records (member side).
 - `payments:process`: Pay against a server-issued order (consumer side).
 
-Add new `resource:action` constants per feature — see Section 8.
+Add new `resource:action` constants per feature — see Section 9.
 
 ---
 
-## 4. Policy-Based Gating
+## 4. Role Catalog: Default Roles & Assignments
+
+The **RoleCatalog** (`Infrastructure.Security.RoleCatalog`) is the single source of truth for *which role grants which permissions*. It separates two concepts that are often conflated:
+
+*   **Principal role** (JWT `role` claim + optional `type` claim): *who* the caller is (`User`, `MemberUser`, `OrgUser`). Used by resource-ownership handlers and RLS — structural, rarely changes.
+*   **Grant role**: a named permission bundle from the catalog — *what* the caller may do. This is what you configure.
+
+### Default Grant Roles
+
+The template ships the bundles every CRUD app needs (`SecurityConstants.GrantRoles`):
+
+| Grant Role | Permissions | Intent |
+|---|---|---|
+| `Admin` | `*` (all permissions, present and future) | Full access |
+| `ReadWrite` | `projects:read`, `analytics:view`, `orders:manage`, `orders:view` | Read + write within own scope |
+| `ReadSelf` | `projects:read`, `orders:view` | Read-only over own resources |
+| `Payments` | `payments:process` | Pay against server-issued orders |
+
+### Default Assignments (Principal → Grant Roles)
+
+An assignment maps a principal key (`"Role"` or `"Role:Type"`) to one or more grant roles; the permissions are **unioned**:
+
+| Principal | Grant Roles |
+|---|---|
+| `OrgUser:Admin` | `Admin` |
+| `MemberUser` | `ReadWrite` |
+| `User` | `ReadSelf` + `Payments` |
+
+A principal with no assignment holds **no permissions** (deny by default). A JWT `role` claim that names a grant role directly (e.g., `"Admin"`) is honoured without an assignment.
+
+### Defining Your Own Roles (Configuration)
+
+Everything above is overridable — and custom roles are addable — via the `Rbac` section of `appsettings.json`, no code changes required:
+
+```jsonc
+"Rbac": {
+  "Roles": {
+    "Analyst": ["analytics:view", "projects:read"],   // new custom role
+    "ReadSelf": ["orders:view"]                        // overrides the default bundle
+  },
+  "Assignments": {
+    "Support": ["Analyst"],                            // new principal → custom role
+    "MemberUser": ["ReadWrite", "Analyst"]             // reassign a shipped principal
+  }
+}
+```
+
+**Rules (validated at startup — violations abort the application):**
+
+1.  **Only defined roles can be used.** Every assignment must reference roles present in the catalog (defaults or `Rbac:Roles`).
+2.  **Only known permissions can be granted.** Every permission string must exist in `SecurityConstants.Permissions.Known` (or be `*`). A typo fails fast instead of silently denying.
+
+To change the *defaults* themselves (e.g., for a permanent product decision rather than a deployment override), edit `RoleCatalog.DefaultRoles` / `DefaultAssignments` — one file.
+
+---
+
+## 5. Policy-Based Gating
 
 Endpoints are protected using standardized ASP.NET Core Authorization Policies. These policies combine **Permission Requirements** with **Resource Ownership Handlers**.
 
@@ -90,15 +148,12 @@ Endpoints are protected using standardized ASP.NET Core Authorization Policies. 
 
 ---
 
-## 5. Authorization Handlers
+## 6. Authorization Handlers
 
 The Infrastructure layer implements custom `AuthorizationHandler<TRequirement>` classes to enforce these policies.
 
 ### PermissionHandler
-Maps the `role` and `type` claims in the JWT to specific permissions.
-- **OrgAdmin** (OrgUser + Type: Admin): Granted all permissions.
-- **MemberUser**: Granted `projects:read`, `analytics:view`, `orders:manage`, `orders:view`.
-- **User**: Granted `projects:read`, `orders:view`, `payments:process`.
+Resolves the JWT `role`/`type` claims through the **RoleCatalog** (Section 4) and succeeds when the assigned grant roles hold the required permission. The handler contains no role logic itself — the catalog (defaults + `Rbac` configuration) is the only place grants are defined.
 
 ### Resource Handlers (IDOR Protection)
 These handlers provide automated "Deep Gating" by comparing the user's secure JWT claims against the resource IDs in the URL.
@@ -135,7 +190,7 @@ v1.MapGroup("/projects/{id}/analytics")
 
 ---
 
-## 6. Two-Actor Payment Authorization
+## 7. Two-Actor Payment Authorization
 
 Order-based payments involve two distinct actors under different policies (see [Payments](../features/PAYMENTS_STRIPE.md) for the full flow):
 
@@ -151,7 +206,7 @@ Order-based payments involve two distinct actors under different policies (see [
 
 ---
 
-## 7. Member User Management Authorization
+## 8. Member User Management Authorization
 
 Managing member users (such as listing or updating them) has specific authorization rules:
 
@@ -167,24 +222,27 @@ Managing member users (such as listing or updating them) has specific authorizat
 
 ---
 
-## 8. Adding New Permissions or Roles (Configuration Points)
+## 9. Adding New Permissions or Roles (Configuration Points)
 
 This section is the extension contract for your product's features (see also [Extending the Template](../architecture/EXTENDING_THE_TEMPLATE.md)).
 
 ### To add a new Permission:
-1.  Add the `resource:action` constant to `Domain.Constants.SecurityConstants`.
-2.  Update `Infrastructure.Security.Handlers.PermissionHandler` to map the new permission to existing roles.
+1.  Add the `resource:action` constant to `Domain.Constants.SecurityConstants.Permissions` **and** to its `Known` set (the catalog validates against it).
+2.  Grant it to roles in the **RoleCatalog** — either in `RoleCatalog.DefaultRoles` or via `Rbac:Roles` configuration (Section 4). `Admin` picks it up automatically through the `*` wildcard.
 3.  Register a new policy in `AppApi.Extensions.SecurityExtensions`.
 
-### To add a new Role:
-1.  Add the constant to `Domain.Constants.SecurityConstants`.
-2.  Update the `PermissionHandler` switch expression to define the role's permission set.
+### To add a new (grant) Role:
+Define it in `Rbac:Roles` (configuration) or `RoleCatalog.DefaultRoles` (code) as a list of known permissions, then assign principals to it via `Rbac:Assignments`. No handler code changes. Undefined roles cannot be used — startup validation rejects them.
+
+### To add a new Principal (a new kind of user):
+1.  Add the role constant to `SecurityConstants.Roles`.
+2.  Assign it to grant roles in the catalog (`Rbac:Assignments` or `RoleCatalog.DefaultAssignments`).
 3.  Update the `Authenticate` and `Refresh` handlers in the Application layer to provision the new role claim.
 
 ### To rename the example hierarchy:
 Rename `Project`/`MemberUser` (entities, permissions, policies, route parameters, JWT claim, tables, RLS functions) consistently to your domain's terms in a single change; the verification mechanism itself never changes.
 
-## 9. Request Authorization Flow
+## 10. Request Authorization Flow
 
 This sequence diagram illustrates the request lifecycle, specifically how the system performs parallel checks for both granular permissions and resource ownership (IDOR protection).
 
@@ -222,7 +280,7 @@ sequenceDiagram
 
 ---
 
-## 10. Relationship with Row-Level Security (RLS)
+## 11. Relationship with Row-Level Security (RLS)
 
 While RBAC is the primary gatekeeper at the API level, **Row-Level Security (RLS)** in PostgreSQL provides a final, independent layer of defense. RBAC ensures the user is *authorized* to call the endpoint; RLS ensures that even if an authorization check is bypassed, the database will only return rows belonging to the authenticated session (`app.current_user_id`).
 
@@ -236,8 +294,8 @@ The user ID is always passed as a **parameter** (never string-interpolated — t
 
 ---
 
-## 11. Best Practices
+## 12. Best Practices
 
 1.  **Always use Policies**: Never check roles or IDs manually inside an endpoint lambda. Use `.RequireAuthorization(SecurityConstants.Policies.X)`.
-2.  **Resource-Aware Routing**: Ensure your routes use the standard parameter names (see Section 5) so the automated resource handlers can pick them up.
+2.  **Resource-Aware Routing**: Ensure your routes use the standard parameter names (see Section 6) so the automated resource handlers can pick them up.
 3.  **Stateless First**: Design your authorization logic to rely on JWT claims whenever possible. Only use repository lookups in handlers (like `ProjectResourceHandler` for OrgUsers) when absolute verification across entities is required.

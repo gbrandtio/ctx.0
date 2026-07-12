@@ -31,7 +31,7 @@ Both templates implement layered security, documented in detail:
 
 1. **Edge**: TLS, partitioned rate limiting (per-identity / per-IP)
 2. **Transport (application layer)**: request/response body encryption (ALE, AES-256-GCM with RSA key wrapping) and per-device ECDSA P-256 request signing
-3. **Identity & access**: permission-based RBAC, automated resource-ownership (IDOR) checks, short-lived JWTs, refresh token rotation + family revocation
+3. **Identity & access**: permission-based RBAC with a configurable role catalog (default roles `Admin`, `ReadWrite`, `ReadSelf`, `Payments`; custom roles via config), automated resource-ownership (IDOR) checks, short-lived JWTs, refresh token rotation + family revocation
 4. **Data integrity**: global input sanitization, atomic operations, server-side source-of-truth validation
 5. **Data at rest**: envelope encryption (per-row DEKs under a versioned KEK), blind indexes for searchable PII, PostgreSQL Row-Level Security
 6. **Client runtime**: secure storage, RASP (root/debugger/tamper detection), memory hygiene for secrets

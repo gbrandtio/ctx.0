@@ -3,7 +3,7 @@ namespace Domain.Entities;
 /// <summary>
 /// Child resource of the example hierarchy (a store, team, workspace, …).
 /// Rename to your domain's unit in a single consistent change
-/// (AUTHORIZATION.md §8).
+/// (AUTHORIZATION.md §9).
 /// </summary>
 public class Project
 {

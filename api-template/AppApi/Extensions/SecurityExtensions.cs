@@ -10,9 +10,9 @@ using Microsoft.IdentityModel.Tokens;
 namespace AppApi.Extensions;
 
 /// <summary>
-/// AuthN (JWT bearer), AuthZ policies (AUTHORIZATION.md §4), and the
+/// AuthN (JWT bearer), AuthZ policies (AUTHORIZATION.md §5), and the
 /// partitioned rate limiter (AUTHENTICATION.md — Infrastructure Security).
-/// New feature permissions register their policy here (§8).
+/// New feature permissions register their policy here (§9).
 /// </summary>
 public static class SecurityExtensions
 {
@@ -37,6 +37,12 @@ public static class SecurityExtensions
                     ClockSkew = TimeSpan.FromSeconds(30),
                 };
             });
+
+        // Role catalog: defaults merged with the Rbac config section;
+        // construction validates definitions so bad config aborts startup.
+        var rbacOptions = configuration.GetSection(RbacOptions.SectionName)
+            .Get<RbacOptions>() ?? new RbacOptions();
+        services.AddSingleton(new RoleCatalog(rbacOptions));
 
         // Permission handler is stateless; resource handlers are scoped
         // (they use the request DbContext for hierarchical verification).

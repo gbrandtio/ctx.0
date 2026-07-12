@@ -8,7 +8,7 @@ using MediatR;
 namespace AppApi.Endpoints.v1;
 
 /// <summary>
-/// Member-actor order creation (AUTHORIZATION.md §6): the OrderManage
+/// Member-actor order creation (AUTHORIZATION.md §7): the OrderManage
 /// policy requires orders:manage AND membership of the route's
 /// {projectId}.
 /// </summary>

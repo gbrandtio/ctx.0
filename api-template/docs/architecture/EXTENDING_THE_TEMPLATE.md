@@ -25,7 +25,7 @@ One folder per aggregate, one file per use case under `Application/Features/<Agg
 
 ## 4. Permissions & policies
 
-New `resource:action` constants in `Domain.Constants.SecurityConstants`, mapped in `PermissionHandler`, policy registered in `SecurityExtensions` ([Authorization](../security/AUTHORIZATION.md) §8). Routes must use the standard resource-ID parameter names so automated IDOR handlers engage (§5).
+New `resource:action` constants in `Domain.Constants.SecurityConstants` (including its `Known` set), granted to roles in the `RoleCatalog` (defaults or `Rbac` configuration), policy registered in `SecurityExtensions` ([Authorization](../security/AUTHORIZATION.md) §9). Custom roles are defined in `Rbac:Roles` — only catalog-defined roles are usable (§4). Routes must use the standard resource-ID parameter names so automated IDOR handlers engage (§6).
 
 ## 5. Endpoints (one `IEndpointModule` per aggregate)
 

@@ -13,7 +13,7 @@ public sealed record CreateOrderCommand(
 /// <summary>
 /// Member actor creates the server-issued, single-use order record — the
 /// authoritative amount for the later consumer payment
-/// (AUTHORIZATION.md §6, PAYMENTS_STRIPE.md).
+/// (AUTHORIZATION.md §7, PAYMENTS_STRIPE.md).
 /// </summary>
 public sealed class CreateOrderHandler(
     IOrderRepository orders,

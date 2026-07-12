@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Infrastructure.Security.Handlers;
 
 /// <summary>
-/// Automated IDOR protection (AUTHORIZATION.md §5): route parameters with
+/// Automated IDOR protection (AUTHORIZATION.md §6): route parameters with
 /// the standard names ({projectId}, {userId}, {orgId}, {orgUserId},
 /// {memberUserId}) are verified against JWT claims — stateless where
 /// possible, hierarchical DB lookup for multi-org owners. Registered
@@ -47,7 +47,7 @@ public sealed class ProjectResourceHandler(IHttpContextAccessor httpContextAcces
             return;
         }
 
-        // Hierarchical path (AUTHORIZATION.md §5): an OrgUser may own many
+        // Hierarchical path (AUTHORIZATION.md §6): an OrgUser may own many
         // organizations — resolve the project's parent org and match it
         // against the JWT orgId claims.
         if (role == SecurityConstants.Roles.OrgUser)
@@ -139,7 +139,7 @@ public sealed class MemberUserResourceHandler(
             return;
         }
 
-        // Org-owner path (AUTHORIZATION.md §7).
+        // Org-owner path (AUTHORIZATION.md §8).
         if (context.User.FindFirstValue(ClaimTypes.Role) == SecurityConstants.Roles.OrgUser)
         {
             var orgIds = context.User.FindAll(SecurityConstants.ClaimTypes.OrgId)

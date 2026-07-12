@@ -62,7 +62,7 @@ app.UseMiddleware<RequestSigningMiddleware>();
 app.UseAuthentication();
 
 // RLS identity: expose the JWT uid to the RlsInterceptor for this
-// request's async flow (AUTHORIZATION.md §10).
+// request's async flow (AUTHORIZATION.md §11).
 app.Use((context, next) =>
 {
     var userContext = context.RequestServices.GetRequiredService<CurrentUserContext>();
