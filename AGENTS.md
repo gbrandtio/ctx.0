@@ -7,6 +7,7 @@ This repository contains two independent application templates. Your **first ste
 | The task involves... | Go to |
 |---|---|
 | Flutter, Dart, widgets, Bloc/Cubit state, mobile UI/UX, localization, mobile caching (Hive), mobile security (RASP, secure storage, client-side signing/ALE), app builds/signing | [`mobile-template/AGENTS.md`](mobile-template/AGENTS.md) |
+| Enabling/disabling optional mobile integrations (Google Maps, Firebase push, Stripe checkout) | [`mobile-template/docs/INTEGRATIONS.md`](mobile-template/docs/INTEGRATIONS.md) — scaffolder-only; API-side counterparts per `api-template/AGENTS.md` |
 | .NET, C#, ASP.NET Core, EF Core, PostgreSQL, migrations, RLS, server-side auth (JWT/refresh tokens/RBAC), envelope encryption, middleware, Stripe webhooks, FCM dispatch, PostGIS | [`api-template/AGENTS.md`](api-template/AGENTS.md) |
 | Business context or feature specs (`docs/core-business/`, `docs/features/`) | Top-level `docs/`; these are the fill-in contracts both templates consume. |
 | Repo-level docs (this file, `README.md`), licensing, repository structure | Stay here; keep changes consistent with both templates. |

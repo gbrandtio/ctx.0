@@ -45,10 +45,14 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- ctx:maps_google:begin -->
+	<!-- ctx:off
 	<key>GMSApiKey</key>
 	<string>$(MAPS_API_KEY)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your location is used to show nearby items on the map.</string>
+	ctx:off -->
+	<!-- ctx:maps_google:end -->
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>

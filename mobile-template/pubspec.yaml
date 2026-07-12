@@ -48,12 +48,24 @@ dependencies:
 
   intl: any
   cupertino_icons: ^1.0.8
-  firebase_core: ^4.11.0
-  firebase_messaging: ^16.4.1
-  flutter_stripe: ^13.0.0
-  google_maps_flutter: ^2.17.1
-  geolocator: ^14.0.2
+
+  # RASP (docs/SECURITY.md §4.1) — part of the permanent security plane,
+  # NOT an optional integration; never remove (docs/INTEGRATIONS.md §1).
   freerasp: ^8.0.0
+
+  # Opt-in integrations — managed ONLY by `dart run tool/scaffold.dart`
+  # (docs/INTEGRATIONS.md). Never hand-edit the marker blocks below.
+  # ctx:push_firebase:begin
+  # ctx:off firebase_core: ^4.11.0
+  # ctx:off firebase_messaging: ^16.4.1
+  # ctx:push_firebase:end
+  # ctx:payments_stripe:begin
+  # ctx:off flutter_stripe: ^13.0.0
+  # ctx:payments_stripe:end
+  # ctx:maps_google:begin
+  # ctx:off google_maps_flutter: ^2.17.1
+  # ctx:off geolocator: ^14.0.2
+  # ctx:maps_google:end
 
 dev_dependencies:
   flutter_test:

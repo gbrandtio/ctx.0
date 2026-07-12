@@ -11,7 +11,7 @@ These variables are primarily used in `android/app/build.gradle.kts` for signing
 | `RELEASE_STORE_PASSWORD` | Password for the keystore. | Env / `key.properties` | Yes |
 | `RELEASE_KEY_ALIAS` | Alias for the signing key. | Env / `key.properties` | Yes |
 | `RELEASE_KEY_PASSWORD` | Password for the signing key. | Env / `key.properties` | Yes |
-| `MAPS_API_KEY` | Google Maps API Key (also used as a manifest placeholder). | Env / `--dart-define` | Yes |
+| `MAPS_API_KEY` | Google Maps API Key (also used as a manifest placeholder). Only relevant while the `maps_google` integration is enabled (`docs/INTEGRATIONS.md`). | Env / `--dart-define` | Only with `maps_google` |
 | `RASP_ANDROID_PACKAGE_NAME` | Android package name for RASP verification. | Env / `--dart-define` | No (Default: your application ID) |
 | `RASP_ANDROID_SIGNING_HASH` | SHA-256 fingerprint(s) of the signing certificate. | Env / `--dart-define` | No (Default: Empty) |
 
@@ -21,7 +21,7 @@ These variables are consumed by the Dart layer using `String.fromEnvironment`. T
 | Variable | Description | Format | Class |
 | :--- | :--- | :--- | :--- |
 | `API_BASE_URL` | Base URL of the backend API (e.g., `https://api.example.com`). | String | `ApiConstants` |
-| `MAPS_API_KEY` | Google Maps API Key (consumed by the Maps feature). | String | `ApiConstants` |
+| `MAPS_API_KEY` | Google Maps API Key (`maps_google` integration only). | String | `ApiConstants` |
 | `RASP_ANDROID_PACKAGE_NAME` | Android package name used for Talsec verification. | String | `SecurityConstants` |
 | `RASP_ANDROID_SIGNING_HASH` | Comma-separated list of SHA-256 fingerprints. | Base64 List | `SecurityConstants` |
 | `RASP_IOS_BUNDLE_ID` | iOS Bundle Identifier for Talsec verification. | String | `SecurityConstants` |
@@ -29,9 +29,9 @@ These variables are consumed by the Dart layer using `String.fromEnvironment`. T
 | `RASP_WATCHER_MAIL` | Email receiving Talsec security reports; RASP stays inactive while empty. | String | `SecurityConstants` |
 | `APP_NAME` | Display name (window title, PaymentSheet merchant name). | String | `AppConfig` |
 | `PRIVACY_POLICY_URL` / `TERMS_OF_SERVICE_URL` | GDPR/legal links shown in Settings (see `APP_SHELL.md` §4). | String | `AppConfig` |
-| `STRIPE_PUBLISHABLE_KEY` | Stripe **publishable** key for the payments module. The secret key exists only on the API. | String | `AppConfig` |
-| `APPLE_PAY_MERCHANT_ID` | Apple Pay merchant identifier (empty disables Apple Pay). | String | `AppConfig` |
-| `MERCHANT_COUNTRY_CODE` | ISO country code for Google Pay / Apple Pay (default `US`). | String | `AppConfig` |
+| `STRIPE_PUBLISHABLE_KEY` | Stripe **publishable** key (`payments_stripe` integration only). The secret key exists only on the API. | String | `AppConfig` |
+| `APPLE_PAY_MERCHANT_ID` | Apple Pay merchant identifier (`payments_stripe` only; empty disables Apple Pay). | String | `AppConfig` |
+| `MERCHANT_COUNTRY_CODE` | ISO country code for Google Pay / Apple Pay (`payments_stripe` only; default `US`). | String | `AppConfig` |
 | `USE_MOCK_DATA` | Switch ApiServices to simulated data (default `false`). | bool | `ApiConstants` |
 
 > **Note on request signing**: Request signing uses per-device asymmetric ECDSA P-256 key pairs generated at runtime and stored in hardware-backed storage (see `docs/SECURITY.md`). There is **no shared signing secret** to configure and never add one. A build-time shared HMAC secret can be extracted by decompiling the app and must not be reintroduced.

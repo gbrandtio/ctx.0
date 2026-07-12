@@ -1,10 +1,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Maps module: approximate location is enough for "nearby" queries;
-         fine location improves marker accuracy. -->
+         fine location improves marker accuracy. Managed by tool/scaffold
+         (docs/INTEGRATIONS.md) — do not edit the ctx marker blocks. -->
+    <!-- ctx:maps_google:begin -->
+    <!-- ctx:off
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    ctx:off -->
+    <!-- ctx:maps_google:end -->
     <!-- Notifications module: Android 13+ runtime push permission. -->
+    <!-- ctx:push_firebase:begin -->
+    <!-- ctx:off
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    ctx:off -->
+    <!-- ctx:push_firebase:end -->
     <application
         android:label="app_template"
         android:name="${applicationName}"
@@ -33,9 +42,13 @@
         </activity>
         <!-- Maps module: key injected at build time via the MAPS_API_KEY
              manifest placeholder (docs/ENVIRONMENT_VARIABLES.md). -->
+        <!-- ctx:maps_google:begin -->
+        <!-- ctx:off
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
+        ctx:off -->
+        <!-- ctx:maps_google:end -->
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

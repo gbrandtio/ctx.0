@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +18,18 @@ import 'views/notifications_screen.dart';
 /// (api-template/docs/features/NOTIFICATIONS.md).
 class NotificationsModule extends FeatureModule {
   const NotificationsModule();
+
+  /// Push needs the platform Firebase config (google-services.json /
+  /// GoogleService-Info.plist). Until it is added, the app runs without
+  /// push (PushTokenService degrades gracefully).
+  @override
+  Future<void> init() async {
+    try {
+      await Firebase.initializeApp();
+    } on Exception catch (e) {
+      debugPrint('Firebase not configured — push disabled: $e');
+    }
+  }
 
   @override
   List<RouteBase> get routes => [

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -27,15 +26,6 @@ Future<void> main() async {
   // detected before any secret leaves secure storage.
   await RaspService().init();
 
-  // Push notifications need the platform Firebase config
-  // (google-services.json / GoogleService-Info.plist). Until it is added,
-  // the app runs without push (PushTokenService degrades gracefully).
-  try {
-    await Firebase.initializeApp();
-  } on Exception catch (e) {
-    debugPrint('Firebase not configured — push disabled: $e');
-  }
-
   final prefs = await PrefsService.create();
   final secureStorage = SecureStorageService();
   final cacheService = HiveCacheService();
@@ -43,6 +33,14 @@ Future<void> main() async {
 
   final deviceIdentity = DeviceIdentityService(secureStorage);
   await deviceIdentity.init();
+
+  // Vendor SDK bootstrap is owned by the module that needs it
+  // (FeatureModule.init) — main() stays vendor-free so enabling or
+  // disabling an integration never touches this file
+  // (docs/INTEGRATIONS.md).
+  for (final module in appModules) {
+    await module.init();
+  }
 
   late final AuthRepository authRepository;
   final apiFactory = ApiServiceFactory(

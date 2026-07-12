@@ -1,5 +1,7 @@
 import Flutter
-import GoogleMaps
+// ctx:maps_google:begin
+// ctx:off import GoogleMaps
+// ctx:maps_google:end
 import UIKit
 
 @main
@@ -11,10 +13,14 @@ import UIKit
     // Maps module: the key is read from Info.plist (GMSApiKey), which the
     // build populates from MAPS_API_KEY (docs/ENVIRONMENT_VARIABLES.md).
     // Missing key: the app runs; only the map screen is non-functional.
-    if let mapsApiKey = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String,
-       !mapsApiKey.isEmpty {
-      GMSServices.provideAPIKey(mapsApiKey)
-    }
+    // The ctx marker blocks are managed by tool/scaffold
+    // (docs/INTEGRATIONS.md) — never edit them by hand.
+    // ctx:maps_google:begin
+    // ctx:off if let mapsApiKey = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String,
+       // ctx:off !mapsApiKey.isEmpty {
+      // ctx:off GMSServices.provideAPIKey(mapsApiKey)
+    // ctx:off }
+    // ctx:maps_google:end
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

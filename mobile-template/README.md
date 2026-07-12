@@ -12,6 +12,21 @@ flutter run --dart-define-from-file=config.json   # see docs/ENVIRONMENT_VARIABL
 flutter test
 ```
 
+## Optional integrations (off by default)
+
+Google Maps, Firebase push, and Stripe checkout ship disabled — their SDKs
+are not compiled until you opt in. Wire them **only** via the scaffolder
+(`docs/INTEGRATIONS.md`):
+
+```bash
+dart run tool/scaffold.dart status
+dart run tool/scaffold.dart enable maps_google   # push_firebase | payments_stripe
+dart run tool/scaffold.dart doctor
+```
+
+Security (RASP, request signing, ALE) is permanent and not part of this
+catalog — see `docs/SECURITY.md`.
+
 ## Layout
 
 - `lib/app/` — the shell: router, bottom-nav scaffold, and `modules.dart`

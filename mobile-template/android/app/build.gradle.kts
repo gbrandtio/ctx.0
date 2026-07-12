@@ -69,7 +69,9 @@ android {
 
 dependencies {
     // MaterialComponents theme host for the Stripe PaymentSheet.
-    implementation("com.google.android.material:material:1.12.0")
+    // ctx:payments_stripe:begin
+    // ctx:off implementation("com.google.android.material:material:1.12.0")
+    // ctx:payments_stripe:end
 }
 
 flutter {

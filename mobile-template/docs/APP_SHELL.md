@@ -8,6 +8,13 @@ Every feature (shipped or product-specific) is a self-contained folder under `li
 
 ```dart
 abstract class FeatureModule {
+  /// One-time bootstrap for SDKs this module owns (e.g. Firebase for the
+  /// notifications module). Called by main() after the security plane is
+  /// up, before runApp. Must degrade gracefully (log, don't throw) when
+  /// platform config is missing. Keeps main.dart vendor-free
+  /// (INTEGRATIONS.md §4).
+  Future<void> init() async {}
+
   /// GoRouter routes owned by this feature. Blocs are provided per-route
   /// (BlocProvider at the narrowest scope, per FLUTTER_ARCHITECTURE.md §6A).
   List<RouteBase> get routes;
@@ -31,7 +38,7 @@ abstract class FeatureModule {
 }
 ```
 
-`lib/app/modules.dart` holds the single ordered `List<FeatureModule>`. **Adding or removing a feature = one line there.** The shell composes everything else:
+`lib/app/modules.dart` holds the single ordered `List<FeatureModule>`. **Adding or removing a business feature = one line there.** Exception: the optional vendor integrations (maps, push, payments) are registered inside `ctx:` marker blocks managed exclusively by the scaffolder — never toggle those lines by hand (`docs/INTEGRATIONS.md`). The shell composes everything else:
 
 - **Router** (`lib/app/router.dart`): GoRouter assembled from every module's `routes`, plus a global auth redirect driven by `AuthRepository.authStateChanges` (signed-out users land on login; deep links are preserved).
 - **DI**: `MultiRepositoryProvider` from all `repositories`; `globalBlocs` mounted at the app root.

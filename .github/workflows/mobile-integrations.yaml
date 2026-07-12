@@ -1,0 +1,51 @@
+# Guards the opt-in integration mechanism (mobile-template/docs/INTEGRATIONS.md):
+# the template must analyze and test green both as shipped (all integrations
+# disabled) and with every integration enabled, and the scaffolder's doctor
+# must confirm marker-block consistency and an intact security plane in both.
+name: mobile-integrations
+
+on:
+  pull_request:
+    paths:
+      - "mobile-template/**"
+  push:
+    branches: [main]
+    paths:
+      - "mobile-template/**"
+
+jobs:
+  as-shipped:
+    name: shipped state (integrations off)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-template
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: dart run tool/scaffold.dart status
+      - run: dart run tool/scaffold.dart doctor
+      - run: flutter analyze
+      - run: flutter test
+
+  all-integrations-on:
+    name: all integrations enabled
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-template
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: dart run tool/scaffold.dart enable maps_google
+      - run: dart run tool/scaffold.dart enable push_firebase
+      - run: dart run tool/scaffold.dart enable payments_stripe
+      - run: dart run tool/scaffold.dart doctor
+      - run: flutter analyze
+      - run: flutter test

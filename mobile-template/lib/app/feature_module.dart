@@ -9,6 +9,13 @@ import 'package:go_router/go_router.dart';
 abstract class FeatureModule {
   const FeatureModule();
 
+  /// One-time bootstrap for SDKs this module owns (e.g. Firebase for the
+  /// notifications module). Called by main() after the security plane and
+  /// storage are up, before runApp. Must not throw on missing platform
+  /// config — degrade gracefully and log instead, so the template runs
+  /// before every vendor is configured.
+  Future<void> init() async {}
+
   /// GoRouter routes owned by this feature. Blocs are provided per-route
   /// (BlocProvider at the narrowest scope, docs/FLUTTER_ARCHITECTURE.md
   /// §6A). Routes of modules with a [navItem] live inside that module's

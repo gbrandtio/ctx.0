@@ -21,6 +21,7 @@ Before generating any code, you must ensure you have analyzed the following file
 - `docs/CACHING_IMPLEMENTATION.md`
 - `docs/SECURITY.md`
 - `docs/APP_SHELL.md`
+- `docs/INTEGRATIONS.md`
 - `docs/API/swagger.json`
 - `../docs/core-business/BUSINESS_CASE.md`
 - `../docs/core-business/CLIENT_SPECS.md`
@@ -70,7 +71,11 @@ Match the user's request to one of the broad categories below to find your requi
     *   `docs/UI_UX_GUIDELINES.md`
     *   `docs/FLUTTER_LOCALIZATION.md`
 
-### 6. Specific Feature Implementations
+### 6. Optional Integrations (Google Maps, Firebase push, Stripe)
+*   **Context:** Enabling, disabling, or configuring `maps_google`, `push_firebase`, `payments_stripe` — or any request to "add/remove/set up" Google Maps, Firebase/FCM, or Stripe.
+*   **Required Reading:** `docs/INTEGRATIONS.md` — **binding**: wiring happens ONLY via `dart run tool/scaffold.dart`; never hand-edit `ctx:` marker blocks, pubspec deps, or platform files for these. Security controls (RASP, signing, ALE) are permanent and are NOT integrations.
+
+### 7. Specific Feature Implementations
 *   **App shell (navigation, headers, settings, GDPR) & module registration:** `docs/APP_SHELL.md`
 *   **Auth/Login/Signup:** `../docs/features/LOGIN.md`, `../docs/features/SIGNUP.md`, `../docs/features/AUTHENTICATION.md`
 *   **User Profile:** `../docs/features/USER_PROFILE.md`
