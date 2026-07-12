@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/config/app_config.dart';
-import '../../../core/l10n/l10n.dart';
-import '../../../core/widgets/app_button.dart';
-import '../../../core/widgets/app_header.dart';
-import '../../../core/widgets/app_text_field.dart';
+import '../../../../core/config/app_config.dart';
+import '../../../../core/l10n/l10n.dart';
+import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_header.dart';
+import '../../../../core/widgets/app_text_field.dart';
 import '../bloc/signup_bloc.dart';
 
 class SignupScreen extends StatefulWidget {

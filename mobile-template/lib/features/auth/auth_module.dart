@@ -1,21 +1,30 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/feature_module.dart';
+import '../../core/l10n/l10n.dart';
 import '../../data/repositories/auth_repository.dart';
 import 'bloc/auth_bloc.dart';
 import 'bloc/login_bloc.dart';
-import 'bloc/signup_bloc.dart';
-import 'bloc/verify_email_cubit.dart';
-import 'data/google_auth_service.dart';
-import 'data/pending_registration.dart';
+// ctx:auth_email_password:begin
+import 'email_password/bloc/signup_bloc.dart';
+import 'email_password/bloc/verify_email_cubit.dart';
+import 'email_password/data/pending_registration.dart';
+import 'email_password/views/signup_screen.dart';
+import 'email_password/views/verify_email_screen.dart';
+// ctx:auth_email_password:end
+// ctx:auth_google:begin
+import 'google/google_auth_service.dart';
+// ctx:auth_google:end
 import 'views/login_screen.dart';
-import 'views/signup_screen.dart';
-import 'views/verify_email_screen.dart';
 
-/// Shipped auth module (docs/APP_SHELL.md): login, signup, email
-/// verification, Google Sign-In. Owns the global AuthBloc. Screen Blocs
-/// are provided per-route — the narrowest scope
+/// Shipped auth module (docs/APP_SHELL.md): the permanent auth core —
+/// login shell, global AuthBloc, session lifecycle, logout — plus the
+/// scaffoldable sign-in methods (docs/INTEGRATIONS.md): email/password
+/// with mandatory verification (`auth_email_password`) and Google
+/// Sign-In (`auth_google`). At least one method must stay enabled.
+/// Screen Blocs are provided per-route — the narrowest scope
 /// (docs/FLUTTER_ARCHITECTURE.md §6A).
 class AuthModule extends FeatureModule {
   const AuthModule();
@@ -27,11 +36,14 @@ class AuthModule extends FeatureModule {
           builder: (context, state) => BlocProvider(
             create: (context) => LoginBloc(
               authRepository: context.read<AuthRepository>(),
+              // ctx:auth_google:begin
               googleAuth: context.read<GoogleAuthService>(),
+              // ctx:auth_google:end
             ),
             child: const LoginScreen(),
           ),
         ),
+        // ctx:auth_email_password:begin
         GoRoute(
           path: '/signup',
           builder: (context, state) => BlocProvider(
@@ -55,13 +67,16 @@ class AuthModule extends FeatureModule {
             child: const VerifyEmailScreen(),
           ),
         ),
+        // ctx:auth_email_password:end
       ];
 
   @override
   List<RepositoryProvider> get repositories => [
+        // ctx:auth_google:begin
         RepositoryProvider<GoogleAuthService>(
           create: (_) => GoogleAuthService(),
         ),
+        // ctx:auth_google:end
       ];
 
   @override
@@ -74,6 +89,28 @@ class AuthModule extends FeatureModule {
         ),
       ];
 
+  /// Session controls live with the auth core (not the profile module) so
+  /// logout survives any combination of scaffolded features.
   @override
-  List<String> get publicRoutePaths => const ['/login', '/signup'];
+  List<SettingsSection> get settingsSections => [
+        SettingsSection(
+          title: (context) => context.l10n.settingsAccountSection,
+          tiles: (context) => [
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: Text(context.l10n.logout),
+              onTap: () =>
+                  context.read<AuthBloc>().add(const AuthLogoutRequested()),
+            ),
+          ],
+        ),
+      ];
+
+  @override
+  List<String> get publicRoutePaths => const [
+        '/login',
+        // ctx:auth_email_password:begin
+        '/signup',
+        // ctx:auth_email_password:end
+      ];
 }

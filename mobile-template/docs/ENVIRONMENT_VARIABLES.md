@@ -28,7 +28,7 @@ These variables are consumed by the Dart layer using `String.fromEnvironment`. T
 | `RASP_IOS_TEAM_ID` | Apple Developer Team ID for Talsec verification. | String | `SecurityConstants` |
 | `RASP_WATCHER_MAIL` | Email receiving Talsec security reports; RASP stays inactive while empty. | String | `SecurityConstants` |
 | `APP_NAME` | Display name (window title, PaymentSheet merchant name). | String | `AppConfig` |
-| `PRIVACY_POLICY_URL` / `TERMS_OF_SERVICE_URL` | GDPR/legal links shown in Settings (see `APP_SHELL.md` §4). | String | `AppConfig` |
+| `PRIVACY_POLICY_URL` / `TERMS_OF_SERVICE_URL` | GDPR/legal links shown in Settings (see `APP_SHELL.md` §4; `settings` feature, `docs/INTEGRATIONS.md`). | String | `AppConfig` |
 | `STRIPE_PUBLISHABLE_KEY` | Stripe **publishable** key (`payments_stripe` integration only). The secret key exists only on the API. | String | `AppConfig` |
 | `APPLE_PAY_MERCHANT_ID` | Apple Pay merchant identifier (`payments_stripe` only; empty disables Apple Pay). | String | `AppConfig` |
 | `MERCHANT_COUNTRY_CODE` | ISO country code for Google Pay / Apple Pay (`payments_stripe` only; default `US`). | String | `AppConfig` |

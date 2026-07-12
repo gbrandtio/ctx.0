@@ -1,9 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../../core/result/result.dart';
-import '../../../core/utils/app_exception.dart';
-import '../../../data/repositories/auth_repository.dart';
+import '../../../../core/result/result.dart';
+import '../../../../core/utils/app_exception.dart';
+import '../../../../data/repositories/auth_repository.dart';
 import '../data/pending_registration.dart';
 
 part 'verify_email_state.dart';

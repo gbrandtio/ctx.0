@@ -13,8 +13,14 @@
 // Zero dependencies by design: it must run right after `git clone`,
 // before `flutter pub get`.
 //
-// Security controls (RASP, request signing, ALE, secure storage) are NOT
-// integrations and have no entry here — `doctor` asserts they are intact.
+// Everything optional is in the catalog below: vendor integrations (maps,
+// push, payments), the shipped feature tabs (profile, settings), and the
+// auth module's sign-in methods (google, email/password — at least one
+// must stay enabled).
+//
+// Security controls (RASP, request signing, ALE, secure storage) and the
+// auth core (AuthBloc, token lifecycle, logout) are NOT integrations and
+// have no entry here — `doctor` asserts the security plane is intact.
 
 import 'dart:io';
 
@@ -33,10 +39,15 @@ class Integration {
     required this.testDirs,
     required this.envVars,
     required this.userSteps,
+    this.providesNavTab = false,
   });
 
   final String id;
   final String summary;
+
+  /// Whether the feature contributes a bottom-nav tab; `doctor` warns when
+  /// none of these is enabled (the shell would boot to a bare splash).
+  final bool providesNavTab;
 
   /// Files containing `ctx:<id>:begin` / `ctx:<id>:end` marker blocks.
   final List<String> markedFiles;
@@ -57,7 +68,75 @@ class Integration {
   final List<String> userSteps;
 }
 
+/// The two scaffoldable sign-in methods of the permanent auth core. The
+/// scaffolder refuses to disable the last enabled one (`doctor` also
+/// checks): an app with no way to sign in cannot pass the auth redirect.
+const authMethodIds = {'auth_google', 'auth_email_password'};
+
 const integrations = [
+  Integration(
+    id: 'auth_google',
+    summary: 'Google Sign-In method of the auth module (ships enabled)',
+    markedFiles: [
+      'pubspec.yaml',
+      'lib/features/auth/auth_module.dart',
+      'lib/features/auth/bloc/login_bloc.dart',
+      'lib/features/auth/bloc/login_event.dart',
+      'lib/features/auth/views/login_screen.dart',
+      'test/features/auth/login_bloc_test.dart',
+    ],
+    sourceDirs: ['lib/features/auth/google'],
+    testDirs: [],
+    envVars: [],
+    userSteps: [
+      'Configure the OAuth clients: on iOS set GIDClientID + the reversed '
+          'client-ID URL scheme in ios/Runner/Info.plist; on Android '
+          'register the app\'s SHA-1 in the Google Cloud Console '
+          '(https://console.cloud.google.com/apis/credentials).',
+      'The API-side counterpart (POST /v1/users/google/authenticate) ships '
+          'with the api-template; see '
+          'api-template/docs/security/AUTHENTICATION.md.',
+    ],
+  ),
+  Integration(
+    id: 'auth_email_password',
+    summary: 'Email/password + email verification method (ships enabled)',
+    markedFiles: [
+      'lib/features/auth/auth_module.dart',
+      'lib/features/auth/bloc/login_bloc.dart',
+      'lib/features/auth/bloc/login_event.dart',
+      'lib/features/auth/views/login_screen.dart',
+      'test/features/auth/login_bloc_test.dart',
+    ],
+    sourceDirs: ['lib/features/auth/email_password'],
+    testDirs: ['test/features/auth/email_password'],
+    envVars: [],
+    userSteps: [
+      'Signup requires the API to send verification codes — configure the '
+          'API-side email sender (send-code -> register flow, '
+          'api-template/docs/security/AUTHENTICATION.md).',
+    ],
+  ),
+  Integration(
+    id: 'profile',
+    summary: 'Profile tab: view/edit profile (ships enabled)',
+    markedFiles: ['lib/app/modules.dart'],
+    sourceDirs: ['lib/features/profile'],
+    testDirs: ['test/features/profile'],
+    envVars: [],
+    userSteps: [],
+    providesNavTab: true,
+  ),
+  Integration(
+    id: 'settings',
+    summary: 'Settings tab: theme, language, privacy/GDPR (ships enabled)',
+    markedFiles: ['pubspec.yaml', 'lib/app/modules.dart'],
+    sourceDirs: ['lib/features/settings'],
+    testDirs: ['test/features/settings'],
+    envVars: ['PRIVACY_POLICY_URL', 'TERMS_OF_SERVICE_URL'],
+    userSteps: [],
+    providesNavTab: true,
+  ),
   Integration(
     id: 'maps_google',
     summary: 'Google Map + nearby geo-tagged items (MapsModule)',
@@ -71,6 +150,7 @@ const integrations = [
     sourceDirs: ['lib/features/maps'],
     testDirs: ['test/features/maps'],
     envVars: ['MAPS_API_KEY'],
+    providesNavTab: true,
     userSteps: [
       'Create a Google Maps API key (Maps SDK for Android + iOS) at '
           'https://console.cloud.google.com and pass it as MAPS_API_KEY '
@@ -88,6 +168,7 @@ const integrations = [
     sourceDirs: ['lib/features/notifications'],
     testDirs: ['test/features/notifications'],
     envVars: [],
+    providesNavTab: true,
     userSteps: [
       'Create a Firebase project and register the Android/iOS apps, then '
           'either run `flutterfire configure` or place '
@@ -317,12 +398,14 @@ void _syncAnalyzerExcludes() {
   file.writeAsStringSync('${lines.join('\n')}\n');
 }
 
-/// The integration's state as told by its pubspec block (the block that
-/// controls what actually gets compiled and linked).
+/// The integration's state as told by its first marked file — pubspec for
+/// anything with vendor packages (the block that controls what gets
+/// compiled and linked), lib sources for pure-Dart features.
 BlockState currentState(Integration integration) {
-  final lines = fileAt('pubspec.yaml').readAsLinesSync();
+  final path = integration.markedFiles.first;
+  final lines = fileAt(path).readAsLinesSync();
   final blocks = findBlocks(lines, integration.id);
-  return blockState(lines, blocks.first, '#');
+  return blockState(lines, blocks.first, commentTokenFor(path));
 }
 
 // ---------------------------------------------------------------------------
@@ -374,6 +457,15 @@ Future<void> cmdEnable(String id) async {
 
 Future<void> cmdDisable(String id) async {
   final integration = integrationById(id);
+  if (authMethodIds.contains(id)) {
+    final otherId = authMethodIds.firstWhere((other) => other != id);
+    if (currentState(integrationById(otherId)) != BlockState.enabled) {
+      stderr.writeln('error: cannot disable $id — $otherId is already '
+          'disabled and the app must keep at least one sign-in method '
+          '(docs/INTEGRATIONS.md §1).');
+      exit(1);
+    }
+  }
   setIntegrationState(integration, enable: false);
   await runPubGet();
   stdout.writeln('\n✓ ${integration.id} disabled. Its code stays in the '
@@ -384,7 +476,7 @@ Future<void> cmdDisable(String id) async {
 }
 
 void cmdStatus() {
-  stdout.writeln('Optional integrations (docs/INTEGRATIONS.md):\n');
+  stdout.writeln('Scaffoldable features (docs/INTEGRATIONS.md):\n');
   for (final integration in integrations) {
     final state = currentState(integration);
     final label = switch (state) {
@@ -392,11 +484,12 @@ void cmdStatus() {
       BlockState.disabled => 'disabled',
       _ => 'DRIFTED ',
     };
-    stdout.writeln('  [$label] ${integration.id.padRight(16)} '
+    stdout.writeln('  [$label] ${integration.id.padRight(20)} '
         '${integration.summary}');
   }
-  stdout.writeln('\nSecurity plane (RASP, signing, ALE): permanent, '
-      'not listed — see docs/SECURITY.md.');
+  stdout.writeln('\nSecurity plane (RASP, signing, ALE) and the auth core '
+      '(AuthBloc, token lifecycle, logout): permanent, not listed — see '
+      'docs/SECURITY.md. At least one auth method must stay enabled.');
 }
 
 int cmdDoctor() {
@@ -442,6 +535,26 @@ int cmdDoctor() {
         }
       }
     }
+  }
+
+  // Auth core invariant: at least one sign-in method stays enabled —
+  // otherwise no session can ever be established and the auth redirect
+  // locks the whole app out (docs/INTEGRATIONS.md §1).
+  if (authMethodIds.every(
+      (id) => currentState(integrationById(id)) != BlockState.enabled)) {
+    problems.add('auth: both sign-in methods are disabled; enable '
+        'auth_google or auth_email_password');
+  }
+
+  // Advisory only: with no tab-contributing feature enabled the shell has
+  // no bottom nav and boots to the splash route. Fine when the product
+  // adds its own nav modules, so this never fails the doctor.
+  if (integrations
+      .where((i) => i.providesNavTab)
+      .every((i) => currentState(i) != BlockState.enabled)) {
+    stdout.writeln('note: no enabled feature contributes a bottom-nav tab; '
+        'the shell will boot to the splash route until a product module '
+        'provides one (docs/APP_SHELL.md §5).');
   }
 
   // Security plane: never weakened, never toggleable

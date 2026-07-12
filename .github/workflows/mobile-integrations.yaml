@@ -1,7 +1,9 @@
-# Guards the opt-in integration mechanism (mobile-template/docs/INTEGRATIONS.md):
-# the template must analyze and test green both as shipped (all integrations
-# disabled) and with every integration enabled, and the scaffolder's doctor
-# must confirm marker-block consistency and an intact security plane in both.
+# Guards the feature scaffolder (mobile-template/docs/INTEGRATIONS.md):
+# the template must analyze and test green as shipped (vendor integrations
+# off, feature tabs + both auth methods on), with everything enabled, and in
+# the single-auth-method and minimal (no feature tabs) states. The
+# scaffolder's doctor must confirm marker-block consistency and an intact
+# security plane in every state.
 name: mobile-integrations
 
 on:
@@ -49,3 +51,45 @@ jobs:
       - run: dart run tool/scaffold.dart doctor
       - run: flutter analyze
       - run: flutter test
+
+  google-only-auth:
+    name: auth_email_password disabled (Google-only sign-in)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-template
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: dart run tool/scaffold.dart disable auth_email_password
+      - run: dart run tool/scaffold.dart doctor
+      - run: flutter analyze
+      - run: flutter test
+
+  minimal:
+    name: minimal state (Google auth, profile, settings disabled)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-template
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: dart run tool/scaffold.dart disable auth_google
+      - run: dart run tool/scaffold.dart disable profile
+      - run: dart run tool/scaffold.dart disable settings
+      - run: dart run tool/scaffold.dart doctor
+      - run: flutter analyze
+      - run: flutter test
+      # Disabling the last sign-in method must be refused.
+      - run: |
+          if dart run tool/scaffold.dart disable auth_email_password; then
+            echo "scaffolder allowed disabling the last auth method" >&2
+            exit 1
+          fi

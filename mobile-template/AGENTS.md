@@ -71,9 +71,9 @@ Match the user's request to one of the broad categories below to find your requi
     *   `docs/UI_UX_GUIDELINES.md`
     *   `docs/FLUTTER_LOCALIZATION.md`
 
-### 6. Optional Integrations (Google Maps, Firebase push, Stripe)
-*   **Context:** Enabling, disabling, or configuring `maps_google`, `push_firebase`, `payments_stripe` — or any request to "add/remove/set up" Google Maps, Firebase/FCM, or Stripe.
-*   **Required Reading:** `docs/INTEGRATIONS.md` — **binding**: wiring happens ONLY via `dart run tool/scaffold.dart`; never hand-edit `ctx:` marker blocks, pubspec deps, or platform files for these. Security controls (RASP, signing, ALE) are permanent and are NOT integrations.
+### 6. Scaffoldable Features (integrations, feature tabs, auth methods)
+*   **Context:** Enabling, disabling, or configuring `maps_google`, `push_firebase`, `payments_stripe`, `profile`, `settings`, `auth_google`, `auth_email_password` — or any request to "add/remove/set up" Google Maps, Firebase/FCM, Stripe, Google Sign-In, email/password auth, or the profile/settings tabs.
+*   **Required Reading:** `docs/INTEGRATIONS.md` — **binding**: wiring happens ONLY via `dart run tool/scaffold.dart`; never hand-edit `ctx:` marker blocks, pubspec deps, or platform files for these. Security controls (RASP, signing, ALE) and the auth core (AuthBloc, token lifecycle, logout) are permanent and are NOT scaffoldable; at least one auth method must stay enabled.
 
 ### 7. Specific Feature Implementations
 *   **App shell (navigation, headers, settings, GDPR) & module registration:** `docs/APP_SHELL.md`

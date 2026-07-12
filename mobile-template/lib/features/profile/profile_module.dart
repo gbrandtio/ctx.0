@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../app/feature_module.dart';
 import '../../core/l10n/l10n.dart';
 import '../../data/repositories/auth_repository.dart';
-import '../auth/bloc/auth_bloc.dart';
 import 'bloc/profile_cubit.dart';
 import 'views/edit_profile_screen.dart';
 import 'views/profile_screen.dart';
@@ -47,21 +46,17 @@ class ProfileModule extends FeatureModule {
         label: (context) => context.l10n.profileTitle,
       );
 
+  /// Logout is NOT here: session controls belong to the permanent auth
+  /// module, so they survive disabling this feature (docs/INTEGRATIONS.md).
   @override
   List<SettingsSection> get settingsSections => [
         SettingsSection(
-          title: (context) => context.l10n.settingsAccountSection,
+          title: (context) => context.l10n.profileTitle,
           tiles: (context) => [
             ListTile(
               leading: const Icon(Icons.edit_outlined),
               title: Text(context.l10n.editProfile),
               onTap: () => context.go('/profile/edit'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: Text(context.l10n.logout),
-              onTap: () =>
-                  context.read<AuthBloc>().add(const AuthLogoutRequested()),
             ),
           ],
         ),

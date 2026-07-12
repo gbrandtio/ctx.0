@@ -1,15 +1,18 @@
-# Optional Integrations — the Wiring Contract
+# Scaffoldable Features — the Wiring Contract
 
-The template ships three vendor integrations **disabled by default**: their
-code is in the tree, but their SDKs are not dependencies and their modules
-are not registered. Wiring one in or out is a **mechanical act performed by
-the scaffolder**, never an editing task.
+Apart from the security plane and the auth core, **every shipped feature
+is scaffoldable**: vendor integrations (maps, push, payments) ship
+disabled — their code is in the tree, but their SDKs are not dependencies
+and their modules are not registered — while the shipped feature tabs
+(profile, settings) and the auth module's sign-in methods (Google,
+email/password) ship enabled. Wiring any of them in or out is a
+**mechanical act performed by the scaffolder**, never an editing task.
 
 This document is binding for any agent working in `mobile-template/`
 (AGENTS.md routes here). Every rule is verifiable; run the checks, don't
 reason about whether they'd pass.
 
-## 1. What is NOT an integration (read first)
+## 1. What is NOT scaffoldable (read first)
 
 The security plane — **RASP (`freerasp`), request signing, ALE, secure
 storage, device identity** — is a permanent part of the template. It is
@@ -19,8 +22,12 @@ refer the user to `docs/SECURITY.md` and
 `api-template/docs/security/audits/SECURITY_HARDENING_CHECKLIST.md`.
 `scaffold doctor` fails the build if the security plane is touched.
 
-The same applies to `google_sign_in`: it belongs to the shipped auth
-module, not to the optional catalog.
+The **auth core** — the login shell, global `AuthBloc`, token/session
+lifecycle, and the logout settings tile — is likewise permanent. Only the
+two sign-in *methods* are scaffoldable (`auth_google`,
+`auth_email_password`), and **at least one must stay enabled**: the
+scaffolder refuses to disable the last one and `doctor` fails if both are
+off, because the router's auth redirect would lock the whole app out.
 
 ## 2. The one rule
 
@@ -49,17 +56,35 @@ flutter test
 
 ## 3. The catalog
 
-| id | Ships | Env vars (docs/ENVIRONMENT_VARIABLES.md) |
-|---|---|---|
-| `maps_google` | `MapsModule` — Google Map + nearby geo-tagged items | `MAPS_API_KEY` |
-| `push_firebase` | `NotificationsModule` — FCM push + in-app feed | — (platform config files instead) |
-| `payments_stripe` | `PaymentsModule` — Stripe PaymentSheet checkout | `STRIPE_PUBLISHABLE_KEY`, `APPLE_PAY_MERCHANT_ID`, `MERCHANT_COUNTRY_CODE` |
+| id | Feature | Ships | Env vars (docs/ENVIRONMENT_VARIABLES.md) |
+|---|---|---|---|
+| `auth_google` | Google Sign-In method of the auth module | enabled | — (OAuth client config instead) |
+| `auth_email_password` | Email/password login + signup + email verification | enabled | — |
+| `profile` | `ProfileModule` — profile tab, view/edit profile | enabled | — |
+| `settings` | `SettingsModule` — settings tab: theme, language, privacy/GDPR | enabled | `PRIVACY_POLICY_URL`, `TERMS_OF_SERVICE_URL` |
+| `maps_google` | `MapsModule` — Google Map + nearby geo-tagged items | disabled | `MAPS_API_KEY` |
+| `push_firebase` | `NotificationsModule` — FCM push + in-app feed | disabled | — (platform config files instead) |
+| `payments_stripe` | `PaymentsModule` — Stripe PaymentSheet checkout | disabled | `STRIPE_PUBLISHABLE_KEY`, `APPLE_PAY_MERCHANT_ID`, `MERCHANT_COUNTRY_CODE` |
+
+The auth methods live *inside* the permanent auth module: their toggles
+comment marker blocks in the shared login files and exclude
+`lib/features/auth/google/` or `lib/features/auth/email_password/`. The
+GDPR surface (`docs/APP_SHELL.md` §4) ships with `settings`; a product
+that disables that tab must re-home delete-account and data-export
+before release.
 
 ### Human-only steps (the agent must ask, never fake)
 
 `enable` prints these; they involve external consoles and key material an
 agent must never invent or commit:
 
+- **auth_google** — configure the OAuth clients: iOS `GIDClientID` +
+  reversed-client-ID URL scheme in `ios/Runner/Info.plist`; Android
+  SHA-1 registration in Google Cloud Console. The API-side endpoint
+  (`POST /v1/users/google/authenticate`) ships with the api-template.
+- **auth_email_password** — configure the API-side email sender for
+  verification codes (send-code → register flow,
+  `api-template/docs/security/AUTHENTICATION.md`).
 - **maps_google** — create an API key (Maps SDK for Android + iOS) in
   Google Cloud Console; pass as `MAPS_API_KEY` at build time.
 - **push_firebase** — create a Firebase project, then `flutterfire
@@ -73,19 +98,24 @@ agent must never invent or commit:
 
 Cross-cutting rule (root `AGENTS.md`): enabling `push_firebase` or
 `payments_stripe` on mobile without its API-side counterpart is an
-incomplete change — say so explicitly in your summary.
+incomplete change — say so explicitly in your summary. Disabling an auth
+method is mobile-only: the API keeps both endpoints, which is harmless.
 
 ## 4. How it works (so you don't fight it)
 
-- Every touchpoint of an integration sits inside `ctx:<id>:begin/end`
-  marker blocks across `pubspec.yaml`, `lib/app/modules.dart`, and the
-  platform files. The scaffolder comments/uncomments those blocks.
-- Disabling removes the vendor packages from `pubspec.yaml`, so the
-  native SDKs are not linked and the Dart feature code under
-  `lib/features/<feature>/` becomes unreachable (never compiled). The
-  directory stays in the tree; the analyzer excludes it
-  (`analysis_options.yaml` managed block) and its tests are parked as
-  `*.dart.off`.
+- Every touchpoint of a feature sits inside `ctx:<id>:begin/end` marker
+  blocks — across `pubspec.yaml`, `lib/app/modules.dart`, and the
+  platform files for module-level features; across the shared auth files
+  (`auth_module.dart`, `login_bloc.dart`, `login_screen.dart`, ...) for
+  the auth methods. The scaffolder comments/uncomments those blocks.
+- Disabling removes any vendor packages from `pubspec.yaml`, so the
+  native SDKs are not linked and the feature's Dart source dirs become
+  unreachable (never compiled). The directories stay in the tree; the
+  analyzer excludes them (`analysis_options.yaml` managed block) and
+  their tests are parked as `*.dart.off`.
+- `doctor` warns (without failing) when no enabled feature contributes a
+  bottom-nav tab — the shell then boots to the splash route until a
+  product module provides one (`docs/APP_SHELL.md` §5).
 - `main.dart` is vendor-free: each module bootstraps its own SDK in
   `FeatureModule.init()` (see `docs/APP_SHELL.md` §1), so toggling an
   integration never touches the bootstrap.

@@ -63,9 +63,10 @@ The settings screen is an ordered composition of `SettingsSection`s. Shipped sec
 
 | Section | Contributed by | Contents |
 |---|---|---|
-| Personalisation | shell | theme (light/dark), language |
-| Account | auth/profile modules | edit profile, change password, logout |
-| Privacy (GDPR) | shell | delete account, export my data, consent & policy links |
+| Account | auth module (permanent) | logout — session controls stay available whatever features are scaffolded away |
+| Profile | profile module (`profile`) | edit profile |
+| Personalisation | settings module (`settings`) | theme (light/dark), language |
+| Privacy (GDPR) | settings module (`settings`) | delete account, export my data, consent & policy links |
 
 A product feature adds its own section via `settingsSections` — never by editing the settings screen.
 

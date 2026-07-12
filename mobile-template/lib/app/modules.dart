@@ -8,8 +8,12 @@ import '../features/auth/auth_module.dart';
 // ctx:payments_stripe:begin
 // ctx:off import '../features/payments/payments_module.dart';
 // ctx:payments_stripe:end
+// ctx:profile:begin
 import '../features/profile/profile_module.dart';
+// ctx:profile:end
+// ctx:settings:begin
 import '../features/settings/settings_module.dart';
+// ctx:settings:end
 import 'feature_module.dart';
 
 /// THE plug-n-play point (docs/APP_SHELL.md §1): the single ordered list
@@ -24,12 +28,16 @@ const List<FeatureModule> appModules = [
   // ctx:maps_google:begin
   // ctx:off MapsModule(),
   // ctx:maps_google:end
+  // ctx:profile:begin
   ProfileModule(),
+  // ctx:profile:end
   // ctx:push_firebase:begin
   // ctx:off NotificationsModule(),
   // ctx:push_firebase:end
   // ctx:payments_stripe:begin
   // ctx:off PaymentsModule(),
   // ctx:payments_stripe:end
+  // ctx:settings:begin
   SettingsModule(),
+  // ctx:settings:end
 ];
