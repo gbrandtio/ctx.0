@@ -10,6 +10,6 @@ The signup flow is shipped by the mobile template's auth module (registration + 
 
 ## Product Slots (fill in)
 
-- **Collected fields**: <beyond email/password — e.g., display name, phone; mark PII (encrypted at rest per `api-template/docs/security/ENVELOPE_ENCRYPTION_ARCHITECTURE.md`)>
-- **Consents**: <terms/privacy checkboxes, marketing opt-in — wire into the GDPR surface, see `mobile-template/docs/APP_SHELL.md`>
+- **Collected fields**: <beyond email/password — e.g., display name, phone; mark PII (encrypted at rest per `templates/api/docs/security/ENVELOPE_ENCRYPTION_ARCHITECTURE.md`)>
+- **Consents**: <terms/privacy checkboxes, marketing opt-in — wire into the GDPR surface, see `templates/mobile/docs/APP_SHELL.md`>
 - **Onboarding**: <post-verification onboarding steps, or "none">

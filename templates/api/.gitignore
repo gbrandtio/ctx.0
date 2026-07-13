@@ -1,0 +1,9 @@
+bin/
+obj/
+*.user
+.vs/
+appsettings.*.local.json
+
+# Local dev secrets / API config
+templates/api/AppApi/appsettings.*.local.json
+

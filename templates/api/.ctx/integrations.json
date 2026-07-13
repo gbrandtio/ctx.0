@@ -1,0 +1,80 @@
+{
+  "kind": "api",
+  "authMethodIds": [],
+  "securityPubspecDeps": [],
+  "integrations": [
+    {
+      "id": "payments_stripe",
+      "summary": "Stripe payment intents + webhook + SSE payment events (ships enabled)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "Infrastructure/Infrastructure.csproj",
+        "AppApi/AppApi.csproj",
+        "AppApi/Program.cs",
+        "AppApi/Extensions/ServiceCollectionExtensions.cs",
+        "Application/Application.csproj",
+        "tests/UnitTests/UnitTests.csproj"
+      ],
+      "sourceDirs": [],
+      "testDirs": [],
+      "envVars": [
+        "Stripe__SecretKey",
+        "Stripe__WebhookSecret"
+      ],
+      "userSteps": [
+        "Set the Stripe secret key and webhook signing secret (https://dashboard.stripe.com); point the webhook at POST /v1/payments/stripe-webhook (docs/features/PAYMENTS_STRIPE.md).",
+        "Mobile counterpart: `ctx0 enable payments_stripe` in the app repo."
+      ]
+    },
+    {
+      "id": "push_firebase",
+      "summary": "FCM dispatch worker + firebase token registration endpoints (ships enabled)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "Infrastructure/Infrastructure.csproj",
+        "AppApi/Extensions/ServiceCollectionExtensions.cs",
+        "AppApi/Endpoints/v1/UsersEndpoints.cs"
+      ],
+      "sourceDirs": [],
+      "testDirs": [],
+      "envVars": [
+        "GOOGLE_APPLICATION_CREDENTIALS"
+      ],
+      "userSteps": [
+        "Create a Firebase service account and initialize FirebaseApp with its credentials (docs/features/NOTIFICATIONS.md); the dispatch worker no-ops until configured.",
+        "Mobile counterpart: `ctx0 enable push_firebase` in the app repo."
+      ]
+    },
+    {
+      "id": "auth_google",
+      "summary": "Google Sign-In endpoint + identity link (ships enabled; token validation lives in Ctx0.Security)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "AppApi/Endpoints/v1/UsersEndpoints.cs"
+      ],
+      "sourceDirs": [],
+      "testDirs": [],
+      "envVars": [
+        "Authentication__Google__ClientIds"
+      ],
+      "userSteps": [
+        "Register the OAuth client ids under Authentication:Google:ClientIds (docs/security/AUTHENTICATION.md)."
+      ]
+    },
+    {
+      "id": "maps_google",
+      "summary": "Nearby geo-items endpoint (PostGIS) + its output cache (ships enabled)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "tests/IntegrationTests/IntegrationTests.csproj",
+        "AppApi/Program.cs"
+      ],
+      "sourceDirs": [],
+      "testDirs": [],
+      "envVars": [],
+      "userSteps": [
+        "Mobile counterpart: `ctx0 enable maps_google` in the app repo (needs MAPS_API_KEY)."
+      ]
+    }
+  ]
+}

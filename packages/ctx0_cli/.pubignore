@@ -1,0 +1,9 @@
+# pub uses this INSTEAD of this directory's .gitignore. The embedded
+# templates/ payload and bin/ must ship in the published package even
+# though the repo-root .gitignore ignores `bin/` (dotnet build outputs).
+!bin/
+!bin/**
+!templates/
+.dart_tool/
+build/
+pubspec.lock

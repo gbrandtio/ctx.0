@@ -1,0 +1,95 @@
+# Guards the feature scaffolder (templates/mobile/docs/INTEGRATIONS.md):
+# the template must analyze and test green as shipped (vendor integrations
+# off, feature tabs + both auth methods on), with everything enabled, and in
+# the single-auth-method and minimal (no feature tabs) states. The
+# scaffolder's doctor must confirm marker-block consistency and an intact
+# security plane in every state.
+name: mobile-integrations
+
+on:
+  pull_request:
+    paths:
+      - "templates/mobile/**"
+  push:
+    branches: [main]
+    paths:
+      - "templates/mobile/**"
+
+jobs:
+  as-shipped:
+    name: shipped state (integrations off)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: dart run tool/scaffold.dart status
+      - run: dart run tool/scaffold.dart doctor
+      - run: flutter analyze
+      - run: flutter test
+
+  all-integrations-on:
+    name: all integrations enabled
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: dart run tool/scaffold.dart enable maps_google
+      - run: dart run tool/scaffold.dart enable push_firebase
+      - run: dart run tool/scaffold.dart enable payments_stripe
+      - run: dart run tool/scaffold.dart doctor
+      - run: flutter analyze
+      - run: flutter test
+
+  google-only-auth:
+    name: auth_email_password disabled (Google-only sign-in)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: dart run tool/scaffold.dart disable auth_email_password
+      - run: dart run tool/scaffold.dart doctor
+      - run: flutter analyze
+      - run: flutter test
+
+  minimal:
+    name: minimal state (Google auth, profile, settings disabled)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: dart run tool/scaffold.dart disable auth_google
+      - run: dart run tool/scaffold.dart disable profile
+      - run: dart run tool/scaffold.dart disable settings
+      - run: dart run tool/scaffold.dart doctor
+      - run: flutter analyze
+      - run: flutter test
+      # Disabling the last sign-in method must be refused.
+      - run: |
+          if dart run tool/scaffold.dart disable auth_email_password; then
+            echo "scaffolder allowed disabling the last auth method" >&2
+            exit 1
+          fi

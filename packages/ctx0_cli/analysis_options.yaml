@@ -1,0 +1,7 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  exclude:
+    # Embedded template payload (tool/pack_templates.dart output) — it is
+    # data, not CLI source; analyzed in its source-of-truth location.
+    - templates/**
