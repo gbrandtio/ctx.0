@@ -9,12 +9,14 @@ class Catalog {
   Catalog({
     required this.kind,
     required this.authMethodIds,
+    required this.navMethodIds,
     required this.securityPubspecDeps,
     required this.integrations,
   });
 
   final String kind;
   final Set<String> authMethodIds;
+  final Set<String> navMethodIds;
   final List<String> securityPubspecDeps;
   final List<Integration> integrations;
 
@@ -28,6 +30,7 @@ class Catalog {
     return Catalog(
       kind: json['kind'] as String? ?? 'mobile',
       authMethodIds: Set<String>.from(json['authMethodIds'] as List? ?? []),
+      navMethodIds: Set<String>.from(json['navMethodIds'] as List? ?? []),
       securityPubspecDeps:
           List<String>.from(json['securityPubspecDeps'] as List? ?? []),
       integrations: [

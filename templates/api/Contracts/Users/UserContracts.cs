@@ -7,4 +7,4 @@ public sealed record UserResponse(
     string? Name,
     DateTime CreatedAt);
 
-public sealed record UpdateUserRequest(string? Name);
+public sealed record UpdateUserRequest(string? Name, bool? HasTrackingConsent = null);

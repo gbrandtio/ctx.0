@@ -19,7 +19,12 @@ public sealed class UpdateUserHandler(IUserRepository users, IClock clock)
             throw DomainException.NotFound("User not found.");
         }
 
-        user.Name = command.Request.Name?.Trim();
+        user.Name = command.Request.Name?.Trim() ?? user.Name;
+        if (command.Request.HasTrackingConsent.HasValue)
+        {
+            user.HasTrackingConsent = command.Request.HasTrackingConsent.Value;
+        }
+        
         user.UpdatedAt = clock.UtcNow;
         await users.SaveChangesAsync(ct);
 

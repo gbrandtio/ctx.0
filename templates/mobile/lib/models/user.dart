@@ -9,6 +9,7 @@ class User extends Equatable {
     required this.email,
     this.username,
     this.displayName,
+    this.hasTrackingConsent,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -17,6 +18,7 @@ class User extends Equatable {
       email: json['email'] as String,
       username: json['username'] as String?,
       displayName: json['name'] as String?,
+      hasTrackingConsent: json['hasTrackingConsent'] as bool?,
     );
   }
 
@@ -27,17 +29,25 @@ class User extends Equatable {
   /// Maps to the API's `name` field.
   final String? displayName;
 
+  /// GDPR tracking consent
+  final bool? hasTrackingConsent;
+
   /// Background refreshes can return bare models; merge with copyWith and
   /// never overwrite richer local data (docs/FLUTTER_ARCHITECTURE.md §6D).
-  User copyWith({String? displayName}) {
+  User copyWith({
+    String? displayName,
+    bool? hasTrackingConsent,
+  }) {
     return User(
       id: id,
       email: email,
       username: username,
       displayName: displayName ?? this.displayName,
+      hasTrackingConsent: hasTrackingConsent ?? this.hasTrackingConsent,
     );
   }
 
   @override
-  List<Object?> get props => [id, email, username, displayName];
+  List<Object?> get props =>
+      [id, email, username, displayName, hasTrackingConsent];
 }

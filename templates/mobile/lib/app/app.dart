@@ -11,6 +11,9 @@ import '../core/theme/theme_cubit.dart';
 import '../data/repositories/auth_repository.dart';
 import 'package:ctx0_mobile_security/ctx0_mobile_security.dart';
 import '../data/services/storage/prefs_service.dart';
+// ctx:settings:begin
+import '../features/settings/views/widgets/gdpr_banner_overlay.dart';
+// ctx:settings:end
 import 'feature_module.dart';
 import 'router.dart';
 
@@ -94,6 +97,13 @@ class _AppState extends State<App> {
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               routerConfig: _router,
+              builder: (context, child) {
+                Widget wrapped = child!;
+// ctx:settings:begin
+                wrapped = GdprBannerOverlay(child: wrapped);
+// ctx:settings:end
+                return wrapped;
+              },
             );
           },
         ),

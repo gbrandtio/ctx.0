@@ -4,10 +4,90 @@
     "auth_google",
     "auth_email_password"
   ],
+  "navMethodIds": [
+    "nav_bottom",
+    "nav_rail",
+    "nav_drawer",
+    "nav_none",
+    "nav_bottom_notched",
+    "nav_tabs"
+  ],
   "securityPubspecDeps": [
     "ctx0_mobile_security"
   ],
   "integrations": [
+    {
+      "id": "nav_bottom",
+      "summary": "Standard BottomNavigationBar for mobile navigation (ships enabled)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "lib/app/shell_scaffold.dart"
+      ],
+      "sourceDirs": [],
+      "testDirs": [],
+      "envVars": [],
+      "userSteps": []
+    },
+    {
+      "id": "nav_rail",
+      "summary": "NavigationRail pinned to the side, typically for tablets",
+      "providesNavTab": false,
+      "markedFiles": [
+        "lib/app/shell_scaffold.dart"
+      ],
+      "sourceDirs": [],
+      "testDirs": [],
+      "envVars": [],
+      "userSteps": []
+    },
+    {
+      "id": "nav_drawer",
+      "summary": "NavigationDrawer hamburger menu",
+      "providesNavTab": false,
+      "markedFiles": [
+        "lib/app/shell_scaffold.dart"
+      ],
+      "sourceDirs": [],
+      "testDirs": [],
+      "envVars": [],
+      "userSteps": []
+    },
+    {
+      "id": "nav_none",
+      "summary": "No navigation shell (just routes)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "lib/app/shell_scaffold.dart"
+      ],
+      "sourceDirs": [],
+      "testDirs": [],
+      "envVars": [],
+      "userSteps": []
+    },
+    {
+      "id": "nav_bottom_notched",
+      "summary": "BottomAppBar with a cutout for a Floating Action Button",
+      "providesNavTab": false,
+      "markedFiles": [
+        "lib/app/shell_scaffold.dart"
+      ],
+      "sourceDirs": [],
+      "testDirs": [],
+      "envVars": [],
+      "userSteps": []
+    },
+    {
+      "id": "nav_tabs",
+      "summary": "Top-mounted TabBar",
+      "providesNavTab": false,
+      "markedFiles": [
+        "lib/app/shell_scaffold.dart"
+      ],
+      "sourceDirs": [],
+      "testDirs": [],
+      "envVars": [],
+      "userSteps": []
+    },
     {
       "id": "auth_google",
       "summary": "Google Sign-In method of the auth module (ships enabled)",
@@ -70,7 +150,7 @@
     },
     {
       "id": "settings",
-      "summary": "Settings tab: theme, language, privacy/GDPR (ships enabled)",
+      "summary": "Settings tab: theme, language, GDPR Consent Banner, Tracking Enforcement & Data Usage (ships enabled)",
       "providesNavTab": true,
       "markedFiles": [
         "pubspec.yaml",

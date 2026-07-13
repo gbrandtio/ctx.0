@@ -63,5 +63,12 @@
   "deleteAccountConfirmTitle": "Delete account?",
   "deleteAccountConfirmBody": "This permanently deletes your account and removes your personal data. This action cannot be undone.",
   "cancel": "Cancel",
-  "deleteConfirm": "Delete"
+  "deleteConfirm": "Delete",
+  "trackingConsentTitle": "Data Usage & Analytics",
+  "trackingConsentSubtitle": "Help us improve the app by sharing anonymous usage data.",
+  "gdprBannerTitle": "We value your privacy",
+  "gdprBannerMessage": "We use anonymous data to improve your experience. You can always change this in Settings.",
+  "gdprWarningMessage": "Some features are disabled to protect your privacy.",
+  "accept": "Accept",
+  "decline": "Decline"
 }

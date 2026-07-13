@@ -100,11 +100,18 @@ class UserApiService with ApiBaseMixin {
     return User.fromJson(decodeResponse(response) as Map<String, dynamic>);
   }
 
-  Future<User> updateUser(String userId, {String? displayName}) async {
+  Future<User> updateUser(
+    String userId, {
+    String? displayName,
+    bool? hasTrackingConsent,
+  }) async {
     final response = await _client.patch(
       ApiConstants.uri(ApiConstants.user(userId)),
       headers: _jsonHeaders,
-      body: jsonEncode({'name': displayName}),
+      body: jsonEncode({
+        'name': ?displayName,
+        'hasTrackingConsent': ?hasTrackingConsent,
+      }),
     );
     return User.fromJson(decodeResponse(response) as Map<String, dynamic>);
   }
