@@ -17,6 +17,8 @@ public sealed class AuthenticateUserHandlerTests
     private readonly Mock<IJwtTokenService> _jwt = new();
     private readonly Mock<IRefreshTokenRepository> _refreshTokens = new();
     private readonly Mock<IIdGenerator> _ids = new();
+    private readonly Mock<IClock> _clock = new();
+    private readonly Mock<MediatR.IMediator> _mediator = new();
 
     private AuthenticateUserHandler CreateHandler()
     {
@@ -27,7 +29,7 @@ public sealed class AuthenticateUserHandlerTests
         _jwt.Setup(j => j.HashRefreshToken(It.IsAny<string>())).Returns("refresh-hash");
         var issuer = new TokenIssuer(_jwt.Object, _refreshTokens.Object, _ids.Object, new TestClock());
         return new AuthenticateUserHandler(
-            _users.Object, _blindIndex.Object, _passwordHasher.Object, issuer);
+            _users.Object, _blindIndex.Object, _passwordHasher.Object, issuer, _mediator.Object);
     }
 
     [Fact]
@@ -40,6 +42,12 @@ public sealed class AuthenticateUserHandlerTests
         var response = await CreateHandler().Handle(
             new AuthenticateUserCommand(new AuthenticateRequest("john@example.com", "pw")),
             CancellationToken.None);
+
+// ctx:auth_2fa_email:begin
+        Assert.True(response.RequiresTwoFactor);
+        _mediator.Verify(m => m.Send(It.IsAny<SendTwoFactorCodeCommand>(), It.IsAny<CancellationToken>()), Times.Once);
+        return;
+// ctx:auth_2fa_email:end
 
         Assert.Equal("access", response.AccessToken);
         Assert.Equal("refresh", response.RefreshToken);

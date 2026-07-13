@@ -69,6 +69,7 @@ flutter test
 |---|---|---|---|
 | `auth_google` | Google Sign-In method of the auth module | enabled | — (OAuth client config instead) |
 | `auth_email_password` | Email/password login + signup + email verification | enabled | — |
+| `auth_2fa_email` | Two-Factor Authentication via email code for email/password login | disabled | — |
 | `profile` | `ProfileModule` — profile tab, view/edit profile | enabled | — |
 | `settings` | `SettingsModule` — settings tab: theme, language, privacy/GDPR | enabled | `PRIVACY_POLICY_URL`, `TERMS_OF_SERVICE_URL` |
 | `maps_google` | `MapsModule` — Google Map + nearby geo-tagged items | disabled | `MAPS_API_KEY` |

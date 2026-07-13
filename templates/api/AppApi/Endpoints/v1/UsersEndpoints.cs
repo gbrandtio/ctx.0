@@ -51,6 +51,14 @@ public sealed class UsersEndpoints : IEndpointModule
         // ctx:auth_google:begin
         // ctx:auth_google:end
 
+// ctx:auth_2fa_email:begin
+        users.MapPost("/authenticate/2fa", async (
+                Authenticate2FARequest request, IMediator mediator, CancellationToken ct) =>
+                Results.Ok(await mediator.Send(new Authenticate2FACommand(request), ct)))
+            .AllowAnonymous()
+            .RequireRateLimiting("auth");
+// ctx:auth_2fa_email:end
+
         users.MapPost("/refresh", async (
                 RefreshRequest request, IMediator mediator, CancellationToken ct) =>
                 Results.Ok(await mediator.Send(

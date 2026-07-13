@@ -72,6 +72,23 @@ class UserApiService with ApiBaseMixin {
     );
   }
 
+// ctx:auth_2fa_email:begin
+  Future<AuthSession> authenticate2FA(String usernameOrEmail, String password, String code) async {
+    final response = await _client.post(
+      ApiConstants.uri('/v1/users/authenticate/2fa'),
+      headers: _jsonHeaders,
+      body: jsonEncode({
+        'usernameOrEmail': usernameOrEmail,
+        'password': password,
+        'code': code,
+      }),
+    );
+    return AuthSession.fromJson(
+      decodeResponse(response) as Map<String, dynamic>,
+    );
+  }
+// ctx:auth_2fa_email:end
+
   Future<AuthSession> googleSignIn(String idToken) async {
     final response = await _client.post(
       ApiConstants.uri(ApiConstants.googleSignIn),

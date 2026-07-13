@@ -61,6 +61,15 @@ public static class ServiceCollectionExtensions
         // ctx:payments_stripe:begin
         // ctx:payments_stripe:end
         services.AddSingleton<IEmailSender, LoggingEmailSender>();
+// ctx:email_brevo:begin
+        services.Configure<BrevoOptions>(configuration.GetSection("Brevo"));
+        services.AddHttpClient<IEmailSender, BrevoEmailSender>((sp, client) =>
+        {
+            var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<BrevoOptions>>().Value;
+            client.BaseAddress = new Uri("https://api.brevo.com/v3/");
+            client.DefaultRequestHeaders.Add("api-key", options.ApiKey);
+        });
+// ctx:email_brevo:end
 
         // ---- CQRS ----
         services.AddMediatR(config =>

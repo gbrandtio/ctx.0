@@ -23,11 +23,19 @@ public sealed record LogoutRequest(string RefreshToken);
 
 public sealed record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 
+// ctx:auth_2fa_email:begin
+public sealed record Authenticate2FARequest(string UsernameOrEmail, string Password, string Code);
+// ctx:auth_2fa_email:end
+
 /// <summary>Shape defined by AUTHENTICATION.md — flat, both tokens included.</summary>
 public sealed record AuthResponse(
-    string AccessToken,
-    string RefreshToken,
-    DateTime ExpiresAtUtc,
+    string? AccessToken,
+    string? RefreshToken,
+    DateTime? ExpiresAtUtc,
     long UserId,
     string Username,
-    string Email);
+    string Email
+// ctx:auth_2fa_email:begin
+    , bool RequiresTwoFactor = false
+// ctx:auth_2fa_email:end
+);

@@ -104,14 +104,40 @@ sequenceDiagram
     API->>DB: Find user by UsernameHash or EmailHash
     API->>API: Verify password (bcrypt)
     API->>API: Rehash if bcrypt params changed
-    API->>API: Generate JWT access token
-    API->>API: Generate refresh token (64 random bytes → Base64)
-    API->>API: Hash refresh token (SHA-256)
-    API->>DB: INSERT refresh_tokens (hash, userId, "User", familyId, expiresAt)
-    API-->>Client: { accessToken, refreshToken, expiresAtUtc, userId, ... }
+
+    alt 2FA Enabled (auth_2fa_email)
+        API->>API: Generate 2FA code (6 digits, 5 min expiry)
+        API->>API: Hash code (SHA-256 via BlindIndex)
+        API->>DB: INSERT signup_verifications
+        API->>Email: Send code to user email
+        API-->>Client: { requiresTwoFactor: true }
+    else
+        API->>API: Generate JWT access token
+        API->>API: Generate refresh token (64 random bytes → Base64)
+        API->>API: Hash refresh token (SHA-256)
+        API->>DB: INSERT refresh_tokens (hash, userId, "User", familyId, expiresAt)
+        API-->>Client: { accessToken, refreshToken, expiresAtUtc, userId, ... }
+    end
 ```
 
 **Constant-time behaviour:** When the user is not found, a dummy bcrypt verification is still performed so response time does not leak account existence (see [Security Hardening Checklist](audits/SECURITY_HARDENING_CHECKLIST.md) §4).
+
+### 2FA Authentication
+
+If the `auth_2fa_email` integration is enabled, standard email/password authentication will return `RequiresTwoFactor: true` instead of returning tokens. The client must then submit the code sent to their email.
+
+**Endpoint:** `POST /v1/users/authenticate/2fa`
+
+**Request:**
+```json
+{
+  "usernameOrEmail": "john@example.com",
+  "password": "s3cur3P@ss",
+  "code": "123456"
+}
+```
+
+The response is identical to standard authentication upon success, granting the full access and refresh token pairs. Note that the password is required again to prevent unauthorized access by someone who only intercepted the email code but lacks the original credentials.
 
 ### Additional Principal Types
 
@@ -327,6 +353,7 @@ The global limits are configurable via environment variables:
 | POST | `/v1/users/register/send-code` | Anonymous | Send signup verification code to email |
 | POST | `/v1/users` | Anonymous | Register a new user (requires verification code) |
 | POST | `/v1/users/authenticate` | Anonymous | Login with username/email + password |
+| POST | `/v1/users/authenticate/2fa` | Anonymous | Complete 2FA login with 6-digit code |
 | POST | `/v1/users/google/authenticate` | Anonymous | Login with Google ID Token |
 | POST | `/v1/users/refresh` | Anonymous | Exchange refresh token for new token pair |
 | POST | `/v1/users/logout` | Required | Revoke refresh token |

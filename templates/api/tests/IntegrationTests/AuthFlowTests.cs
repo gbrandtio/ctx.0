@@ -49,6 +49,25 @@ public sealed class AuthFlowTests(ApiFactory factory) : IClassFixture<ApiFactory
         auth.EnsureSuccessStatusCode();
         var session = await auth.Content.ReadFromJsonAsync<AuthResponse>();
 
+// ctx:auth_2fa_email:begin
+        if (session!.RequiresTwoFactor)
+        {
+            await using var db = _factory.NewDbContext();
+            var verification = db.SignupVerifications
+                .OrderByDescending(v => v.CreatedAt).First();
+            var blindIndex = (IBlindIndexProvider)
+                _factory.Services.GetService(typeof(IBlindIndexProvider))!;
+            var code = Enumerable.Range(100000, 900000)
+                .First(c => blindIndex.ComputeHash(c.ToString()) == verification.CodeHash)
+                .ToString();
+            
+            var auth2fa = await client.PostAsJsonAsync("/v1/users/authenticate/2fa",
+                new Authenticate2FARequest(email, "s3cur3P@ss", code));
+            auth2fa.EnsureSuccessStatusCode();
+            session = await auth2fa.Content.ReadFromJsonAsync<AuthResponse>();
+        }
+// ctx:auth_2fa_email:end
+
         client.DefaultRequestHeaders.Authorization =
             new("Bearer", session!.AccessToken);
         var me = await client.GetAsync($"/v1/users/{session.UserId}");

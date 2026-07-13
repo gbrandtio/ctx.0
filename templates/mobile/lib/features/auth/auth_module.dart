@@ -11,6 +11,10 @@ import 'bloc/auth_bloc.dart';
 import 'bloc/login_bloc.dart';
 // ctx:auth_email_password:begin
 // ctx:auth_email_password:end
+// ctx:auth_2fa_email:begin
+import '2fa/bloc/two_factor_cubit.dart';
+import '2fa/views/two_factor_screen.dart';
+// ctx:auth_2fa_email:end
 // ctx:auth_google:begin
 // ctx:auth_google:end
 import 'views/login_screen.dart';
@@ -40,6 +44,24 @@ class AuthModule extends FeatureModule {
     ),
     // ctx:auth_email_password:begin
     // ctx:auth_email_password:end
+// ctx:auth_2fa_email:begin
+    GoRoute(
+      path: '/2fa',
+      builder: (context, state) {
+        final args = state.extra as Map<String, String>;
+        return BlocProvider(
+          create: (_) => TwoFactorCubit(
+            authRepository: context.read<AuthRepository>(),
+            userApi: context.read<UserApiService>(),
+          ),
+          child: TwoFactorScreen(
+            usernameOrEmail: args['usernameOrEmail']!,
+            password: args['password']!,
+          ),
+        );
+      },
+    ),
+// ctx:auth_2fa_email:end
   ];
 
   @override
@@ -80,5 +102,8 @@ class AuthModule extends FeatureModule {
     '/login',
     // ctx:auth_email_password:begin
     // ctx:auth_email_password:end
+// ctx:auth_2fa_email:begin
+    '/2fa',
+// ctx:auth_2fa_email:end
   ];
 }

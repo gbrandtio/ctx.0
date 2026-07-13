@@ -28,7 +28,7 @@
     ],
     "lib/features/auth/bloc/login_bloc.dart": [
       "    on<LoginSubmitted>(_onSubmitted, transformer: droppable());",
-      "  Future<void> _onSubmitted(\n    LoginSubmitted event,\n    Emitter<LoginState> emit,\n  ) async {\n    emit(const LoginLoading());\n    final result = await _authRepository.login(event.email, event.password);\n    switch (result) {\n      case Success():\n        emit(const LoginSuccess()); // Router redirect handles navigation.\n      case Failure(:final error):\n        emit(LoginFailure(AppException.from(error).userFriendlyMessage));\n    }\n  }"
+      "  Future<void> _onSubmitted(\n    LoginSubmitted event,\n    Emitter<LoginState> emit,\n  ) async {\n    emit(const LoginLoading());\n    final result = await _authRepository.login(event.email, event.password);\n    switch (result) {\n      case Success(:final value):\n// ctx:auth_2fa_email:begin\n        if (value.requiresTwoFactor) {\n          emit(LoginRequiresTwoFactor(event.email, event.password));\n          return;\n        }\n// ctx:auth_2fa_email:end\n        emit(const LoginSuccess()); // Router redirect handles navigation.\n      case Failure(:final error):\n        emit(LoginFailure(AppException.from(error).userFriendlyMessage));\n    }\n  }"
     ],
     "lib/features/auth/bloc/login_event.dart": [
       "final class LoginSubmitted extends LoginEvent {\n  const LoginSubmitted(this.email, this.password);\n  final String email;\n  final String password;\n}"

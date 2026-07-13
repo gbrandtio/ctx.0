@@ -90,9 +90,46 @@
       "envVars": [
         "MINIMUM_CLIENT_VERSION"
       ],
+    },
+    {
+      "id": "auth_2fa_email",
+      "summary": "Mandatory 2FA via email code on login (disabled by default)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "AppApi/Endpoints/v1/UsersEndpoints.cs",
+        "Contracts/Auth/AuthContracts.cs",
+        "Application/Features/Users/AuthenticateUser.cs"
+      ],
+      "sourceDirs": [
+        "Application/Features/Users/Authenticate2FA.cs"
+      ],
+      "testDirs": [],
+      "envVars": [],
       "userSteps": [
-        "Set the MINIMUM_CLIENT_VERSION environment variable to force older clients to update.",
-        "Mobile counterpart: `ctx0 enable app_updates` in the app repo."
+        "Requires the API-side email sender to be configured (send-code -> 2fa flow).",
+        "Mobile counterpart: `ctx0 enable auth_2fa_email` in the app repo."
+      ]
+    },
+    {
+      "id": "email_brevo",
+      "summary": "Brevo HTTP Email Sender (disabled by default; overrides LoggingEmailSender)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "AppApi/Extensions/ServiceCollectionExtensions.cs"
+      ],
+      "sourceDirs": [
+        "Infrastructure/External/BrevoEmailSender.cs",
+        "Infrastructure/External/BrevoOptions.cs"
+      ],
+      "testDirs": [],
+      "envVars": [
+        "Brevo__ApiKey",
+        "Brevo__SenderName",
+        "Brevo__SenderEmail"
+      ],
+      "userSteps": [
+        "Requires Brevo API key to send real emails.",
+        "There is no mobile counterpart for this integration."
       ]
     }
   ]

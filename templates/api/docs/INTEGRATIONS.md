@@ -36,6 +36,8 @@ dotnet test`.
 | `payments_stripe` | Stripe payment intents + webhook + SSE payment events | enabled | `payments_stripe` |
 | `push_firebase` | FCM dispatch worker + firebase token endpoints | enabled | `push_firebase` |
 | `auth_google` | Google Sign-In endpoint + identity link | enabled | `auth_google` |
+| `auth_2fa_email` | Two-Factor Authentication via email code | disabled | `auth_2fa_email` |
+| `email_brevo` | Brevo HTTP Email Sender (replaces LoggingEmailSender) | disabled | none |
 | `maps_google` | Nearby geo-items endpoint (PostGIS) + output cache | enabled | `maps_google` |
 | `app_updates` | `VersionCheckMiddleware` 426 Upgrade Required enforcer | enabled | `app_updates` |
 

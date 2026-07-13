@@ -68,7 +68,7 @@ void main() {
 
     final result = await repository.login('a@b.com', 'pw');
 
-    expect(result, isA<Success<User>>());
+    expect(result, isA<Success<AuthSession>>());
     expect(repository.currentState, isA<Authenticated>());
     verify(
       () => secureStorage.writeTokens(
@@ -87,7 +87,7 @@ void main() {
 
       final result = await repository.login('a@b.com', 'wrong');
 
-      expect(result, isA<Failure<User>>());
+      expect(result, isA<Failure<AuthSession>>());
       expect(repository.currentState, isNot(isA<Authenticated>()));
       verifyNever(
         () => secureStorage.writeTokens(

@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 // ctx:auth_email_password:end
 
 import '../../../core/l10n/l10n.dart';
+// ctx:auth_2fa_email:begin
+import 'package:go_router/go_router.dart';
+// ctx:auth_2fa_email:end
 // ctx:auth_email_password:begin
 // ctx:auth_email_password:end
 import '../../../core/widgets/app_header.dart';
@@ -37,6 +40,14 @@ class LoginScreen extends StatelessWidget {
               ..hideCurrentSnackBar()
               ..showSnackBar(SnackBar(content: Text(state.message)));
           }
+// ctx:auth_2fa_email:begin
+          if (state is LoginRequiresTwoFactor) {
+            context.go('/2fa', extra: {
+              'usernameOrEmail': state.usernameOrEmail,
+              'password': state.password,
+            });
+          }
+// ctx:auth_2fa_email:end
         },
         child: SafeArea(
           child: SingleChildScrollView(

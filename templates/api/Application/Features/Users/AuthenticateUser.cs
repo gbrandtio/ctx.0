@@ -13,7 +13,11 @@ public sealed class AuthenticateUserHandler(
     IUserRepository users,
     IBlindIndexProvider blindIndex,
     IPasswordHasher passwordHasher,
-    TokenIssuer tokenIssuer) : IRequestHandler<AuthenticateUserCommand, AuthResponse>
+    TokenIssuer tokenIssuer
+// ctx:auth_2fa_email:begin
+    , IMediator mediator
+// ctx:auth_2fa_email:end
+    ) : IRequestHandler<AuthenticateUserCommand, AuthResponse>
 {
     public async Task<AuthResponse> Handle(AuthenticateUserCommand command, CancellationToken ct)
     {
@@ -33,6 +37,20 @@ public sealed class AuthenticateUserHandler(
         {
             throw DomainException.Unauthorized("Invalid credentials provided.");
         }
+
+// ctx:auth_2fa_email:begin
+        await mediator.Send(new SendTwoFactorCodeCommand(user.Id, user.Email), ct);
+        
+        return new AuthResponse(
+            AccessToken: null,
+            RefreshToken: null,
+            ExpiresAtUtc: null,
+            UserId: user.Id,
+            Username: user.Username,
+            Email: user.Email,
+            RequiresTwoFactor: true
+        );
+// ctx:auth_2fa_email:end
 
         return await tokenIssuer.IssueAsync(
             new AccessTokenSubject(user.Id, user.Username, SecurityConstants.Roles.User),

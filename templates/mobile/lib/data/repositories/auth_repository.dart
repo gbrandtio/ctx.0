@@ -122,13 +122,13 @@ class AuthRepository {
     }
   }
 
-  Future<Result<User>> login(String usernameOrEmail, String password) =>
+  Future<Result<AuthSession>> login(String usernameOrEmail, String password) =>
       _establishSession(() => _userApi.login(usernameOrEmail, password));
 
   /// Registration step 2: create the account with the code and start the
   /// session. [username] is derived by the caller from the email when the
   /// signup form does not collect one.
-  Future<Result<User>> register({
+  Future<Result<AuthSession>> register({
     required String username,
     required String email,
     required String password,
@@ -146,7 +146,7 @@ class AuthRepository {
     ),
   );
 
-  Future<Result<User>> signInWithGoogle(String idToken) =>
+  Future<Result<AuthSession>> signInWithGoogle(String idToken) =>
       _establishSession(() => _userApi.googleSignIn(idToken));
 
   /// Refreshes the current user (e.g. after profile edit); merges via
@@ -248,22 +248,38 @@ class AuthRepository {
     await _prefs.clear();
   }
 
-  Future<Result<User>> _establishSession(
+  Future<Result<AuthSession>> _establishSession(
     Future<AuthSession> Function() call,
   ) async {
     try {
       final session = await call();
+// ctx:auth_2fa_email:begin
+      if (session.requiresTwoFactor) {
+        return Result.success(session);
+      }
+// ctx:auth_2fa_email:end
       await _secureStorage.writeTokens(
-        accessToken: session.accessToken,
-        refreshToken: session.refreshToken,
+        accessToken: session.accessToken!,
+        refreshToken: session.refreshToken!,
       );
       await _secureStorage.writeUserId(session.user.id);
       _emit(Authenticated(session.user));
-      return Result.success(session.user);
+      return Result.success(session);
     } on Exception catch (e) {
       return Result.failure(e);
     }
   }
+
+// ctx:auth_2fa_email:begin
+  Future<void> establishSessionWith(AuthSession session) async {
+    await _secureStorage.writeTokens(
+      accessToken: session.accessToken!,
+      refreshToken: session.refreshToken!,
+    );
+    await _secureStorage.writeUserId(session.user.id);
+    _emit(Authenticated(session.user));
+  }
+// ctx:auth_2fa_email:end
 
   void dispose() => _controller.close();
 }

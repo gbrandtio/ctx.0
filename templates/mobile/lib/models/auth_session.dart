@@ -8,15 +8,17 @@ import 'user.dart';
 /// those fields.
 class AuthSession extends Equatable {
   const AuthSession({
-    required this.accessToken,
-    required this.refreshToken,
+    this.accessToken,
+    this.refreshToken,
     required this.user,
+    this.requiresTwoFactor = false,
   });
 
   factory AuthSession.fromJson(Map<String, dynamic> json) {
     return AuthSession(
-      accessToken: json['accessToken'] as String,
-      refreshToken: json['refreshToken'] as String,
+      accessToken: json['accessToken'] as String?,
+      refreshToken: json['refreshToken'] as String?,
+      requiresTwoFactor: json['requiresTwoFactor'] as bool? ?? false,
       user: User(
         id: json['userId'].toString(),
         email: json['email'] as String,
@@ -25,10 +27,11 @@ class AuthSession extends Equatable {
     );
   }
 
-  final String accessToken;
-  final String refreshToken;
+  final String? accessToken;
+  final String? refreshToken;
   final User user;
+  final bool requiresTwoFactor;
 
   @override
-  List<Object?> get props => [accessToken, refreshToken, user];
+  List<Object?> get props => [accessToken, refreshToken, user, requiresTwoFactor];
 }

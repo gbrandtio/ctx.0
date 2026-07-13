@@ -26,3 +26,14 @@ final class LoginFailure extends LoginState {
   @override
   List<Object?> get props => [message];
 }
+
+// ctx:auth_2fa_email:begin
+final class LoginRequiresTwoFactor extends LoginState {
+  const LoginRequiresTwoFactor(this.usernameOrEmail, this.password);
+  final String usernameOrEmail;
+  final String password;
+
+  @override
+  List<Object?> get props => [usernameOrEmail, password];
+}
+// ctx:auth_2fa_email:end

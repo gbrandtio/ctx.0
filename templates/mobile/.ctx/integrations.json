@@ -133,6 +133,26 @@
       ]
     },
     {
+      "id": "auth_2fa_email",
+      "summary": "Mandatory 2FA via email code on login (disabled by default)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "lib/data/repositories/auth_repository.dart",
+        "lib/features/auth/bloc/login_bloc.dart",
+        "lib/features/auth/bloc/login_event.dart",
+        "lib/features/auth/views/login_screen.dart",
+        "lib/features/auth/auth_module.dart"
+      ],
+      "sourceDirs": [
+        "lib/features/auth/2fa"
+      ],
+      "testDirs": [],
+      "envVars": [],
+      "userSteps": [
+        "Requires the API-side email sender to be configured (send-code -> 2fa flow)."
+      ]
+    },
+    {
       "id": "profile",
       "summary": "Profile tab: view/edit profile (ships enabled)",
       "providesNavTab": true,
