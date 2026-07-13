@@ -1,5 +1,5 @@
 import 'package:app_template/core/result/result.dart';
-import 'package:app_template/data/services/api/interceptors/caching_client.dart';
+import 'package:ctx0_mobile_security/ctx0_mobile_security.dart';
 import 'package:app_template/features/payments/data/payment_api_service.dart';
 import 'package:app_template/features/payments/data/payments_repository.dart';
 import 'package:app_template/features/payments/data/stripe_service.dart';
@@ -23,7 +23,7 @@ void main() {
     stripe = _MockStripe();
     cachingClient = _MockCachingClient();
     when(() => cachingClient.invalidatePattern(any()))
-        .thenAnswer((_) async {});
+        .thenAnswer((_) => Future<void>.value());
     repository = PaymentsRepository(
       api: api,
       stripe: stripe,
