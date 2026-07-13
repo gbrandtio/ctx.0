@@ -11,11 +11,11 @@
 
 | Actor | Permission (`resource:action`) | Notes |
 |---|---|---|
-| <e.g., User> | <e.g., `notes:read`> | <add constants per `api-template/docs/security/AUTHORIZATION.md` §8> |
+| <e.g., User> | <e.g., `notes:read`> | <add constants per `templates/api/docs/security/AUTHORIZATION.md` §8> |
 
 ## Screens & Flows (mobile)
 
-<Per screen: name, entry point (nav item / deep link / push), states (loading/success/failure/empty), primary actions. Reference the app shell contract in `mobile-template/docs/APP_SHELL.md` for navigation, header, and settings integration.>
+<Per screen: name, entry point (nav item / deep link / push), states (loading/success/failure/empty), primary actions. Reference the app shell contract in `templates/mobile/docs/APP_SHELL.md` for navigation, header, and settings integration.>
 
 ## Endpoints & DTOs (api)
 
@@ -26,7 +26,7 @@
 ## Data & Security
 
 - **Entities/tables**: <names, ownership relation (user-owned? project-scoped?)>
-- **RLS**: <policy per table — follow the checklist in `api-template/docs/security/DATABASE_RLS_POLICIES.md` §4>
+- **RLS**: <policy per table — follow the checklist in `templates/api/docs/security/DATABASE_RLS_POLICIES.md` §4>
 - **PII**: <fields needing envelope encryption / blind indexes, if any>
 
 ## Capabilities Used
@@ -35,7 +35,7 @@
 
 ## Caching & Invalidation
 
-<Client: cacheable endpoints + which mutations invalidate which patterns (see `mobile-template/docs/CACHING_IMPLEMENTATION.md`). Server: output-cache policy/tags, if public reads.>
+<Client: cacheable endpoints + which mutations invalidate which patterns (see `templates/mobile/docs/CACHING_IMPLEMENTATION.md`). Server: output-cache policy/tags, if public reads.>
 
 ## Edge Cases & Business Rules
 

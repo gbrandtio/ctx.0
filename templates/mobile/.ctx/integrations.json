@@ -1,0 +1,161 @@
+{
+  "kind": "mobile",
+  "authMethodIds": [
+    "auth_google",
+    "auth_email_password"
+  ],
+  "securityPubspecDeps": [
+    "ctx0_mobile_security"
+  ],
+  "integrations": [
+    {
+      "id": "auth_google",
+      "summary": "Google Sign-In method of the auth module (ships enabled)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "pubspec.yaml",
+        "lib/features/auth/auth_module.dart",
+        "lib/features/auth/bloc/login_bloc.dart",
+        "lib/features/auth/bloc/login_event.dart",
+        "lib/features/auth/views/login_screen.dart",
+        "test/features/auth/login_bloc_test.dart"
+      ],
+      "sourceDirs": [
+        "lib/features/auth/google"
+      ],
+      "testDirs": [],
+      "envVars": [],
+      "userSteps": [
+        "Configure the OAuth clients: on iOS set GIDClientID + the reversed client-ID URL scheme in ios/Runner/Info.plist; on Android register the app's SHA-1 in the Google Cloud Console (https://console.cloud.google.com/apis/credentials).",
+        "The API-side counterpart (POST /v1/users/google/authenticate) ships with the templates/api; see templates/api/docs/security/AUTHENTICATION.md."
+      ]
+    },
+    {
+      "id": "auth_email_password",
+      "summary": "Email/password + email verification method (ships enabled)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "lib/features/auth/auth_module.dart",
+        "lib/features/auth/bloc/login_bloc.dart",
+        "lib/features/auth/bloc/login_event.dart",
+        "lib/features/auth/views/login_screen.dart",
+        "test/features/auth/login_bloc_test.dart"
+      ],
+      "sourceDirs": [
+        "lib/features/auth/email_password"
+      ],
+      "testDirs": [
+        "test/features/auth/email_password"
+      ],
+      "envVars": [],
+      "userSteps": [
+        "Signup requires the API to send verification codes \u2014 configure the API-side email sender (send-code -> register flow, templates/api/docs/security/AUTHENTICATION.md)."
+      ]
+    },
+    {
+      "id": "profile",
+      "summary": "Profile tab: view/edit profile (ships enabled)",
+      "providesNavTab": true,
+      "markedFiles": [
+        "lib/app/modules.dart"
+      ],
+      "sourceDirs": [
+        "lib/features/profile"
+      ],
+      "testDirs": [
+        "test/features/profile"
+      ],
+      "envVars": [],
+      "userSteps": []
+    },
+    {
+      "id": "settings",
+      "summary": "Settings tab: theme, language, privacy/GDPR (ships enabled)",
+      "providesNavTab": true,
+      "markedFiles": [
+        "pubspec.yaml",
+        "lib/app/modules.dart"
+      ],
+      "sourceDirs": [
+        "lib/features/settings"
+      ],
+      "testDirs": [
+        "test/features/settings"
+      ],
+      "envVars": [
+        "PRIVACY_POLICY_URL",
+        "TERMS_OF_SERVICE_URL"
+      ],
+      "userSteps": []
+    },
+    {
+      "id": "maps_google",
+      "summary": "Google Map + nearby geo-tagged items (MapsModule)",
+      "providesNavTab": true,
+      "markedFiles": [
+        "pubspec.yaml",
+        "lib/app/modules.dart",
+        "android/app/src/main/AndroidManifest.xml",
+        "ios/Runner/AppDelegate.swift",
+        "ios/Runner/Info.plist"
+      ],
+      "sourceDirs": [
+        "lib/features/maps"
+      ],
+      "testDirs": [
+        "test/features/maps"
+      ],
+      "envVars": [
+        "MAPS_API_KEY"
+      ],
+      "userSteps": [
+        "Create a Google Maps API key (Maps SDK for Android + iOS) at https://console.cloud.google.com and pass it as MAPS_API_KEY (docs/ENVIRONMENT_VARIABLES.md)."
+      ]
+    },
+    {
+      "id": "push_firebase",
+      "summary": "FCM push + in-app notification feed (NotificationsModule)",
+      "providesNavTab": true,
+      "markedFiles": [
+        "pubspec.yaml",
+        "lib/app/modules.dart",
+        "android/app/src/main/AndroidManifest.xml"
+      ],
+      "sourceDirs": [
+        "lib/features/notifications"
+      ],
+      "testDirs": [
+        "test/features/notifications"
+      ],
+      "envVars": [],
+      "userSteps": [
+        "Create a Firebase project and register the Android/iOS apps, then either run `flutterfire configure` or place android/app/google-services.json and ios/Runner/GoogleService-Info.plist manually.",
+        "Enable FCM dispatch on the API side (templates/api/docs \u2014 notifications feature)."
+      ]
+    },
+    {
+      "id": "payments_stripe",
+      "summary": "Stripe PaymentSheet checkout (PaymentsModule)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "pubspec.yaml",
+        "lib/app/modules.dart"
+      ],
+      "sourceDirs": [
+        "lib/features/payments"
+      ],
+      "testDirs": [
+        "test/features/payments"
+      ],
+      "envVars": [
+        "STRIPE_PUBLISHABLE_KEY",
+        "APPLE_PAY_MERCHANT_ID",
+        "MERCHANT_COUNTRY_CODE"
+      ],
+      "userSteps": [
+        "Set STRIPE_PUBLISHABLE_KEY from https://dashboard.stripe.com (publishable key only \u2014 the secret key lives on the API).",
+        "Configure the Stripe secret key + webhook endpoint on the API side (templates/api/docs/features/PAYMENTS_STRIPE.md)."
+      ]
+    }
+  ]
+}

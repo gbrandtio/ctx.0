@@ -1,0 +1,20 @@
+name: ctx0_cli
+description: >-
+  The ctx.0 scaffolder: generates production-grade Flutter + .NET
+  applications with a permanent, non-removable security plane, and manages
+  their opt-in integrations (enable/disable/status/doctor).
+version: 0.1.0
+repository: https://github.com/brant-io/ctx.0
+
+environment:
+  sdk: ^3.10.0
+
+executables:
+  ctx0: ctx0
+
+dependencies:
+  args: ^2.6.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.26.0
