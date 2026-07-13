@@ -84,8 +84,8 @@ flutter test
 | `nav_tabs` | Top TabBar | disabled | — |
 
 The auth methods live *inside* the permanent auth module: their toggles
-comment marker blocks in the shared login files and exclude
-`lib/features/auth/google/` or `lib/features/auth/email_password/`. The
+inject code into marker blocks in the shared login files and restore
+`lib/features/auth/google/` or `lib/features/auth/email_password/` from the registry. The
 GDPR surface (`docs/APP_SHELL.md` §4) ships with `settings`; a product
 that disables that tab must re-home delete-account and data-export
 before release.
@@ -134,12 +134,11 @@ method is mobile-only: the API keeps both endpoints, which is harmless.
   blocks — across `pubspec.yaml`, `lib/app/modules.dart`, and the
   platform files for module-level features; across the shared auth files
   (`auth_module.dart`, `login_bloc.dart`, `login_screen.dart`, ...) for
-  the auth methods. The scaffolder comments/uncomments those blocks.
+  the auth methods. The scaffolder injects and ejects code inside those blocks based on selections.
 - Disabling removes any vendor packages from `pubspec.yaml`, so the
-  native SDKs are not linked and the feature's Dart source dirs become
-  unreachable (never compiled). The directories stay in the tree; the
-  analyzer excludes them (`analysis_options.yaml` managed block) and
-  their tests are parked as `*.dart.off`.
+  native SDKs are not linked. To completely avoid zombie code, the feature's
+  Dart source directories and test directories are entirely removed from the tree when
+  disabled, and are restored from the registry when enabled.
 - `doctor` warns (without failing) when no enabled feature contributes a
   bottom-nav tab — the shell then boots to the splash route until a
   product module provides one (`docs/APP_SHELL.md` §5).
@@ -167,9 +166,7 @@ Only when the user explicitly asks to extend the catalog itself:
 2. Wrap every touchpoint in `ctx:<id>:begin/end` markers. Keep prose
    comments **outside** XML marker blocks (the disable transform wraps the
    block in an XML comment, which cannot nest).
-3. Describe the integration in the manifest at the top of
-   `tool/scaffold.dart` (`markedFiles`, `sourceDirs`, `testDirs`,
-   `envVars`, `userSteps`).
+3. Describe the integration in its `integration.json` manifest (including `markedFiles`, `sourceDirs`, `testDirs`, `envVars`, `userSteps`, and `injections`).
 4. Add its env vars to `docs/ENVIRONMENT_VARIABLES.md` and a row to the
    catalog table above.
 5. Verify the full round-trip: `disable` → doctor/analyze/test →

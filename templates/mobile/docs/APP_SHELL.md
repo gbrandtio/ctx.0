@@ -38,7 +38,7 @@ abstract class FeatureModule {
 }
 ```
 
-`lib/app/modules.dart` holds the single ordered `List<FeatureModule>`. **Adding or removing a business feature = one line there.** Exception: the optional vendor integrations (maps, push, payments) are registered inside `ctx:` marker blocks managed exclusively by the scaffolder — never toggle those lines by hand (`docs/INTEGRATIONS.md`). The shell composes everything else:
+`lib/app/modules.dart` holds the single ordered `List<FeatureModule>`. **Adding or removing a business feature = one line there.** Exception: the optional vendor integrations (maps, push, payments) are registered inside `ctx:` marker blocks where code is injected/ejected exclusively by the scaffolder — never edit those lines by hand (`docs/INTEGRATIONS.md`). The shell composes everything else:
 
 - **Router** (`lib/app/router.dart`): GoRouter assembled from every module's `routes`, plus a global auth redirect driven by `AuthRepository.authStateChanges` (signed-out users land on login; deep links are preserved).
 - **DI**: `MultiRepositoryProvider` from all `repositories`; `globalBlocs` mounted at the app root.

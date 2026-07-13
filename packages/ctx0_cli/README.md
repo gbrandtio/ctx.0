@@ -15,5 +15,5 @@ ctx0 docs sync
 
 Inside a generated repo, `AGENTS.md` routes your coding agent to the
 binding docs; `docs/packages/` describes the installed security packages;
-`ctx0 doctor` verifies marker-block consistency and that the security
+`ctx0 doctor` verifies injection marker consistency and that the security
 plane is intact (present, not overridden, not vendored).

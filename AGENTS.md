@@ -12,7 +12,7 @@ Your **first step for any task** is to identify which area the task targets and 
 | Enabling/disabling scaffoldable features (Google Maps, Firebase push, Stripe checkout, profile/settings tabs, Google or email/password sign-in) | [`templates/mobile/docs/INTEGRATIONS.md`](templates/mobile/docs/INTEGRATIONS.md) and [`templates/api/docs/INTEGRATIONS.md`](templates/api/docs/INTEGRATIONS.md) — `ctx0` CLI only; in a workspace one `ctx0 enable/disable` toggles both sides |
 | .NET, C#, ASP.NET Core, EF Core, PostgreSQL, migrations, RLS wiring, Stripe webhooks, FCM dispatch, PostGIS | [`templates/api/AGENTS.md`](templates/api/AGENTS.md) |
 | The security plane itself (RASP, device identity, signing, ALE, JWT, RBAC catalog, envelope encryption, RLS interceptors, protocol) | `packages/ctx0_mobile_security/` and `packages/dotnet/Ctx0.Security*/` — see the **security-plane rules** below |
-| The scaffolder (`ctx0 create/enable/disable/doctor/docs sync/upgrade`, marker engine, template packing) | `packages/ctx0_cli/` (+ `tool/pack_templates.dart`); the toggle catalogs live in each template's `.ctx/integrations.json` |
+| The scaffolder (`ctx0 create/enable/disable/doctor/docs sync/upgrade`, injection engine, template packing) | `packages/ctx0_cli/` (+ `tool/pack_templates.dart`); the toggle catalogs live in each template's `.ctx/integrations.json` |
 | Business context or feature specs (`docs/core-business/`, `docs/features/`) | Top-level `docs/`; these are the fill-in contracts shipped into generated repos. |
 | Repo-level docs (this file, `README.md`), licensing, repository structure | Stay here; keep changes consistent with all areas. |
 

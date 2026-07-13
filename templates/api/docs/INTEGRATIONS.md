@@ -43,12 +43,12 @@ In a `ctx0 create workspace` layout, `ctx0 enable/disable <id>` at the
 workspace root toggles **both** sides; toggling only one side is an
 incomplete change — say so explicitly in your summary.
 
-## 4. How disabling works (so you don't fight it)
+## 4. How it works (so you don't fight it)
 
-- Endpoint registrations, DI lines, and workers are commented out via
-  marker blocks (`Program.cs`, `Extensions/ServiceCollectionExtensions.cs`,
+- Endpoint registrations, DI lines, and workers are injected or ejected by the scaffolder
+  based on selections (`Program.cs`, `Extensions/ServiceCollectionExtensions.cs`,
   `Endpoints/v1/UsersEndpoints.cs`).
-- Each affected csproj holds a marker-toggled `Ctx<Feature>` property;
+- Each affected csproj holds a scaffolder-injected `Ctx<Feature>` property;
   while disabled the vendor NuGet drops out and the feature's
   vendor-coupled sources/tests are excluded via
   `<Compile Remove ... Condition>` (e.g. `StripePaymentGateway.cs`,

@@ -31,7 +31,7 @@ The security pillar arrives as **compiled packages you cannot weaken**. Every ar
 - **Caching**: HTTP-level client caching (Hive) and server output caching.
 - **Localization & Theming**: Multi-language support, light/dark themes, and offline-first data patterns.
 
-Everything above toggles with `ctx0 enable/disable <id>` — never by hand-editing.
+Everything above toggles with `ctx0 enable/disable <id>`.
 
 ### Defence in Depth
 
