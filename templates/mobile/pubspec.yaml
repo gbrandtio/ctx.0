@@ -56,7 +56,7 @@ dependencies:
   # (docs/INTEGRATIONS.md). Never hand-edit the marker blocks below.
   # ctx:push_firebase:begin
   # ctx:off firebase_core: ^4.11.0
-  # ctx:off firebase_messaging: ^16.4.1
+  # ctx:off firebase_messaging: 16.4.1
   # ctx:push_firebase:end
   # ctx:payments_stripe:begin
   # ctx:off flutter_stripe: ^13.0.0
