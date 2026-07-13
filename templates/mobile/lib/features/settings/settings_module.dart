@@ -9,6 +9,7 @@ import '../../core/l10n/l10n.dart';
 import '../../core/l10n/locale_cubit.dart';
 import '../../core/theme/theme_cubit.dart';
 import '../../data/repositories/auth_repository.dart';
+import '../../data/services/storage/prefs_service.dart';
 import 'bloc/settings_cubit.dart';
 import 'views/settings_screen.dart';
 
@@ -25,6 +26,7 @@ class SettingsModule extends FeatureModule {
           builder: (context, state) => BlocProvider(
             create: (context) => SettingsCubit(
               authRepository: context.read<AuthRepository>(),
+              prefs: context.read<PrefsService>(),
             ),
             child: const SettingsScreen(),
           ),
@@ -51,6 +53,7 @@ class SettingsModule extends FeatureModule {
         SettingsSection(
           title: (context) => context.l10n.settingsPrivacySection,
           tiles: (context) => [
+            const _TrackingTile(),
             ListTile(
               leading: const Icon(Icons.download_outlined),
               title: Text(context.l10n.exportMyData),
@@ -168,6 +171,30 @@ class _DeleteAccountTile extends StatelessWidget {
         style: TextStyle(color: error),
       ),
       onTap: () => _confirmDelete(context),
+    );
+  }
+}
+
+class _TrackingTile extends StatelessWidget {
+  const _TrackingTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final prefs = context.read<PrefsService>();
+    return StreamBuilder<bool>(
+      stream: prefs.trackingConsentChanges,
+      initialData: prefs.trackingConsentGranted,
+      builder: (context, snapshot) {
+        final isGranted = snapshot.data ?? false;
+        return SwitchListTile(
+          title: Text(context.l10n.trackingConsentTitle),
+          subtitle: Text(context.l10n.trackingConsentSubtitle),
+          value: isGranted,
+          onChanged: (value) =>
+              context.read<SettingsCubit>().setTrackingConsent(value),
+          secondary: const Icon(Icons.analytics_outlined),
+        );
+      },
     );
   }
 }

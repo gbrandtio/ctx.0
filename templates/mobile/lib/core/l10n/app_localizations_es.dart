@@ -184,4 +184,28 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get deleteConfirm => 'Eliminar';
+
+  @override
+  String get trackingConsentTitle => 'Uso de datos y análisis';
+
+  @override
+  String get trackingConsentSubtitle =>
+      'Ayúdenos a mejorar la aplicación compartiendo datos de uso anónimos.';
+
+  @override
+  String get gdprBannerTitle => 'Valoramos tu privacidad';
+
+  @override
+  String get gdprBannerMessage =>
+      'Usamos datos anónimos para mejorar tu experiencia. Siempre puedes cambiar esto en Configuración.';
+
+  @override
+  String get gdprWarningMessage =>
+      'Algunas funciones están deshabilitadas para proteger tu privacidad.';
+
+  @override
+  String get accept => 'Aceptar';
+
+  @override
+  String get decline => 'Rechazar';
 }

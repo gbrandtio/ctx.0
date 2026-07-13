@@ -433,6 +433,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get deleteConfirm;
+
+  /// No description provided for @trackingConsentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Usage & Analytics'**
+  String get trackingConsentTitle;
+
+  /// No description provided for @trackingConsentSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help us improve the app by sharing anonymous usage data.'**
+  String get trackingConsentSubtitle;
+
+  /// No description provided for @gdprBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We value your privacy'**
+  String get gdprBannerTitle;
+
+  /// No description provided for @gdprBannerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'We use anonymous data to improve your experience. You can always change this in Settings.'**
+  String get gdprBannerMessage;
+
+  /// No description provided for @gdprWarningMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Some features are disabled to protect your privacy.'**
+  String get gdprWarningMessage;
+
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept;
+
+  /// No description provided for @decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get decline;
 }
 
 class _AppLocalizationsDelegate

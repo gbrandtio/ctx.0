@@ -39,6 +39,17 @@ Future<void> runPubGet(MarkerRepo repo) async {
 
 Future<int> cmdEnable(MarkerRepo repo, String id) async {
   final integration = repo.catalog.byId(id);
+  
+  if (repo.catalog.navMethodIds.contains(id)) {
+    for (final otherId in repo.catalog.navMethodIds) {
+      if (otherId != id &&
+          repo.currentState(repo.catalog.byId(otherId)) == BlockState.enabled) {
+        repo.setIntegrationState(repo.catalog.byId(otherId), enable: false);
+        stdout.writeln('  (auto-disabled mutually exclusive $otherId)');
+      }
+    }
+  }
+
   repo.setIntegrationState(integration, enable: true);
   await runPubGet(repo);
   stdout.writeln('\n✓ ${integration.id} enabled.');
@@ -68,6 +79,13 @@ Future<int> cmdDisable(MarkerRepo repo, String id) async {
       return 1;
     }
   }
+  
+  if (repo.catalog.navMethodIds.contains(id)) {
+    stderr.writeln('error: cannot disable a navigation method directly. '
+        'Enable a different navigation method instead (e.g., ctx0 enable nav_none).');
+    return 1;
+  }
+
   repo.setIntegrationState(integration, enable: false);
   await runPubGet(repo);
   stdout.writeln('\n✓ ${integration.id} disabled. Its code stays in the '
@@ -147,6 +165,16 @@ int cmdDoctor(MarkerRepo repo) {
           (id) => repo.currentState(catalog.byId(id)) != BlockState.enabled)) {
     problems.add('auth: all sign-in methods are disabled; enable one of '
         '${catalog.authMethodIds.join(', ')}');
+  }
+
+  if (catalog.navMethodIds.isNotEmpty) {
+    final activeNavs = catalog.navMethodIds
+        .where((id) => repo.currentState(catalog.byId(id)) == BlockState.enabled)
+        .toList();
+    if (activeNavs.length != 1) {
+      problems.add('nav: exactly one navigation method must be enabled '
+          '(active: ${activeNavs.isEmpty ? 'none' : activeNavs.join(', ')}).');
+    }
   }
 
   if (catalog.integrations.where((i) => i.providesNavTab).isNotEmpty &&

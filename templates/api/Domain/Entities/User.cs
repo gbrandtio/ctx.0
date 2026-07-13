@@ -29,6 +29,9 @@ public class User
     /// <summary>GDPR delete anonymizes instead of hard-deleting (ledger integrity).</summary>
     public bool IsAnonymized { get; set; }
 
+    /// <summary>Whether the user has granted consent for tracking and analytics.</summary>
+    public bool HasTrackingConsent { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

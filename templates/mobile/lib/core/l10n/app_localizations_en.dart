@@ -181,4 +181,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteConfirm => 'Delete';
+
+  @override
+  String get trackingConsentTitle => 'Data Usage & Analytics';
+
+  @override
+  String get trackingConsentSubtitle =>
+      'Help us improve the app by sharing anonymous usage data.';
+
+  @override
+  String get gdprBannerTitle => 'We value your privacy';
+
+  @override
+  String get gdprBannerMessage =>
+      'We use anonymous data to improve your experience. You can always change this in Settings.';
+
+  @override
+  String get gdprWarningMessage =>
+      'Some features are disabled to protect your privacy.';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get decline => 'Decline';
 }

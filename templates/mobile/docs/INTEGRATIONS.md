@@ -74,6 +74,12 @@ flutter test
 | `maps_google` | `MapsModule` — Google Map + nearby geo-tagged items | disabled | `MAPS_API_KEY` |
 | `push_firebase` | `NotificationsModule` — FCM push + in-app feed | disabled | — (platform config files instead) |
 | `payments_stripe` | `PaymentsModule` — Stripe PaymentSheet checkout | disabled | `STRIPE_PUBLISHABLE_KEY`, `APPLE_PAY_MERCHANT_ID`, `MERCHANT_COUNTRY_CODE` |
+| `nav_bottom` | Standard BottomNavigationBar | enabled | — |
+| `nav_rail` | Side NavigationRail for tablets/desktop | disabled | — |
+| `nav_drawer` | NavigationDrawer hamburger menu | disabled | — |
+| `nav_none` | No navigation shell, pure routes | disabled | — |
+| `nav_bottom_notched` | BottomAppBar with FAB cutout | disabled | — |
+| `nav_tabs` | Top TabBar | disabled | — |
 
 The auth methods live *inside* the permanent auth module: their toggles
 comment marker blocks in the shared login files and exclude
@@ -81,6 +87,8 @@ comment marker blocks in the shared login files and exclude
 GDPR surface (`docs/APP_SHELL.md` §4) ships with `settings`; a product
 that disables that tab must re-home delete-account and data-export
 before release.
+
+**Navigation variants**: The `nav_*` methods (`nav_bottom`, `nav_rail`, `nav_drawer`, `nav_none`, `nav_bottom_notched`, `nav_tabs`) control the main app shell's routing UI. They are **mutually exclusive**; enabling one automatically disables the currently active one. `nav_bottom` ships enabled by default. Exactly one must be active at any given time.
 
 ### Human-only steps (the agent must ask, never fake)
 

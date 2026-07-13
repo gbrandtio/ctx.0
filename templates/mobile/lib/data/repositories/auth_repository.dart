@@ -168,14 +168,20 @@ class AuthRepository {
     }
   }
 
-  Future<Result<User>> updateProfile({String? displayName}) async {
+  Future<Result<User>> updateProfile({
+    String? displayName,
+    bool? hasTrackingConsent,
+  }) async {
     final current = _current;
     if (current is! Authenticated) {
       return Result.failure(StateError('No active session.'));
     }
     try {
-      final user =
-          await _userApi.updateUser(current.user.id, displayName: displayName);
+      final user = await _userApi.updateUser(
+        current.user.id,
+        displayName: displayName,
+        hasTrackingConsent: hasTrackingConsent,
+      );
       _emit(Authenticated(user));
       await _cachingClient.invalidatePattern('/users/');
       return Result.success(user);
