@@ -38,6 +38,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Security:Ale:RsaPrivateKey", _rsaPrivateKeyPem);
         builder.UseSetting("Security:Ale:Enforced", "false");
         builder.UseSetting("Security:Ale:RequestSigningRequired", "false");
+// ctx:app_updates:begin
+        builder.UseSetting("ClientSettings:MinimumClientVersion", "");
+// ctx:app_updates:end
         builder.UseEnvironment("Development");
     }
 

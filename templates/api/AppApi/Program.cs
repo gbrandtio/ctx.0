@@ -62,6 +62,11 @@ app.UseRouting();
 // order is contractual (APPLICATION_LAYER_SECURITY.md).
 app.UseAppSecurity();
 
+// ctx:app_updates:begin
+app.UseMiddleware<VersionCheckMiddleware>();
+// ctx:app_updates:end
+
+
 app.UseOutputCache();
 
 if (app.Environment.IsDevelopment())

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
 
 import 'app/app.dart';
 import 'app/modules.dart';
@@ -13,6 +14,11 @@ import 'data/repositories/auth_repository.dart';
 import 'package:ctx0_mobile_security/ctx0_mobile_security.dart';
 import 'data/services/api/user_api_service.dart';
 import 'data/services/storage/prefs_service.dart';
+// ctx:app_updates:begin
+import 'package:package_info_plus/package_info_plus.dart';
+import 'features/app_updates/app_updates_module.dart';
+import 'features/app_updates/data/version_check_client.dart';
+// ctx:app_updates:end
 
 /// Bootstrap (docs/FLUTTER_ARCHITECTURE.md §5, docs/SECURITY.md §4.1):
 /// storage → device identity → interceptor chain → repositories →
@@ -60,6 +66,16 @@ Future<void> main() async {
     cachingClient: apiFactory.cachingClient,
   );
 
+  http.Client apiClient = apiFactory.cachingClient;
+// ctx:app_updates:begin
+  final packageInfo = await PackageInfo.fromPlatform();
+  apiClient = VersionCheckClient(
+    inner: apiClient,
+    clientVersion: packageInfo.version,
+    onUpgradeRequired: () => updateRequiredNotifier.value = true,
+  );
+// ctx:app_updates:end
+
   // Don't block the first frame: the router holds on /splash until the
   // restore settles (AuthUnknown → Authenticated/Unauthenticated).
   unawaited(authRepository.restoreSession());
@@ -68,7 +84,8 @@ Future<void> main() async {
     modules: appModules,
     authRepository: authRepository,
     prefs: prefs,
-    apiClient: apiFactory.cachingClient,
+    apiClient: apiClient,
+    cachingClient: apiFactory.cachingClient,
     timeProvider: timeProvider,
     loggingService: loggingService,
   ));

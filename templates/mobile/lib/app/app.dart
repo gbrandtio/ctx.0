@@ -16,6 +16,10 @@ import '../core/utils/logging_service.dart';
 // ctx:settings:begin
 import '../features/settings/views/widgets/gdpr_banner_overlay.dart';
 // ctx:settings:end
+// ctx:app_updates:begin
+import '../features/app_updates/app_updates_module.dart';
+import '../features/app_updates/views/app_updates_overlay.dart';
+// ctx:app_updates:end
 import 'feature_module.dart';
 import 'router.dart';
 
@@ -30,6 +34,7 @@ class App extends StatefulWidget {
     required this.authRepository,
     required this.prefs,
     required this.apiClient,
+    required this.cachingClient,
     required this.timeProvider,
     required this.loggingService,
   });
@@ -41,9 +46,11 @@ class App extends StatefulWidget {
   final LoggingService loggingService;
 
   /// The fully-intercepted HTTP client (docs/HTTP_HANDLING.md); modules
-  /// build their ApiServices from it. Also provided as [CachingClient] so
-  /// modules can perform event-driven cache invalidation.
-  final CachingClient apiClient;
+  /// build their ApiServices from it.
+  final http.Client apiClient;
+
+  /// Provided as [CachingClient] so modules can perform event-driven cache invalidation.
+  final CachingClient cachingClient;
 
   @override
   State<App> createState() => _AppState();
@@ -68,7 +75,7 @@ class _AppState extends State<App> {
         RepositoryProvider<AuthRepository>.value(value: widget.authRepository),
         RepositoryProvider<PrefsService>.value(value: widget.prefs),
         RepositoryProvider<http.Client>.value(value: widget.apiClient),
-        RepositoryProvider<CachingClient>.value(value: widget.apiClient),
+        RepositoryProvider<CachingClient>.value(value: widget.cachingClient),
         RepositoryProvider<TimeProvider>.value(value: widget.timeProvider),
         RepositoryProvider<LoggingService>.value(value: widget.loggingService),
         RepositoryProvider<ModuleRegistry>.value(
@@ -110,6 +117,12 @@ class _AppState extends State<App> {
 // ctx:settings:begin
                 wrapped = GdprBannerOverlay(child: wrapped);
 // ctx:settings:end
+// ctx:app_updates:begin
+                wrapped = AppUpdatesOverlay(
+                  notifier: updateRequiredNotifier,
+                  child: wrapped,
+                );
+// ctx:app_updates:end
                 return wrapped;
               },
             );

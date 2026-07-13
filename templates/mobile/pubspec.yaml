@@ -43,8 +43,12 @@ dependencies:
   # Settings module: privacy policy / terms links (docs/APP_SHELL.md §4);
   # scaffoldable with the settings feature (docs/INTEGRATIONS.md)
   # ctx:settings:begin
-  url_launcher: ^6.3.0
   # ctx:settings:end
+
+  # ctx:app_updates:begin
+  package_info_plus: ^8.1.0
+  url_launcher: ^6.3.0
+  # ctx:app_updates:end
 
   # Brand SVG assets (docs/UI_UX_GUIDELINES.md §4D)
   flutter_svg: ^2.0.0

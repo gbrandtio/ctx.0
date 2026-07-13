@@ -75,6 +75,26 @@
       "userSteps": [
         "Mobile counterpart: `ctx0 enable maps_google` in the app repo (needs MAPS_API_KEY)."
       ]
+    },
+    {
+      "id": "app_updates",
+      "summary": "Forced App Updates interceptor + overlay screen (ships enabled)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "AppApi/Program.cs",
+        "AppApi/appsettings.json"
+      ],
+      "sourceDirs": [
+        "AppApi/Middleware/VersionCheckMiddleware.cs"
+      ],
+      "testDirs": [],
+      "envVars": [
+        "ClientSettings__MinimumClientVersion"
+      ],
+      "userSteps": [
+        "Set ClientSettings:MinimumClientVersion to force older clients to update.",
+        "Mobile counterpart: `ctx0 enable app_updates` in the app repo."
+      ]
     }
   ]
 }

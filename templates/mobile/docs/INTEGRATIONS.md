@@ -75,6 +75,7 @@ flutter test
 | `push_firebase` | `NotificationsModule` — FCM push + in-app feed | disabled | — (platform config files instead) |
 | `payments_stripe` | `PaymentsModule` — Stripe PaymentSheet checkout | disabled | `STRIPE_PUBLISHABLE_KEY`, `APPLE_PAY_MERCHANT_ID`, `MERCHANT_COUNTRY_CODE` |
 | `image_capture` | `ImageCaptureModule` — Device camera and gallery image picker | disabled | — |
+| `app_updates` | `AppUpdatesModule` — Forced App Updates overlay (intercepts 426 Upgrade Required) | disabled | — |
 | `nav_bottom` | Standard BottomNavigationBar | enabled | — |
 | `nav_rail` | Side NavigationRail for tablets/desktop | disabled | — |
 | `nav_drawer` | NavigationDrawer hamburger menu | disabled | — |
@@ -116,6 +117,11 @@ agent must never invent or commit:
 - **image_capture** — Ensure `NSCameraUsageDescription` and
   `NSPhotoLibraryUsageDescription` are set appropriately in `Info.plist`
   for production use.
+- **app_updates** — Update the App Store numeric ID (`YOUR_APP_ID`) in
+  `AppUpdatesOverlay` (`lib/features/app_updates/views/app_updates_overlay.dart`)
+  for iOS releases. The Android Play Store package name is handled automatically
+  by the scaffolder. Also ensure `ClientSettings:MinimumClientVersion` is set
+  in the API's `appsettings.json`.
 
 Cross-cutting rule (root `AGENTS.md`): enabling `push_firebase` or
 `payments_stripe` on mobile without its API-side counterpart is an

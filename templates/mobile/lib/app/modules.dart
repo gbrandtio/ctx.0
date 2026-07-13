@@ -17,6 +17,9 @@ import '../features/profile/profile_module.dart';
 // ctx:settings:begin
 import '../features/settings/settings_module.dart';
 // ctx:settings:end
+// ctx:app_updates:begin
+import '../features/app_updates/app_updates_module.dart';
+// ctx:app_updates:end
 import 'feature_module.dart';
 
 /// THE plug-n-play point (docs/APP_SHELL.md §1): the single ordered list
@@ -46,4 +49,7 @@ const List<FeatureModule> appModules = [
   // ctx:settings:begin
   SettingsModule(),
   // ctx:settings:end
+  // ctx:app_updates:begin
+  AppUpdatesModule(),
+  // ctx:app_updates:end
 ];

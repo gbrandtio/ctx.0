@@ -37,6 +37,7 @@ dotnet test`.
 | `push_firebase` | FCM dispatch worker + firebase token endpoints | enabled | `push_firebase` |
 | `auth_google` | Google Sign-In endpoint + identity link | enabled | `auth_google` |
 | `maps_google` | Nearby geo-items endpoint (PostGIS) + output cache | enabled | `maps_google` |
+| `app_updates` | `VersionCheckMiddleware` 426 Upgrade Required enforcer | enabled | `app_updates` |
 
 In a `ctx0 create workspace` layout, `ctx0 enable/disable <id>` at the
 workspace root toggles **both** sides; toggling only one side is an
