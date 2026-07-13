@@ -1,3 +1,5 @@
+import '../../../../core/utils/time_provider.dart';
+
 /// Registration data collected on the signup screen, carried to the
 /// verify-email screen (as a GoRouter `extra`) where it is submitted with
 /// the emailed code. The API creates the account only at that second step
@@ -24,13 +26,14 @@ class PendingRegistration {
     required String password,
     String? displayName,
     required Map<String, bool> consents,
+    required TimeProvider timeProvider,
   }) {
     final localPart = email.split('@').first.replaceAll(
           RegExp(r'[^a-zA-Z0-9_]'),
           '',
         );
     final base = localPart.isEmpty ? 'user' : localPart;
-    final suffix = (DateTime.now().microsecondsSinceEpoch % 10000)
+    final suffix = (timeProvider.now.microsecondsSinceEpoch % 10000)
         .toString()
         .padLeft(4, '0');
     final username =

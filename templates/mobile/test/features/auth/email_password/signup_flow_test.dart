@@ -1,6 +1,7 @@
 import 'package:app_template/core/models/problem_details.dart';
 import 'package:app_template/core/result/result.dart';
 import 'package:app_template/core/utils/app_exception.dart';
+import 'package:app_template/core/utils/time_provider.dart';
 import 'package:app_template/data/repositories/auth_repository.dart';
 import 'package:app_template/features/auth/email_password/bloc/signup_bloc.dart';
 import 'package:app_template/features/auth/email_password/bloc/verify_email_cubit.dart';
@@ -25,7 +26,10 @@ void main() {
       build: () {
         when(() => authRepository.sendSignupCode('new@example.com'))
             .thenAnswer((_) async => const Result.success(null));
-        return SignupBloc(authRepository: authRepository);
+        return SignupBloc(
+          authRepository: authRepository,
+          timeProvider: const SystemTimeProvider(),
+        );
       },
       act: (bloc) => bloc.add(const SignupSubmitted(
         email: 'new@example.com',
@@ -51,7 +55,10 @@ void main() {
             AppException(ProblemDetails(status: 409, detail: 'Email already exists.')),
           ),
         );
-        return SignupBloc(authRepository: authRepository);
+        return SignupBloc(
+          authRepository: authRepository,
+          timeProvider: const SystemTimeProvider(),
+        );
       },
       act: (bloc) => bloc.add(const SignupSubmitted(
         email: 'taken@example.com',

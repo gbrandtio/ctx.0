@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../../../core/result/result.dart';
 import '../../../../core/utils/app_exception.dart';
+import '../../../../core/utils/time_provider.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../data/pending_registration.dart';
 
@@ -14,13 +15,17 @@ part 'signup_state.dart';
 /// email verification code. The account is created on the verify screen
 /// with that code. Submission is droppable (docs/STATE_MANAGEMENT.md §4).
 class SignupBloc extends Bloc<SignupEvent, SignupState> {
-  SignupBloc({required AuthRepository authRepository})
-      : _authRepository = authRepository,
+  SignupBloc({
+    required AuthRepository authRepository,
+    required TimeProvider timeProvider,
+  })  : _authRepository = authRepository,
+        _timeProvider = timeProvider,
         super(const SignupInitial()) {
     on<SignupSubmitted>(_onSubmitted, transformer: droppable());
   }
 
   final AuthRepository _authRepository;
+  final TimeProvider _timeProvider;
 
   Future<void> _onSubmitted(
     SignupSubmitted event,
@@ -32,6 +37,7 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
       password: event.password,
       displayName: event.displayName,
       consents: event.consents,
+      timeProvider: _timeProvider,
     );
     final result = await _authRepository.sendSignupCode(event.email);
     switch (result) {
@@ -42,3 +48,4 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
     }
   }
 }
+

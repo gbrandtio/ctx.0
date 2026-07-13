@@ -7,6 +7,8 @@ import 'app/app.dart';
 import 'app/modules.dart';
 import 'app/security_bootstrap.dart';
 import 'core/utils/app_bloc_observer.dart';
+import 'core/utils/logging_service.dart';
+import 'core/utils/time_provider.dart';
 import 'data/repositories/auth_repository.dart';
 import 'package:ctx0_mobile_security/ctx0_mobile_security.dart';
 import 'data/services/api/user_api_service.dart';
@@ -17,7 +19,10 @@ import 'data/services/storage/prefs_service.dart';
 /// runApp(App). Session restore runs behind the splash screen.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Bloc.observer = const AppBlocObserver();
+  const loggingService = ConsoleLoggingService();
+  const timeProvider = SystemTimeProvider();
+  
+  Bloc.observer = const AppBlocObserver(loggingService);
 
   // RASP first (docs/SECURITY.md §4.1): a compromised environment must be
   // detected before any secret leaves secure storage.
@@ -64,5 +69,7 @@ Future<void> main() async {
     authRepository: authRepository,
     prefs: prefs,
     apiClient: apiFactory.cachingClient,
+    timeProvider: timeProvider,
+    loggingService: loggingService,
   ));
 }

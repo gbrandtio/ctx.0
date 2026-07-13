@@ -11,6 +11,8 @@ import '../core/theme/theme_cubit.dart';
 import '../data/repositories/auth_repository.dart';
 import 'package:ctx0_mobile_security/ctx0_mobile_security.dart';
 import '../data/services/storage/prefs_service.dart';
+import '../core/utils/time_provider.dart';
+import '../core/utils/logging_service.dart';
 // ctx:settings:begin
 import '../features/settings/views/widgets/gdpr_banner_overlay.dart';
 // ctx:settings:end
@@ -28,11 +30,15 @@ class App extends StatefulWidget {
     required this.authRepository,
     required this.prefs,
     required this.apiClient,
+    required this.timeProvider,
+    required this.loggingService,
   });
 
   final List<FeatureModule> modules;
   final AuthRepository authRepository;
   final PrefsService prefs;
+  final TimeProvider timeProvider;
+  final LoggingService loggingService;
 
   /// The fully-intercepted HTTP client (docs/HTTP_HANDLING.md); modules
   /// build their ApiServices from it. Also provided as [CachingClient] so
@@ -63,6 +69,8 @@ class _AppState extends State<App> {
         RepositoryProvider<PrefsService>.value(value: widget.prefs),
         RepositoryProvider<http.Client>.value(value: widget.apiClient),
         RepositoryProvider<CachingClient>.value(value: widget.apiClient),
+        RepositoryProvider<TimeProvider>.value(value: widget.timeProvider),
+        RepositoryProvider<LoggingService>.value(value: widget.loggingService),
         RepositoryProvider<ModuleRegistry>.value(
           value: ModuleRegistry(widget.modules),
         ),

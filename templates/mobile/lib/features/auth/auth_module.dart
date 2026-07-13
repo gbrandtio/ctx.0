@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/feature_module.dart';
 import '../../core/l10n/l10n.dart';
+import '../../core/utils/time_provider.dart';
 import '../../data/repositories/auth_repository.dart';
 import 'bloc/auth_bloc.dart';
 import 'bloc/login_bloc.dart';
@@ -49,6 +50,7 @@ class AuthModule extends FeatureModule {
           builder: (context, state) => BlocProvider(
             create: (context) => SignupBloc(
               authRepository: context.read<AuthRepository>(),
+              timeProvider: context.read<TimeProvider>(),
             ),
             child: const SignupScreen(),
           ),
