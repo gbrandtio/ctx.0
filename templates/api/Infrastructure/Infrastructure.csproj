@@ -14,8 +14,10 @@
        package drops out and its adapter sources are excluded below. -->
   <PropertyGroup>
     <!-- ctx:payments_stripe:begin -->
+    <CtxPaymentsStripe>true</CtxPaymentsStripe>
     <!-- ctx:payments_stripe:end -->
     <!-- ctx:push_firebase:begin -->
+    <CtxPushFirebase>true</CtxPushFirebase>
     <!-- ctx:push_firebase:end -->
   </PropertyGroup>
 

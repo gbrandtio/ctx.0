@@ -15,6 +15,9 @@ import 'package:ctx0_mobile_security/ctx0_mobile_security.dart';
 import 'data/services/api/user_api_service.dart';
 import 'data/services/storage/prefs_service.dart';
 // ctx:app_updates:begin
+import 'package:package_info_plus/package_info_plus.dart';
+import 'features/app_updates/app_updates_module.dart';
+import 'features/app_updates/data/version_check_client.dart';
 // ctx:app_updates:end
 
 /// Bootstrap (docs/FLUTTER_ARCHITECTURE.md §5, docs/SECURITY.md §4.1):
@@ -65,6 +68,12 @@ Future<void> main() async {
 
   http.Client apiClient = apiFactory.cachingClient;
   // ctx:app_updates:begin
+  final packageInfo = await PackageInfo.fromPlatform();
+  apiClient = VersionCheckClient(
+    inner: apiClient,
+    clientVersion: packageInfo.version,
+    onUpgradeRequired: () => updateRequiredNotifier.value = true,
+  );
   // ctx:app_updates:end
 
   // Don't block the first frame: the router holds on /splash until the

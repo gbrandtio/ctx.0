@@ -17,6 +17,8 @@ import '../core/utils/logging_service.dart';
 import '../features/settings/views/widgets/gdpr_banner_overlay.dart';
 // ctx:settings:end
 // ctx:app_updates:begin
+import '../features/app_updates/app_updates_module.dart';
+import '../features/app_updates/views/app_updates_overlay.dart';
 // ctx:app_updates:end
 import 'feature_module.dart';
 import 'router.dart';
@@ -64,6 +66,7 @@ class _AppState extends State<App> {
       modules: widget.modules,
       authRepository: widget.authRepository,
       // ctx:ux_onboarding:begin
+            prefs: widget.prefs,
       // ctx:ux_onboarding:end
     );
   }
@@ -118,6 +121,10 @@ class _AppState extends State<App> {
                 wrapped = GdprBannerOverlay(child: wrapped);
                 // ctx:settings:end
                 // ctx:app_updates:begin
+                wrapped = AppUpdatesOverlay(
+                  notifier: updateRequiredNotifier,
+                  child: wrapped,
+                );
                 // ctx:app_updates:end
                 return wrapped;
               },

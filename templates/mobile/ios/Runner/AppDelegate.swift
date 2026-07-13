@@ -1,5 +1,6 @@
 import Flutter
 // ctx:maps_google:begin
+import GoogleMaps
 // ctx:maps_google:end
 import UIKit
 
@@ -15,6 +16,10 @@ import UIKit
     // The ctx marker blocks are managed by tool/scaffold
     // (docs/INTEGRATIONS.md) — never edit them by hand.
     // ctx:maps_google:begin
+    if let mapsApiKey = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String,
+       !mapsApiKey.isEmpty {
+      GMSServices.provideAPIKey(mapsApiKey)
+    }
     // ctx:maps_google:end
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

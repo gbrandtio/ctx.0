@@ -1,7 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/result/result.dart';
 import '../../../../core/utils/app_exception.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../../../../data/services/api/user_api_service.dart';

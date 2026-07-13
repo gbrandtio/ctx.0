@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         // Security options, crypto, identity, and RBAC services are wired
         // by AddCtxSecurity (SecurityExtensions.AddAppSecurity).
         // ctx:payments_stripe:begin
+        services.Configure<StripeOptions>(configuration.GetSection(StripeOptions.SectionName));
         // ctx:payments_stripe:end
 
         // ---- Core singletons ----
@@ -59,6 +60,7 @@ public static class ServiceCollectionExtensions
 
         // ---- External services ----
         // ctx:payments_stripe:begin
+        services.AddSingleton<IPaymentGateway, StripePaymentGateway>();
         // ctx:payments_stripe:end
         services.AddSingleton<IEmailSender, LoggingEmailSender>();
 // ctx:email_brevo:begin
@@ -77,6 +79,7 @@ public static class ServiceCollectionExtensions
 
         // ---- Background workers ----
         // ctx:push_firebase:begin
+        services.AddHostedService<PostgresNotificationListener>();
         // ctx:push_firebase:end
         services.AddHostedService<KekRotationWorker>();
 

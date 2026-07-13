@@ -4,8 +4,10 @@ using Application.Features.Exports;
 using Application.Features.Notifications;
 using Application.Features.Users;
 // ctx:push_firebase:begin
+using Application.Features.Users.Firebase;
 // ctx:push_firebase:end
 // ctx:auth_google:begin
+using Application.Features.Users.Google;
 // ctx:auth_google:end
 using Contracts.Auth;
 using Contracts.Notifications;
@@ -49,6 +51,12 @@ public sealed class UsersEndpoints : IEndpointModule
             .RequireRateLimiting("auth");
 
         // ctx:auth_google:begin
+        users.MapPost("/google/authenticate", async (
+                GoogleAuthenticateRequest request, IMediator mediator, CancellationToken ct) =>
+                Results.Ok(await mediator.Send(
+                    new AuthenticateGoogleUserCommand(request.IdToken), ct)))
+            .AllowAnonymous()
+            .RequireRateLimiting("auth");
         // ctx:auth_google:end
 
 // ctx:auth_2fa_email:begin
@@ -127,6 +135,23 @@ public sealed class UsersEndpoints : IEndpointModule
 
         // ---- FCM token registration (NOTIFICATIONS.md §2) ----
         // ctx:push_firebase:begin
+        users.MapPost("/firebase/token", async (
+                RegisterFcmTokenRequest request, ClaimsPrincipal user,
+                IMediator mediator, CancellationToken ct) =>
+            {
+                await mediator.Send(
+                    new RegisterFcmTokenCommand(UserId(user), request.Token), ct);
+                return Results.NoContent();
+            })
+            .RequireAuthorization();
+
+        users.MapDelete("/firebase/token", async (
+                ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>
+            {
+                await mediator.Send(new UnregisterFcmTokenCommand(UserId(user)), ct);
+                return Results.NoContent();
+            })
+            .RequireAuthorization();
         // ctx:push_firebase:end
     }
 
