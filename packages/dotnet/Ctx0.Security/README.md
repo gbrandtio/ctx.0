@@ -12,10 +12,10 @@ advertised as the `X-Ctx-Protocol` response header).
   crypto (RSA-OAEP-SHA256 + AES-256-GCM), blind indexes, snowflake ids,
   the RBAC `RoleCatalog` (your seed merged with the `Rbac` config
   section), the `PermissionHandler`, and partitioned rate limiting.
-- `UseCtxSecurity()`: the contractual pipeline — ALE decryption →
+- `UseCtxSecurity()`: the contractual pipeline ALE decryption →
   ECDSA signature verification (against the decrypted plaintext) →
   authentication → RLS identity propagation → authorization → rate
-  limiting — plus the protocol version header.
+  limiting plus the protocol version header.
 - `[AllowPlaintext]` / `[SkipRequestSigning]` endpoint escape hatches for
   streaming/webhook routes.
 
