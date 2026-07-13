@@ -50,8 +50,9 @@ class ModuleRegistry {
   final List<FeatureModule> modules;
 
   /// All settings sections in module order (docs/APP_SHELL.md §3).
-  List<SettingsSection> get settingsSections =>
-      [for (final module in modules) ...module.settingsSections];
+  List<SettingsSection> get settingsSections => [
+    for (final module in modules) ...module.settingsSections,
+  ];
 }
 
 /// A bottom-navigation entry contributed by a module. Tab order follows

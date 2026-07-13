@@ -70,14 +70,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             return Center(child: Text(context.l10n.notificationsEmpty));
           }
           return RefreshIndicator(
-            onRefresh: () async => context
-                .read<NotificationsBloc>()
-                .add(const NotificationsRefreshRequested()),
+            onRefresh: () async => context.read<NotificationsBloc>().add(
+              const NotificationsRefreshRequested(),
+            ),
             child: ListView.builder(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
-              itemCount:
-                  state.items.length + (state.hasReachedMax ? 0 : 1),
+              itemCount: state.items.length + (state.hasReachedMax ? 0 : 1),
               itemBuilder: (context, index) {
                 if (index >= state.items.length) {
                   return const Padding(

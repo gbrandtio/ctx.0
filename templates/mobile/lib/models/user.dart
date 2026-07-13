@@ -34,10 +34,7 @@ class User extends Equatable {
 
   /// Background refreshes can return bare models; merge with copyWith and
   /// never overwrite richer local data (docs/FLUTTER_ARCHITECTURE.md §6D).
-  User copyWith({
-    String? displayName,
-    bool? hasTrackingConsent,
-  }) {
+  User copyWith({String? displayName, bool? hasTrackingConsent}) {
     return User(
       id: id,
       email: email,
@@ -48,6 +45,11 @@ class User extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [id, email, username, displayName, hasTrackingConsent];
+  List<Object?> get props => [
+    id,
+    email,
+    username,
+    displayName,
+    hasTrackingConsent,
+  ];
 }

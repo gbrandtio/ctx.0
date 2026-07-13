@@ -72,6 +72,9 @@ dependencies:
   # ctx:image_capture:begin
   image_picker: ^1.1.2
   # ctx:image_capture:end
+  # ctx:ux_onboarding:begin
+  permission_handler: ^11.3.1
+  # ctx:ux_onboarding:end
 
 dev_dependencies:
   flutter_test:

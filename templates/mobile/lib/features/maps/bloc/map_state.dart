@@ -34,6 +34,5 @@ class MapState extends Equatable {
   }
 
   @override
-  List<Object?> get props =>
-      [status, latitude, longitude, items, errorMessage];
+  List<Object?> get props => [status, latitude, longitude, items, errorMessage];
 }

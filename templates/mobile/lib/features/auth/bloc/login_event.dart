@@ -16,4 +16,5 @@ final class LoginSubmitted extends LoginEvent {
 final class LoginWithGooglePressed extends LoginEvent {
   const LoginWithGooglePressed();
 }
+
 // ctx:auth_google:end

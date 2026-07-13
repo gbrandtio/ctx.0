@@ -15,8 +15,8 @@ class NotificationsRepository {
     required NotificationApiService api,
     required PushTokenService pushTokens,
     required AuthRepository authRepository,
-  })  : _api = api,
-        _pushTokens = pushTokens {
+  }) : _api = api,
+       _pushTokens = pushTokens {
     _authSubscription = authRepository.authStateChanges.listen((state) {
       if (state is Authenticated) unawaited(_registerToken());
     });

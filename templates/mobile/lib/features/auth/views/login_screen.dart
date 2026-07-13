@@ -88,11 +88,8 @@ class _EmailPasswordLoginFormState extends State<_EmailPasswordLoginForm> {
   void _submit() {
     if (_formKey.currentState?.validate() ?? false) {
       context.read<LoginBloc>().add(
-            LoginSubmitted(
-              _emailController.text.trim(),
-              _passwordController.text,
-            ),
-          );
+        LoginSubmitted(_emailController.text.trim(), _passwordController.text),
+      );
     }
   }
 
@@ -124,9 +121,8 @@ class _EmailPasswordLoginFormState extends State<_EmailPasswordLoginForm> {
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.password],
             onSubmitted: (_) => _submit(),
-            validator: (value) => (value == null || value.isEmpty)
-                ? l10n.passwordRequired
-                : null,
+            validator: (value) =>
+                (value == null || value.isEmpty) ? l10n.passwordRequired : null,
           ),
           const SizedBox(height: 32),
           BlocBuilder<LoginBloc, LoginState>(
@@ -158,13 +154,13 @@ class _GoogleSignInButton extends StatelessWidget {
       builder: (context, state) => OutlinedButton.icon(
         onPressed: state is LoginLoading
             ? null
-            : () => context
-                .read<LoginBloc>()
-                .add(const LoginWithGooglePressed()),
+            : () =>
+                  context.read<LoginBloc>().add(const LoginWithGooglePressed()),
         icon: const AppIcon(AppIcons.googleLogo, size: 20),
         label: Text(context.l10n.signInWithGoogle),
       ),
     );
   }
 }
+
 // ctx:auth_google:end

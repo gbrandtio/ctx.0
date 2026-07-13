@@ -10,8 +10,8 @@ part 'auth_event.dart';
 /// the logout intent. Its state IS the repository's [AuthState].
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({required AuthRepository authRepository})
-      : _authRepository = authRepository,
-        super(authRepository.currentState) {
+    : _authRepository = authRepository,
+      super(authRepository.currentState) {
     on<AuthSubscriptionRequested>(_onSubscriptionRequested);
     on<AuthLogoutRequested>(_onLogoutRequested, transformer: droppable());
   }

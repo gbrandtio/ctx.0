@@ -20,8 +20,9 @@ void main() {
     prefs = _MockPrefs();
     authRepository = _MockAuthRepository();
     authStates = StreamController<AuthState>.broadcast();
-    when(() => authRepository.authStateChanges)
-        .thenAnswer((_) => authStates.stream);
+    when(
+      () => authRepository.authStateChanges,
+    ).thenAnswer((_) => authStates.stream);
     when(() => prefs.setThemeMode(any())).thenAnswer((_) async {});
   });
 
@@ -30,16 +31,14 @@ void main() {
   test('restores the persisted mode', () {
     when(() => prefs.themeMode).thenReturn('dark');
 
-    final cubit =
-        ThemeCubit(prefs: prefs, authRepository: authRepository);
+    final cubit = ThemeCubit(prefs: prefs, authRepository: authRepository);
 
     expect(cubit.state, ThemeMode.dark);
   });
 
   test('setMode persists the choice', () async {
     when(() => prefs.themeMode).thenReturn(null);
-    final cubit =
-        ThemeCubit(prefs: prefs, authRepository: authRepository);
+    final cubit = ThemeCubit(prefs: prefs, authRepository: authRepository);
 
     await cubit.setMode(ThemeMode.light);
 
@@ -47,15 +46,16 @@ void main() {
     verify(() => prefs.setThemeMode('light')).called(1);
   });
 
-  test('resets to system on logout so preferences never leak to the next user',
-      () async {
-    when(() => prefs.themeMode).thenReturn('dark');
-    final cubit =
-        ThemeCubit(prefs: prefs, authRepository: authRepository);
+  test(
+    'resets to system on logout so preferences never leak to the next user',
+    () async {
+      when(() => prefs.themeMode).thenReturn('dark');
+      final cubit = ThemeCubit(prefs: prefs, authRepository: authRepository);
 
-    authStates.add(const Unauthenticated());
-    await Future<void>.delayed(Duration.zero);
+      authStates.add(const Unauthenticated());
+      await Future<void>.delayed(Duration.zero);
 
-    expect(cubit.state, ThemeMode.system);
-  });
+      expect(cubit.state, ThemeMode.system);
+    },
+  );
 }

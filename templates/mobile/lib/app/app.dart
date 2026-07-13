@@ -65,6 +65,9 @@ class _AppState extends State<App> {
     _router = buildRouter(
       modules: widget.modules,
       authRepository: widget.authRepository,
+      // ctx:ux_onboarding:begin
+            prefs: widget.prefs,
+      // ctx:ux_onboarding:end
     );
   }
 
@@ -114,15 +117,15 @@ class _AppState extends State<App> {
               routerConfig: _router,
               builder: (context, child) {
                 Widget wrapped = child!;
-// ctx:settings:begin
+                // ctx:settings:begin
                 wrapped = GdprBannerOverlay(child: wrapped);
-// ctx:settings:end
-// ctx:app_updates:begin
+                // ctx:settings:end
+                // ctx:app_updates:begin
                 wrapped = AppUpdatesOverlay(
                   notifier: updateRequiredNotifier,
                   child: wrapped,
                 );
-// ctx:app_updates:end
+                // ctx:app_updates:end
                 return wrapped;
               },
             );

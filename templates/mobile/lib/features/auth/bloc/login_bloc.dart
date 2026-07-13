@@ -23,11 +23,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     // ctx:auth_google:begin
     required GoogleAuthService googleAuth,
     // ctx:auth_google:end
-  })  : _authRepository = authRepository,
-        // ctx:auth_google:begin
-        _googleAuth = googleAuth,
-        // ctx:auth_google:end
-        super(const LoginInitial()) {
+  }) : _authRepository = authRepository,
+       // ctx:auth_google:begin
+       _googleAuth = googleAuth,
+       // ctx:auth_google:end
+       super(const LoginInitial()) {
     // ctx:auth_email_password:begin
     on<LoginSubmitted>(_onSubmitted, transformer: droppable());
     // ctx:auth_email_password:end
@@ -80,5 +80,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       emit(LoginFailure(AppException.from(e).userFriendlyMessage));
     }
   }
+
   // ctx:auth_google:end
 }

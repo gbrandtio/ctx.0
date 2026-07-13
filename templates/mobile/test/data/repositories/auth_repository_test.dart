@@ -37,17 +37,18 @@ void main() {
     secureStorage = _MockSecureStorage();
     prefs = _MockPrefs();
     cachingClient = _MockCachingClient();
-    when(() => secureStorage.writeTokens(
-          accessToken: any(named: 'accessToken'),
-          refreshToken: any(named: 'refreshToken'),
-        )).thenAnswer((_) async {});
+    when(
+      () => secureStorage.writeTokens(
+        accessToken: any(named: 'accessToken'),
+        refreshToken: any(named: 'refreshToken'),
+      ),
+    ).thenAnswer((_) async {});
     when(() => secureStorage.writeUserId(any())).thenAnswer((_) async {});
     when(() => secureStorage.deleteTokens()).thenAnswer((_) async {});
     when(() => secureStorage.clearAll()).thenAnswer((_) async {});
     when(() => prefs.clear()).thenAnswer((_) async {});
     when(() => cachingClient.clearCache()).thenAnswer((_) async {});
-    when(() => cachingClient.invalidatePattern(any()))
-        .thenAnswer((_) async {});
+    when(() => cachingClient.invalidatePattern(any())).thenAnswer((_) async {});
     repository = AuthRepository(
       userApi: userApi,
       secureStorage: secureStorage,
@@ -61,52 +62,62 @@ void main() {
   });
 
   test('login success stores both tokens and emits Authenticated', () async {
-    when(() => userApi.login('a@b.com', 'pw'))
-        .thenAnswer((_) async => _session);
+    when(
+      () => userApi.login('a@b.com', 'pw'),
+    ).thenAnswer((_) async => _session);
 
     final result = await repository.login('a@b.com', 'pw');
 
     expect(result, isA<Success<User>>());
     expect(repository.currentState, isA<Authenticated>());
-    verify(() => secureStorage.writeTokens(
-          accessToken: 'access',
-          refreshToken: 'refresh',
-        )).called(1);
+    verify(
+      () => secureStorage.writeTokens(
+        accessToken: 'access',
+        refreshToken: 'refresh',
+      ),
+    ).called(1);
   });
 
-  test('login failure returns Failure and stays unauthenticated-safe',
-      () async {
-    when(() => userApi.login(any(), any())).thenThrow(
-      const AppException(ProblemDetails(status: 401)),
-    );
+  test(
+    'login failure returns Failure and stays unauthenticated-safe',
+    () async {
+      when(
+        () => userApi.login(any(), any()),
+      ).thenThrow(const AppException(ProblemDetails(status: 401)));
 
-    final result = await repository.login('a@b.com', 'wrong');
+      final result = await repository.login('a@b.com', 'wrong');
 
-    expect(result, isA<Failure<User>>());
-    expect(repository.currentState, isNot(isA<Authenticated>()));
-    verifyNever(() => secureStorage.writeTokens(
+      expect(result, isA<Failure<User>>());
+      expect(repository.currentState, isNot(isA<Authenticated>()));
+      verifyNever(
+        () => secureStorage.writeTokens(
           accessToken: any(named: 'accessToken'),
           refreshToken: any(named: 'refreshToken'),
-        ));
-  });
+        ),
+      );
+    },
+  );
 
-  test('restoreSession without a stored token settles unauthenticated',
-      () async {
-    when(() => secureStorage.readAccessToken()).thenAnswer((_) async => null);
-    when(() => secureStorage.readUserId()).thenAnswer((_) async => null);
+  test(
+    'restoreSession without a stored token settles unauthenticated',
+    () async {
+      when(() => secureStorage.readAccessToken()).thenAnswer((_) async => null);
+      when(() => secureStorage.readUserId()).thenAnswer((_) async => null);
 
-    await repository.restoreSession();
+      await repository.restoreSession();
 
-    expect(repository.currentState, isA<Unauthenticated>());
-    verifyNever(() => userApi.getUser(any(),
-        forceRefresh: any(named: 'forceRefresh')));
-  });
+      expect(repository.currentState, isA<Unauthenticated>());
+      verifyNever(
+        () => userApi.getUser(any(), forceRefresh: any(named: 'forceRefresh')),
+      );
+    },
+  );
 
-  test('logout revokes the refresh token and purges all local state',
-      () async {
+  test('logout revokes the refresh token and purges all local state', () async {
     when(() => userApi.login(any(), any())).thenAnswer((_) async => _session);
-    when(() => secureStorage.readRefreshToken())
-        .thenAnswer((_) async => 'refresh');
+    when(
+      () => secureStorage.readRefreshToken(),
+    ).thenAnswer((_) async => 'refresh');
     when(() => userApi.logout('refresh')).thenAnswer((_) async {});
     await repository.login('a@b.com', 'pw');
 
@@ -135,8 +146,7 @@ void main() {
     verify(() => cachingClient.clearCache()).called(1);
   });
 
-  test('authStateChanges replays the current state to new listeners',
-      () async {
+  test('authStateChanges replays the current state to new listeners', () async {
     when(() => userApi.login(any(), any())).thenAnswer((_) async => _session);
     await repository.login('a@b.com', 'pw');
 

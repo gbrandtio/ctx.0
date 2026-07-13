@@ -34,87 +34,85 @@ class AuthModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(
-          path: '/login',
-          builder: (context, state) => BlocProvider(
-            create: (context) => LoginBloc(
-              authRepository: context.read<AuthRepository>(),
-              // ctx:auth_google:begin
-              googleAuth: context.read<GoogleAuthService>(),
-              // ctx:auth_google:end
-            ),
-            child: const LoginScreen(),
-          ),
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => BlocProvider(
+        create: (context) => LoginBloc(
+          authRepository: context.read<AuthRepository>(),
+          // ctx:auth_google:begin
+          googleAuth: context.read<GoogleAuthService>(),
+          // ctx:auth_google:end
         ),
-        // ctx:auth_email_password:begin
-        GoRoute(
-          path: '/signup',
-          builder: (context, state) => BlocProvider(
-            create: (context) => SignupBloc(
-              authRepository: context.read<AuthRepository>(),
-              timeProvider: context.read<TimeProvider>(),
-            ),
-            child: const SignupScreen(),
-          ),
+        child: const LoginScreen(),
+      ),
+    ),
+    // ctx:auth_email_password:begin
+    GoRoute(
+      path: '/signup',
+      builder: (context, state) => BlocProvider(
+        create: (context) => SignupBloc(
+          authRepository: context.read<AuthRepository>(),
+          timeProvider: context.read<TimeProvider>(),
         ),
-        GoRoute(
-          path: '/verify-email',
-          // Reached only from the signup screen, which passes the pending
-          // registration as `extra`; a direct hit falls back to signup.
-          redirect: (context, state) =>
-              state.extra is PendingRegistration ? null : '/signup',
-          builder: (context, state) => BlocProvider(
-            create: (context) => VerifyEmailCubit(
-              authRepository: context.read<AuthRepository>(),
-              pending: state.extra as PendingRegistration,
-            ),
-            child: const VerifyEmailScreen(),
-          ),
+        child: const SignupScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/verify-email',
+      // Reached only from the signup screen, which passes the pending
+      // registration as `extra`; a direct hit falls back to signup.
+      redirect: (context, state) =>
+          state.extra is PendingRegistration ? null : '/signup',
+      builder: (context, state) => BlocProvider(
+        create: (context) => VerifyEmailCubit(
+          authRepository: context.read<AuthRepository>(),
+          pending: state.extra as PendingRegistration,
         ),
-        // ctx:auth_email_password:end
-      ];
+        child: const VerifyEmailScreen(),
+      ),
+    ),
+    // ctx:auth_email_password:end
+  ];
 
   @override
   List<RepositoryProvider> get repositories => [
-        // ctx:auth_google:begin
-        RepositoryProvider<GoogleAuthService>(
-          create: (_) => GoogleAuthService(),
-        ),
-        // ctx:auth_google:end
-      ];
+    // ctx:auth_google:begin
+    RepositoryProvider<GoogleAuthService>(create: (_) => GoogleAuthService()),
+    // ctx:auth_google:end
+  ];
 
   @override
   List<BlocProvider>? get globalBlocs => [
-        BlocProvider<AuthBloc>(
-          lazy: false,
-          create: (context) => AuthBloc(
-            authRepository: context.read<AuthRepository>(),
-          )..add(const AuthSubscriptionRequested()),
-        ),
-      ];
+    BlocProvider<AuthBloc>(
+      lazy: false,
+      create: (context) =>
+          AuthBloc(authRepository: context.read<AuthRepository>())
+            ..add(const AuthSubscriptionRequested()),
+    ),
+  ];
 
   /// Session controls live with the auth core (not the profile module) so
   /// logout survives any combination of scaffolded features.
   @override
   List<SettingsSection> get settingsSections => [
-        SettingsSection(
-          title: (context) => context.l10n.settingsAccountSection,
-          tiles: (context) => [
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: Text(context.l10n.logout),
-              onTap: () =>
-                  context.read<AuthBloc>().add(const AuthLogoutRequested()),
-            ),
-          ],
+    SettingsSection(
+      title: (context) => context.l10n.settingsAccountSection,
+      tiles: (context) => [
+        ListTile(
+          leading: const Icon(Icons.logout),
+          title: Text(context.l10n.logout),
+          onTap: () =>
+              context.read<AuthBloc>().add(const AuthLogoutRequested()),
         ),
-      ];
+      ],
+    ),
+  ];
 
   @override
   List<String> get publicRoutePaths => const [
-        '/login',
-        // ctx:auth_email_password:begin
-        '/signup',
-        // ctx:auth_email_password:end
-      ];
+    '/login',
+    // ctx:auth_email_password:begin
+    '/signup',
+    // ctx:auth_email_password:end
+  ];
 }

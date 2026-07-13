@@ -71,25 +71,27 @@ class Integration {
   final List<String> userSteps;
 
   factory Integration.fromJson(Map<String, dynamic> json) => Integration(
-        id: json['id'] as String,
-        summary: json['summary'] as String,
-        providesNavTab: json['providesNavTab'] as bool? ?? false,
-        markedFiles: List<String>.from(json['markedFiles'] as List),
-        sourceDirs: List<String>.from(json['sourceDirs'] as List),
-        testDirs: List<String>.from(json['testDirs'] as List),
-        envVars: List<String>.from(json['envVars'] as List),
-        userSteps: List<String>.from(json['userSteps'] as List),
-      );
+    id: json['id'] as String,
+    summary: json['summary'] as String,
+    providesNavTab: json['providesNavTab'] as bool? ?? false,
+    markedFiles: List<String>.from(json['markedFiles'] as List),
+    sourceDirs: List<String>.from(json['sourceDirs'] as List),
+    testDirs: List<String>.from(json['testDirs'] as List),
+    envVars: List<String>.from(json['envVars'] as List),
+    userSteps: List<String>.from(json['userSteps'] as List),
+  );
 }
 
-final Map<String, dynamic> _catalog = jsonDecode(
-    fileAt('.ctx/integrations.json').readAsStringSync()) as Map<String, dynamic>;
+final Map<String, dynamic> _catalog =
+    jsonDecode(fileAt('.ctx/integrations.json').readAsStringSync())
+        as Map<String, dynamic>;
 
 /// The scaffoldable sign-in methods of the permanent auth core. The
 /// scaffolder refuses to disable the last enabled one (`doctor` also
 /// checks): an app with no way to sign in cannot pass the auth redirect.
-final Set<String> authMethodIds =
-    Set<String>.from(_catalog['authMethodIds'] as List);
+final Set<String> authMethodIds = Set<String>.from(
+  _catalog['authMethodIds'] as List,
+);
 
 final List<Integration> integrations = [
   for (final json in _catalog['integrations'] as List)
@@ -100,8 +102,9 @@ final List<Integration> integrations = [
 /// compiled ctx0_mobile_security package — never toggleable, never
 /// vendored, never overridden; see docs/INTEGRATIONS.md §1 and
 /// docs/SECURITY.md.
-final List<String> securityPubspecDeps =
-    List<String>.from(_catalog['securityPubspecDeps'] as List);
+final List<String> securityPubspecDeps = List<String>.from(
+  _catalog['securityPubspecDeps'] as List,
+);
 
 // ---------------------------------------------------------------------------
 // Marker-block engine
@@ -113,7 +116,9 @@ const offToken = 'ctx:off';
 /// instead because XML has no line comments.
 String? commentTokenFor(String path) {
   if (path.endsWith('.yaml') || path.endsWith('.yml')) return '#';
-  if (path.endsWith('.dart') || path.endsWith('.kts') || path.endsWith('.swift')) {
+  if (path.endsWith('.dart') ||
+      path.endsWith('.kts') ||
+      path.endsWith('.swift')) {
     return '//';
   }
   if (path.endsWith('.xml') || path.endsWith('.plist')) return null;
@@ -183,8 +188,9 @@ List<String> transformBlock(
   if (token == null) {
     if (enable) {
       next = content
-          .where((l) =>
-              l.trim() != '<!-- $offToken' && l.trim() != '$offToken -->')
+          .where(
+            (l) => l.trim() != '<!-- $offToken' && l.trim() != '$offToken -->',
+          )
           .toList();
     } else {
       final indent = RegExp(r'^\s*').firstMatch(content.first)!.group(0)!;
@@ -271,13 +277,17 @@ void _setTestsParked(Integration integration, {required bool parked}) {
 void _syncAnalyzerExcludes() {
   final file = fileAt('analysis_options.yaml');
   var lines = file.readAsLinesSync();
-  final begin =
-      lines.indexWhere((l) => l.contains('ctx:integration-excludes:begin'));
-  final end =
-      lines.indexWhere((l) => l.contains('ctx:integration-excludes:end'));
+  final begin = lines.indexWhere(
+    (l) => l.contains('ctx:integration-excludes:begin'),
+  );
+  final end = lines.indexWhere(
+    (l) => l.contains('ctx:integration-excludes:end'),
+  );
   if (begin == -1 || end == -1 || end < begin) {
-    throw StateError('integration-excludes markers missing in '
-        'analysis_options.yaml');
+    throw StateError(
+      'integration-excludes markers missing in '
+      'analysis_options.yaml',
+    );
   }
   final excludes = <String>[];
   for (final integration in integrations) {
@@ -308,8 +318,10 @@ BlockState currentState(Integration integration) {
 Integration integrationById(String id) {
   final match = integrations.where((i) => i.id == id);
   if (match.isEmpty) {
-    stderr.writeln('error: unknown integration "$id". Known: '
-        '${integrations.map((i) => i.id).join(', ')}');
+    stderr.writeln(
+      'error: unknown integration "$id". Known: '
+      '${integrations.map((i) => i.id).join(', ')}',
+    );
     exit(2);
   }
   return match.first;
@@ -335,8 +347,10 @@ Future<void> cmdEnable(String id) async {
   await runPubGet();
   stdout.writeln('\n✓ ${integration.id} enabled.');
   if (integration.envVars.isNotEmpty) {
-    stdout.writeln('  Build-time variables to provide '
-        '(docs/ENVIRONMENT_VARIABLES.md): ${integration.envVars.join(', ')}');
+    stdout.writeln(
+      '  Build-time variables to provide '
+      '(docs/ENVIRONMENT_VARIABLES.md): ${integration.envVars.join(', ')}',
+    );
   }
   if (integration.userSteps.isNotEmpty) {
     stdout.writeln('  Manual steps remaining (a human must do these):');
@@ -344,8 +358,10 @@ Future<void> cmdEnable(String id) async {
       stdout.writeln('   - $step');
     }
   }
-  stdout.writeln('  Verify: dart run tool/scaffold.dart doctor '
-      '&& flutter analyze && flutter test');
+  stdout.writeln(
+    '  Verify: dart run tool/scaffold.dart doctor '
+    '&& flutter analyze && flutter test',
+  );
 }
 
 Future<void> cmdDisable(String id) async {
@@ -353,19 +369,25 @@ Future<void> cmdDisable(String id) async {
   if (authMethodIds.contains(id)) {
     final otherId = authMethodIds.firstWhere((other) => other != id);
     if (currentState(integrationById(otherId)) != BlockState.enabled) {
-      stderr.writeln('error: cannot disable $id — $otherId is already '
-          'disabled and the app must keep at least one sign-in method '
-          '(docs/INTEGRATIONS.md §1).');
+      stderr.writeln(
+        'error: cannot disable $id — $otherId is already '
+        'disabled and the app must keep at least one sign-in method '
+        '(docs/INTEGRATIONS.md §1).',
+      );
       exit(1);
     }
   }
   setIntegrationState(integration, enable: false);
   await runPubGet();
-  stdout.writeln('\n✓ ${integration.id} disabled. Its code stays in the '
-      'tree (unreferenced, excluded from analysis); the vendor SDK is no '
-      'longer a dependency.');
-  stdout.writeln('  Verify: dart run tool/scaffold.dart doctor '
-      '&& flutter analyze && flutter test');
+  stdout.writeln(
+    '\n✓ ${integration.id} disabled. Its code stays in the '
+    'tree (unreferenced, excluded from analysis); the vendor SDK is no '
+    'longer a dependency.',
+  );
+  stdout.writeln(
+    '  Verify: dart run tool/scaffold.dart doctor '
+    '&& flutter analyze && flutter test',
+  );
 }
 
 void cmdStatus() {
@@ -377,12 +399,16 @@ void cmdStatus() {
       BlockState.disabled => 'disabled',
       _ => 'DRIFTED ',
     };
-    stdout.writeln('  [$label] ${integration.id.padRight(20)} '
-        '${integration.summary}');
+    stdout.writeln(
+      '  [$label] ${integration.id.padRight(20)} '
+      '${integration.summary}',
+    );
   }
-  stdout.writeln('\nSecurity plane (RASP, signing, ALE) and the auth core '
-      '(AuthBloc, token lifecycle, logout): permanent, not listed — see '
-      'docs/SECURITY.md. At least one auth method must stay enabled.');
+  stdout.writeln(
+    '\nSecurity plane (RASP, signing, ALE) and the auth core '
+    '(AuthBloc, token lifecycle, logout): permanent, not listed — see '
+    'docs/SECURITY.md. At least one auth method must stay enabled.',
+  );
 }
 
 int cmdDoctor() {
@@ -401,16 +427,20 @@ int cmdDoctor() {
       for (final block in blocks) {
         final state = blockState(lines, block, token);
         if (state == BlockState.mixed) {
-          problems.add('${integration.id}: half-toggled block in $path '
-              '(line ${block.start + 1})');
+          problems.add(
+            '${integration.id}: half-toggled block in $path '
+            '(line ${block.start + 1})',
+          );
         }
         states[path] = state;
       }
     }
     final distinct = states.values.toSet()..remove(BlockState.empty);
     if (distinct.length > 1) {
-      problems.add('${integration.id}: inconsistent state across files: '
-          '${states.entries.map((e) => '${e.key}=${e.value.name}').join(', ')}');
+      problems.add(
+        '${integration.id}: inconsistent state across files: '
+        '${states.entries.map((e) => '${e.key}=${e.value.name}').join(', ')}',
+      );
     }
 
     final enabled = currentState(integration) == BlockState.enabled;
@@ -419,12 +449,16 @@ int cmdDoctor() {
       if (!dir.existsSync()) continue;
       for (final entity in dir.listSync(recursive: true).whereType<File>()) {
         if (enabled && entity.path.endsWith('.dart.off')) {
-          problems.add('${integration.id}: parked test '
-              '${entity.path} but integration is enabled');
+          problems.add(
+            '${integration.id}: parked test '
+            '${entity.path} but integration is enabled',
+          );
         }
         if (!enabled && entity.path.endsWith('.dart')) {
-          problems.add('${integration.id}: live test ${entity.path} '
-              'but integration is disabled');
+          problems.add(
+            '${integration.id}: live test ${entity.path} '
+            'but integration is disabled',
+          );
         }
       }
     }
@@ -434,9 +468,12 @@ int cmdDoctor() {
   // otherwise no session can ever be established and the auth redirect
   // locks the whole app out (docs/INTEGRATIONS.md §1).
   if (authMethodIds.every(
-      (id) => currentState(integrationById(id)) != BlockState.enabled)) {
-    problems.add('auth: both sign-in methods are disabled; enable '
-        'auth_google or auth_email_password');
+    (id) => currentState(integrationById(id)) != BlockState.enabled,
+  )) {
+    problems.add(
+      'auth: both sign-in methods are disabled; enable '
+      'auth_google or auth_email_password',
+    );
   }
 
   // Advisory only: with no tab-contributing feature enabled the shell has
@@ -445,9 +482,11 @@ int cmdDoctor() {
   if (integrations
       .where((i) => i.providesNavTab)
       .every((i) => currentState(i) != BlockState.enabled)) {
-    stdout.writeln('note: no enabled feature contributes a bottom-nav tab; '
-        'the shell will boot to the splash route until a product module '
-        'provides one (docs/APP_SHELL.md §5).');
+    stdout.writeln(
+      'note: no enabled feature contributes a bottom-nav tab; '
+      'the shell will boot to the splash route until a product module '
+      'provides one (docs/APP_SHELL.md §5).',
+    );
   }
 
   // Security plane: never weakened, never toggleable
@@ -456,46 +495,64 @@ int cmdDoctor() {
   for (final dep in securityPubspecDeps) {
     final active = RegExp('^  $dep:', multiLine: true).hasMatch(pubspec);
     if (!active) {
-      problems.add('security: dependency "$dep" missing or commented out '
-          'in pubspec.yaml');
+      problems.add(
+        'security: dependency "$dep" missing or commented out '
+        'in pubspec.yaml',
+      );
     }
   }
   final main = fileAt('lib/main.dart').readAsStringSync();
   if (!main.contains('buildSecurityConfig()')) {
-    problems.add('security: buildSecurityConfig() missing from lib/main.dart '
-        '(lib/app/security_bootstrap.dart is the only bridge between app '
-        'constants and the security plane)');
+    problems.add(
+      'security: buildSecurityConfig() missing from lib/main.dart '
+      '(lib/app/security_bootstrap.dart is the only bridge between app '
+      'constants and the security plane)',
+    );
   }
   final raspIndex = main.indexOf('RaspService(');
   final moduleInitIndex = main.indexOf('module.init()');
   if (raspIndex == -1) {
-    problems.add('security: RaspService(...).init() missing from '
-        'lib/main.dart');
+    problems.add(
+      'security: RaspService(...).init() missing from '
+      'lib/main.dart',
+    );
   } else if (moduleInitIndex != -1 && raspIndex > moduleInitIndex) {
-    problems.add('security: RaspService(...).init() must run before module '
-        'init in lib/main.dart');
+    problems.add(
+      'security: RaspService(...).init() must run before module '
+      'init in lib/main.dart',
+    );
   }
   if (!main.contains('ApiServiceFactory(')) {
-    problems.add('security: ApiServiceFactory missing from lib/main.dart — '
-        'the interceptor chain (ctx0_mobile_security) is not wired');
+    problems.add(
+      'security: ApiServiceFactory missing from lib/main.dart — '
+      'the interceptor chain (ctx0_mobile_security) is not wired',
+    );
   }
   if (RegExp(r'^dependency_overrides:', multiLine: true).hasMatch(pubspec) &&
       pubspec.contains('ctx0_mobile_security:') &&
-      RegExp(r'dependency_overrides:[\s\S]*ctx0_mobile_security:')
-          .hasMatch(pubspec)) {
-    problems.add('security: ctx0_mobile_security must not be overridden via '
-        'dependency_overrides (docs/INTEGRATIONS.md §1)');
+      RegExp(
+        r'dependency_overrides:[\s\S]*ctx0_mobile_security:',
+      ).hasMatch(pubspec)) {
+    problems.add(
+      'security: ctx0_mobile_security must not be overridden via '
+      'dependency_overrides (docs/INTEGRATIONS.md §1)',
+    );
   }
   if (Directory('${root.path}/lib/data/services/security').existsSync() ||
-      Directory('${root.path}/lib/data/services/api/interceptors')
-          .existsSync()) {
-    problems.add('security: vendored copy of the security plane found under '
-        'lib/data/services — the plane ships only as ctx0_mobile_security');
+      Directory(
+        '${root.path}/lib/data/services/api/interceptors',
+      ).existsSync()) {
+    problems.add(
+      'security: vendored copy of the security plane found under '
+      'lib/data/services — the plane ships only as ctx0_mobile_security',
+    );
   }
 
   if (problems.isEmpty) {
-    stdout.writeln('doctor: OK — marker blocks consistent, security plane '
-        'intact.');
+    stdout.writeln(
+      'doctor: OK — marker blocks consistent, security plane '
+      'intact.',
+    );
     return 0;
   }
   stderr.writeln('doctor: ${problems.length} problem(s):');
@@ -506,12 +563,16 @@ int cmdDoctor() {
 }
 
 Future<void> main(List<String> args) async {
-  stdout.writeln('note: tool/scaffold.dart is the zero-dependency fallback; '
-      'the supported entry point is the `ctx0` CLI (dart pub global activate '
-      'ctx0_cli) — same engine, same catalog.\n');
+  stdout.writeln(
+    'note: tool/scaffold.dart is the zero-dependency fallback; '
+    'the supported entry point is the `ctx0` CLI (dart pub global activate '
+    'ctx0_cli) — same engine, same catalog.\n',
+  );
   if (args.isEmpty) {
-    stdout.writeln('usage: dart run tool/scaffold.dart '
-        '<status|doctor|enable <id>|disable <id>>');
+    stdout.writeln(
+      'usage: dart run tool/scaffold.dart '
+      '<status|doctor|enable <id>|disable <id>>',
+    );
     exit(2);
   }
   switch (args.first) {

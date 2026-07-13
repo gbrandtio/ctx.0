@@ -21,68 +21,65 @@ class SettingsModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(
-          path: '/settings',
-          builder: (context, state) => BlocProvider(
-            create: (context) => SettingsCubit(
-              authRepository: context.read<AuthRepository>(),
-              prefs: context.read<PrefsService>(),
-            ),
-            child: const SettingsScreen(),
-          ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => BlocProvider(
+        create: (context) => SettingsCubit(
+          authRepository: context.read<AuthRepository>(),
+          prefs: context.read<PrefsService>(),
         ),
-      ];
+        child: const SettingsScreen(),
+      ),
+    ),
+  ];
 
   @override
   NavItem? get navItem => NavItem(
-        rootRoute: '/settings',
-        icon: Icons.settings_outlined,
-        selectedIcon: Icons.settings,
-        label: (context) => context.l10n.settingsTitle,
-      );
+    rootRoute: '/settings',
+    icon: Icons.settings_outlined,
+    selectedIcon: Icons.settings,
+    label: (context) => context.l10n.settingsTitle,
+  );
 
   @override
   List<SettingsSection> get settingsSections => [
-        SettingsSection(
-          title: (context) => context.l10n.settingsPersonalisationSection,
-          tiles: (context) => [
-            const _ThemeTile(),
-            const _LanguageTile(),
-          ],
+    SettingsSection(
+      title: (context) => context.l10n.settingsPersonalisationSection,
+      tiles: (context) => [const _ThemeTile(), const _LanguageTile()],
+    ),
+    SettingsSection(
+      title: (context) => context.l10n.settingsPrivacySection,
+      tiles: (context) => [
+        const _TrackingTile(),
+        ListTile(
+          leading: const Icon(Icons.download_outlined),
+          title: Text(context.l10n.exportMyData),
+          onTap: () => context.read<SettingsCubit>().requestDataExport(),
         ),
-        SettingsSection(
-          title: (context) => context.l10n.settingsPrivacySection,
-          tiles: (context) => [
-            const _TrackingTile(),
-            ListTile(
-              leading: const Icon(Icons.download_outlined),
-              title: Text(context.l10n.exportMyData),
-              onTap: () => context.read<SettingsCubit>().requestDataExport(),
-            ),
-            ListTile(
-              leading: const Icon(Icons.policy_outlined),
-              title: Text(context.l10n.privacyPolicy),
-              onTap: () => launchUrl(Uri.parse(AppConfig.privacyPolicyUrl)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.description_outlined),
-              title: Text(context.l10n.termsOfService),
-              onTap: () => launchUrl(Uri.parse(AppConfig.termsOfServiceUrl)),
-            ),
-            const _DeleteAccountTile(),
-          ],
+        ListTile(
+          leading: const Icon(Icons.policy_outlined),
+          title: Text(context.l10n.privacyPolicy),
+          onTap: () => launchUrl(Uri.parse(AppConfig.privacyPolicyUrl)),
         ),
-      ];
+        ListTile(
+          leading: const Icon(Icons.description_outlined),
+          title: Text(context.l10n.termsOfService),
+          onTap: () => launchUrl(Uri.parse(AppConfig.termsOfServiceUrl)),
+        ),
+        const _DeleteAccountTile(),
+      ],
+    ),
+  ];
 }
 
 class _ThemeTile extends StatelessWidget {
   const _ThemeTile();
 
   String _label(BuildContext context, ThemeMode mode) => switch (mode) {
-        ThemeMode.system => context.l10n.themeSystem,
-        ThemeMode.light => context.l10n.themeLight,
-        ThemeMode.dark => context.l10n.themeDark,
-      };
+    ThemeMode.system => context.l10n.themeSystem,
+    ThemeMode.light => context.l10n.themeLight,
+    ThemeMode.dark => context.l10n.themeDark,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -166,10 +163,7 @@ class _DeleteAccountTile extends StatelessWidget {
     final error = Theme.of(context).colorScheme.error;
     return ListTile(
       leading: Icon(Icons.delete_forever_outlined, color: error),
-      title: Text(
-        context.l10n.deleteAccount,
-        style: TextStyle(color: error),
-      ),
+      title: Text(context.l10n.deleteAccount, style: TextStyle(color: error)),
       onTap: () => _confirmDelete(context),
     );
   }

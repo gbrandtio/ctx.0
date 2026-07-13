@@ -15,9 +15,9 @@ class VerifyEmailCubit extends Cubit<VerifyEmailState> {
   VerifyEmailCubit({
     required AuthRepository authRepository,
     required PendingRegistration pending,
-  })  : _authRepository = authRepository,
-        _pending = pending,
-        super(const VerifyEmailInitial());
+  }) : _authRepository = authRepository,
+       _pending = pending,
+       super(const VerifyEmailInitial());
 
   final AuthRepository _authRepository;
   final PendingRegistration _pending;

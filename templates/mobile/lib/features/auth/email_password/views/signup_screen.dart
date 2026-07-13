@@ -47,8 +47,9 @@ class _SignupScreenState extends State<SignupScreen> {
   void _submit() {
     final l10n = context.l10n;
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    final missingRequired = AppConfig.signupConsents.entries
-        .any((e) => e.value && !(_consents[e.key] ?? false));
+    final missingRequired = AppConfig.signupConsents.entries.any(
+      (e) => e.value && !(_consents[e.key] ?? false),
+    );
     if (missingRequired) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
@@ -56,15 +57,15 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
     context.read<SignupBloc>().add(
-          SignupSubmitted(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-            displayName: _nameController.text.trim().isEmpty
-                ? null
-                : _nameController.text.trim(),
-            consents: Map.of(_consents),
-          ),
-        );
+      SignupSubmitted(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        displayName: _nameController.text.trim().isEmpty
+            ? null
+            : _nameController.text.trim(),
+        consents: Map.of(_consents),
+      ),
+    );
   }
 
   @override
@@ -111,8 +112,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     autofillHints: const [AutofillHints.email],
                     validator: (value) =>
                         (value == null || !value.contains('@'))
-                            ? l10n.emailInvalid
-                            : null,
+                        ? l10n.emailInvalid
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   AppTextField(

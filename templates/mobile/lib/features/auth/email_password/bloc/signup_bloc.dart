@@ -18,9 +18,9 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
   SignupBloc({
     required AuthRepository authRepository,
     required TimeProvider timeProvider,
-  })  : _authRepository = authRepository,
-        _timeProvider = timeProvider,
-        super(const SignupInitial()) {
+  }) : _authRepository = authRepository,
+       _timeProvider = timeProvider,
+       super(const SignupInitial()) {
     on<SignupSubmitted>(_onSubmitted, transformer: droppable());
   }
 
@@ -48,4 +48,3 @@ class SignupBloc extends Bloc<SignupEvent, SignupState> {
     }
   }
 }
-

@@ -16,9 +16,8 @@ class ImageCaptureBottomSheet extends StatelessWidget {
     return showModalBottomSheet<XFile?>(
       context: context,
       builder: (context) => BlocProvider(
-        create: (context) => ImageCaptureCubit(
-          imageCaptureService: ImageCaptureService(),
-        ),
+        create: (context) =>
+            ImageCaptureCubit(imageCaptureService: ImageCaptureService()),
         child: const ImageCaptureBottomSheet(),
       ),
     );
@@ -33,9 +32,9 @@ class ImageCaptureBottomSheet extends StatelessWidget {
         if (state is ImageCaptureSuccess) {
           Navigator.of(context).pop(state.image);
         } else if (state is ImageCaptureFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.imageCaptureError)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.imageCaptureError)));
           Navigator.of(context).pop();
         }
       },
@@ -56,16 +55,16 @@ class ImageCaptureBottomSheet extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.camera_alt),
                 title: Text(l10n.imageCaptureCamera),
-                onTap: () => context
-                    .read<ImageCaptureCubit>()
-                    .captureImage(ImageSource.camera),
+                onTap: () => context.read<ImageCaptureCubit>().captureImage(
+                  ImageSource.camera,
+                ),
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
                 title: Text(l10n.imageCaptureGallery),
-                onTap: () => context
-                    .read<ImageCaptureCubit>()
-                    .captureImage(ImageSource.gallery),
+                onTap: () => context.read<ImageCaptureCubit>().captureImage(
+                  ImageSource.gallery,
+                ),
               ),
             ],
           ),

@@ -16,10 +16,12 @@ class AppBlocObserver extends BlocObserver {
     Transition<dynamic, dynamic> transition,
   ) {
     super.onTransition(bloc, transition);
-    _loggingService.info('${bloc.runtimeType}: '
-        '${transition.currentState.runtimeType} '
-        '→ ${transition.nextState.runtimeType} '
-        '(${transition.event.runtimeType})');
+    _loggingService.info(
+      '${bloc.runtimeType}: '
+      '${transition.currentState.runtimeType} '
+      '→ ${transition.nextState.runtimeType} '
+      '(${transition.event.runtimeType})',
+    );
   }
 
   @override

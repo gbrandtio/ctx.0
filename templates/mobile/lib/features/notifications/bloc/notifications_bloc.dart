@@ -14,11 +14,10 @@ part 'notifications_state.dart';
 /// so a single state class with status + hasReachedMax
 /// (docs/STATE_MANAGEMENT.md §3). Page fetches are droppable — scroll
 /// spam cannot double-fetch (§4).
-class NotificationsBloc
-    extends Bloc<NotificationsEvent, NotificationsState> {
+class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   NotificationsBloc({required NotificationsRepository repository})
-      : _repository = repository,
-        super(const NotificationsState()) {
+    : _repository = repository,
+      super(const NotificationsState()) {
     on<NotificationsFetched>(_onFetched, transformer: droppable());
     on<NotificationsRefreshRequested>(_onRefresh, transformer: droppable());
   }
@@ -34,17 +33,21 @@ class NotificationsBloc
     final result = await _repository.getFeed(page: state.nextPage);
     switch (result) {
       case Success(:final value):
-        emit(state.copyWith(
-          status: NotificationsStatus.success,
-          items: [...state.items, ...value.items],
-          nextPage: state.nextPage + 1,
-          hasReachedMax: !value.hasMore,
-        ));
+        emit(
+          state.copyWith(
+            status: NotificationsStatus.success,
+            items: [...state.items, ...value.items],
+            nextPage: state.nextPage + 1,
+            hasReachedMax: !value.hasMore,
+          ),
+        );
       case Failure(:final error):
-        emit(state.copyWith(
-          status: NotificationsStatus.failure,
-          errorMessage: AppException.from(error).userFriendlyMessage,
-        ));
+        emit(
+          state.copyWith(
+            status: NotificationsStatus.failure,
+            errorMessage: AppException.from(error).userFriendlyMessage,
+          ),
+        );
     }
   }
 
@@ -55,17 +58,21 @@ class NotificationsBloc
     final result = await _repository.getFeed(page: 1);
     switch (result) {
       case Success(:final value):
-        emit(NotificationsState(
-          status: NotificationsStatus.success,
-          items: value.items,
-          nextPage: 2,
-          hasReachedMax: !value.hasMore,
-        ));
+        emit(
+          NotificationsState(
+            status: NotificationsStatus.success,
+            items: value.items,
+            nextPage: 2,
+            hasReachedMax: !value.hasMore,
+          ),
+        );
       case Failure(:final error):
-        emit(state.copyWith(
-          status: NotificationsStatus.failure,
-          errorMessage: AppException.from(error).userFriendlyMessage,
-        ));
+        emit(
+          state.copyWith(
+            status: NotificationsStatus.failure,
+            errorMessage: AppException.from(error).userFriendlyMessage,
+          ),
+        );
     }
   }
 }

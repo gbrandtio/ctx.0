@@ -14,9 +14,9 @@ class PaymentsRepository {
     required PaymentApiService api,
     required StripeService stripe,
     required CachingClient cachingClient,
-  })  : _api = api,
-        _stripe = stripe,
-        _cachingClient = cachingClient;
+  }) : _api = api,
+       _stripe = stripe,
+       _cachingClient = cachingClient;
 
   final PaymentApiService _api;
   final StripeService _stripe;

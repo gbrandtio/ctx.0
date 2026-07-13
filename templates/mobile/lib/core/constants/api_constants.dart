@@ -11,8 +11,10 @@ abstract final class ApiConstants {
 
   /// When true, ApiServices return simulated data instead of hitting the
   /// network — lets feature work proceed before the API is reachable.
-  static const bool useMockData =
-      bool.fromEnvironment('USE_MOCK_DATA', defaultValue: false);
+  static const bool useMockData = bool.fromEnvironment(
+    'USE_MOCK_DATA',
+    defaultValue: false,
+  );
 
   // ---- Endpoints (paths match the shipped API's swagger.json;
   // see docs/API/swagger.json and the API's AUTHENTICATION.md) ----
@@ -34,9 +36,7 @@ abstract final class ApiConstants {
   static String user(String userId) => '/users/$userId';
   static String userExports(String userId) => '/users/$userId/exports';
 
-  static Uri uri(String path, [Map<String, dynamic>? query]) =>
-      Uri.parse('$baseUrl/$apiVersion$path').replace(
-        queryParameters:
-            query?.map((k, v) => MapEntry(k, v.toString())),
-      );
+  static Uri uri(String path, [Map<String, dynamic>? query]) => Uri.parse(
+    '$baseUrl/$apiVersion$path',
+  ).replace(queryParameters: query?.map((k, v) => MapEntry(k, v.toString())));
 }

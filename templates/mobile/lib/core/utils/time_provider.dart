@@ -6,7 +6,7 @@ abstract class TimeProvider {
 /// Native implementation using the system clock.
 class SystemTimeProvider implements TimeProvider {
   const SystemTimeProvider();
-  
+
   @override
   DateTime get now => DateTime.now();
 }

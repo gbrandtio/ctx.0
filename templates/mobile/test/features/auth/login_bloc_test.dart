@@ -37,18 +37,19 @@ void main() {
   });
 
   LoginBloc build() => LoginBloc(
-        authRepository: authRepository,
-        // ctx:auth_google:begin
-        googleAuth: googleAuth,
-        // ctx:auth_google:end
-      );
+    authRepository: authRepository,
+    // ctx:auth_google:begin
+    googleAuth: googleAuth,
+    // ctx:auth_google:end
+  );
 
   // ctx:auth_email_password:begin
   blocTest<LoginBloc, LoginState>(
     'emits [loading, success] on accepted credentials',
     build: () {
-      when(() => authRepository.login(any(), any()))
-          .thenAnswer((_) async => const Result.success(_user));
+      when(
+        () => authRepository.login(any(), any()),
+      ).thenAnswer((_) async => const Result.success(_user));
       return build();
     },
     act: (bloc) => bloc.add(const LoginSubmitted('a@b.com', 'pw')),
@@ -68,10 +69,7 @@ void main() {
       return build();
     },
     act: (bloc) => bloc.add(const LoginSubmitted('a@b.com', 'wrong')),
-    expect: () => const [
-      LoginLoading(),
-      LoginFailure('Invalid credentials.'),
-    ],
+    expect: () => const [LoginLoading(), LoginFailure('Invalid credentials.')],
   );
 
   blocTest<LoginBloc, LoginState>(
@@ -101,16 +99,16 @@ void main() {
     },
     act: (bloc) => bloc.add(const LoginWithGooglePressed()),
     expect: () => const [LoginLoading(), LoginInitial()],
-    verify: (_) =>
-        verifyNever(() => authRepository.signInWithGoogle(any())),
+    verify: (_) => verifyNever(() => authRepository.signInWithGoogle(any())),
   );
 
   blocTest<LoginBloc, LoginState>(
     'Google flow exchanges the ID token for a session',
     build: () {
       when(() => googleAuth.signIn()).thenAnswer((_) async => 'id-token');
-      when(() => authRepository.signInWithGoogle('id-token'))
-          .thenAnswer((_) async => const Result.success(_user));
+      when(
+        () => authRepository.signInWithGoogle('id-token'),
+      ).thenAnswer((_) async => const Result.success(_user));
       return build();
     },
     act: (bloc) => bloc.add(const LoginWithGooglePressed()),

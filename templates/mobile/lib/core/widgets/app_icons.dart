@@ -11,12 +11,7 @@ abstract final class AppIcons {
 /// Renders a brand SVG with consistent sizing and optional theme-aware
 /// tinting. Partner logos (e.g. the Google "G") must NOT be recolored.
 class AppIcon extends StatelessWidget {
-  const AppIcon(
-    this.asset, {
-    super.key,
-    this.size = 24,
-    this.tinted = false,
-  });
+  const AppIcon(this.asset, {super.key, this.size = 24, this.tinted = false});
 
   final String asset;
   final double size;

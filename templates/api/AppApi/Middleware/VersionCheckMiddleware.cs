@@ -11,7 +11,7 @@ public sealed class VersionCheckMiddleware(RequestDelegate next, IConfiguration 
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        var minVersionString = configuration["ClientSettings:MinimumClientVersion"];
+        var minVersionString = configuration["MINIMUM_CLIENT_VERSION"];
         if (!string.IsNullOrEmpty(minVersionString) && Version.TryParse(minVersionString, out var minVersion))
         {
             var clientVersionString = context.Request.Headers["X-Client-Version"].FirstOrDefault();

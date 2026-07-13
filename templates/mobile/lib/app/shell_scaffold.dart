@@ -7,11 +7,7 @@ import 'feature_module.dart';
 /// (docs/APP_SHELL.md). One StatefulShellBranch per nav module keeps each
 /// tab's navigation stack alive across switches.
 class ShellScaffold extends StatelessWidget {
-  const ShellScaffold({
-    super.key,
-    required this.shell,
-    required this.items,
-  });
+  const ShellScaffold({super.key, required this.shell, required this.items});
 
   final StatefulNavigationShell shell;
   final List<NavItem> items;
@@ -32,8 +28,9 @@ class ShellScaffold extends StatelessWidget {
           for (final item in items)
             NavigationDestination(
               icon: Icon(item.icon),
-              selectedIcon:
-                  item.selectedIcon == null ? null : Icon(item.selectedIcon),
+              selectedIcon: item.selectedIcon == null
+                  ? null
+                  : Icon(item.selectedIcon),
               label: item.label(context),
             ),
         ],

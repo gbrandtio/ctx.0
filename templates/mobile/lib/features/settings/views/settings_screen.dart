@@ -48,8 +48,8 @@ class SettingsScreen extends StatelessWidget {
                 child: Text(
                   section.title(context),
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               ),
               Card(child: Column(children: section.tiles(context))),

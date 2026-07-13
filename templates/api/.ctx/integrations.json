@@ -81,18 +81,17 @@
       "summary": "Forced App Updates interceptor + overlay screen (ships enabled)",
       "providesNavTab": false,
       "markedFiles": [
-        "AppApi/Program.cs",
-        "AppApi/appsettings.json"
+        "AppApi/Program.cs"
       ],
       "sourceDirs": [
         "AppApi/Middleware/VersionCheckMiddleware.cs"
       ],
       "testDirs": [],
       "envVars": [
-        "ClientSettings__MinimumClientVersion"
+        "MINIMUM_CLIENT_VERSION"
       ],
       "userSteps": [
-        "Set ClientSettings:MinimumClientVersion to force older clients to update.",
+        "Set the MINIMUM_CLIENT_VERSION environment variable to force older clients to update.",
         "Mobile counterpart: `ctx0 enable app_updates` in the app repo."
       ]
     }

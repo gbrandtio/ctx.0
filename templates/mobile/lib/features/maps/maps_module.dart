@@ -19,32 +19,31 @@ class MapsModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(
-          path: '/map',
-          builder: (context, state) => BlocProvider(
-            create: (context) => MapBloc(
-              itemsRepository: context.read<ItemsRepository>(),
-              locationService: LocationService(),
-            )..add(const MapOpened()),
-            child: const MapScreen(),
-          ),
-        ),
-      ];
+    GoRoute(
+      path: '/map',
+      builder: (context, state) => BlocProvider(
+        create: (context) => MapBloc(
+          itemsRepository: context.read<ItemsRepository>(),
+          locationService: LocationService(),
+        )..add(const MapOpened()),
+        child: const MapScreen(),
+      ),
+    ),
+  ];
 
   @override
   List<RepositoryProvider> get repositories => [
-        RepositoryProvider<ItemsRepository>(
-          create: (context) => ItemsRepository(
-            api: ItemApiService(context.read<http.Client>()),
-          ),
-        ),
-      ];
+    RepositoryProvider<ItemsRepository>(
+      create: (context) =>
+          ItemsRepository(api: ItemApiService(context.read<http.Client>())),
+    ),
+  ];
 
   @override
   NavItem? get navItem => NavItem(
-        rootRoute: '/map',
-        icon: Icons.map_outlined,
-        selectedIcon: Icons.map,
-        label: (context) => context.l10n.mapTitle,
-      );
+    rootRoute: '/map',
+    icon: Icons.map_outlined,
+    selectedIcon: Icons.map,
+    label: (context) => context.l10n.mapTitle,
+  );
 }

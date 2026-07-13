@@ -33,36 +33,36 @@ class NotificationsModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(
-          path: '/notifications',
-          builder: (context, state) => BlocProvider(
-            create: (context) => NotificationsBloc(
-              repository: context.read<NotificationsRepository>(),
-            )..add(const NotificationsFetched()),
-            child: const NotificationsScreen(),
-          ),
-        ),
-      ];
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => BlocProvider(
+        create: (context) => NotificationsBloc(
+          repository: context.read<NotificationsRepository>(),
+        )..add(const NotificationsFetched()),
+        child: const NotificationsScreen(),
+      ),
+    ),
+  ];
 
   @override
   List<RepositoryProvider> get repositories => [
-        // lazy: false — registration must follow auth state from app
-        // start, not from the first screen visit.
-        RepositoryProvider<NotificationsRepository>(
-          lazy: false,
-          create: (context) => NotificationsRepository(
-            api: NotificationApiService(context.read<http.Client>()),
-            pushTokens: PushTokenService(),
-            authRepository: context.read<AuthRepository>(),
-          ),
-        ),
-      ];
+    // lazy: false — registration must follow auth state from app
+    // start, not from the first screen visit.
+    RepositoryProvider<NotificationsRepository>(
+      lazy: false,
+      create: (context) => NotificationsRepository(
+        api: NotificationApiService(context.read<http.Client>()),
+        pushTokens: PushTokenService(),
+        authRepository: context.read<AuthRepository>(),
+      ),
+    ),
+  ];
 
   @override
   NavItem? get navItem => NavItem(
-        rootRoute: '/notifications',
-        icon: Icons.notifications_outlined,
-        selectedIcon: Icons.notifications,
-        label: (context) => context.l10n.notificationsTitle,
-      );
+    rootRoute: '/notifications',
+    icon: Icons.notifications_outlined,
+    selectedIcon: Icons.notifications,
+    label: (context) => context.l10n.notificationsTitle,
+  );
 }

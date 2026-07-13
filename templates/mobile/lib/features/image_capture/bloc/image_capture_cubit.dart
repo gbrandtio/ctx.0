@@ -7,8 +7,8 @@ import 'image_capture_state.dart';
 
 class ImageCaptureCubit extends Cubit<ImageCaptureState> {
   ImageCaptureCubit({required ImageCaptureService imageCaptureService})
-      : _imageCaptureService = imageCaptureService,
-        super(const ImageCaptureInitial());
+    : _imageCaptureService = imageCaptureService,
+      super(const ImageCaptureInitial());
 
   final ImageCaptureService _imageCaptureService;
 

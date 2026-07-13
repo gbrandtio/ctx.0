@@ -16,49 +16,47 @@ class ProfileModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => BlocProvider(
+        create: (context) =>
+            ProfileCubit(authRepository: context.read<AuthRepository>()),
+        child: const ProfileScreen(),
+      ),
+      routes: [
         GoRoute(
-          path: '/profile',
+          path: 'edit',
           builder: (context, state) => BlocProvider(
-            create: (context) => ProfileCubit(
-              authRepository: context.read<AuthRepository>(),
-            ),
-            child: const ProfileScreen(),
+            create: (context) =>
+                ProfileCubit(authRepository: context.read<AuthRepository>()),
+            child: const EditProfileScreen(),
           ),
-          routes: [
-            GoRoute(
-              path: 'edit',
-              builder: (context, state) => BlocProvider(
-                create: (context) => ProfileCubit(
-                  authRepository: context.read<AuthRepository>(),
-                ),
-                child: const EditProfileScreen(),
-              ),
-            ),
-          ],
         ),
-      ];
+      ],
+    ),
+  ];
 
   @override
   NavItem? get navItem => NavItem(
-        rootRoute: '/profile',
-        icon: Icons.person_outline,
-        selectedIcon: Icons.person,
-        label: (context) => context.l10n.profileTitle,
-      );
+    rootRoute: '/profile',
+    icon: Icons.person_outline,
+    selectedIcon: Icons.person,
+    label: (context) => context.l10n.profileTitle,
+  );
 
   /// Logout is NOT here: session controls belong to the permanent auth
   /// module, so they survive disabling this feature (docs/INTEGRATIONS.md).
   @override
   List<SettingsSection> get settingsSections => [
-        SettingsSection(
-          title: (context) => context.l10n.profileTitle,
-          tiles: (context) => [
-            ListTile(
-              leading: const Icon(Icons.edit_outlined),
-              title: Text(context.l10n.editProfile),
-              onTap: () => context.go('/profile/edit'),
-            ),
-          ],
+    SettingsSection(
+      title: (context) => context.l10n.profileTitle,
+      tiles: (context) => [
+        ListTile(
+          leading: const Icon(Icons.edit_outlined),
+          title: Text(context.l10n.editProfile),
+          onTap: () => context.go('/profile/edit'),
         ),
-      ];
+      ],
+    ),
+  ];
 }

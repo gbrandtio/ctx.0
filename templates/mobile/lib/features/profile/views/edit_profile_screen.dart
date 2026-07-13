@@ -80,9 +80,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   builder: (context, state) => AppPrimaryButton(
                     label: l10n.saveButton,
                     loading: state.status == ProfileStatus.saving,
-                    onPressed: () => context
-                        .read<ProfileCubit>()
-                        .save(displayName: _nameController.text.trim()),
+                    onPressed: () => context.read<ProfileCubit>().save(
+                      displayName: _nameController.text.trim(),
+                    ),
                   ),
                 ),
               ],

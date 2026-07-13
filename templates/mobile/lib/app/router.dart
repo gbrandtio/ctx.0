@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/repositories/auth_repository.dart';
+// ctx:ux_onboarding:begin
+import '../data/services/storage/prefs_service.dart';
+// ctx:ux_onboarding:end
 import 'feature_module.dart';
 import 'shell_scaffold.dart';
 
@@ -14,6 +17,9 @@ import 'shell_scaffold.dart';
 GoRouter buildRouter({
   required List<FeatureModule> modules,
   required AuthRepository authRepository,
+  // ctx:ux_onboarding:begin
+    required PrefsService prefs,
+  // ctx:ux_onboarding:end
 }) {
   final navModules = modules.where((m) => m.navItem != null).toList();
   final otherModules = modules.where((m) => m.navItem == null).toList();
@@ -30,22 +36,36 @@ GoRouter buildRouter({
     redirect: (context, state) {
       final auth = authRepository.currentState;
       final path = state.uri.path;
-      final isPublic =
-          publicPaths.any((p) => path == p || path.startsWith('$p/'));
+      final isPublic = publicPaths.any(
+        (p) => path == p || path.startsWith('$p/'),
+      );
 
       return switch (auth) {
         // Session restore in flight: hold on the splash screen.
         AuthUnknown() => path == '/splash' ? null : '/splash',
-        Unauthenticated() => isPublic
-            ? null
-            : Uri(
-                path: '/login',
-                queryParameters:
-                    path == '/splash' ? null : {'from': state.uri.toString()},
-              ).toString(),
-        Authenticated() => (isPublic || path == '/splash')
-            ? (state.uri.queryParameters['from'] ?? homePath)
-            : null,
+        Unauthenticated() =>
+          // ctx:ux_onboarding:begin
+                      (!prefs.onboardingDone && path != '/onboarding')
+                          ? '/onboarding'
+                          :
+          // ctx:ux_onboarding:end
+          isPublic
+              ? null
+              : Uri(
+                  path: '/login',
+                  queryParameters: path == '/splash'
+                      ? null
+                      : {'from': state.uri.toString()},
+                ).toString(),
+        Authenticated() =>
+          // ctx:ux_onboarding:begin
+                      (!prefs.onboardingDone && path != '/onboarding')
+                          ? '/onboarding'
+                          :
+          // ctx:ux_onboarding:end
+          (isPublic || path == '/splash')
+              ? (state.uri.queryParameters['from'] ?? homePath)
+              : null,
       };
     },
     routes: [
@@ -77,8 +97,9 @@ GoRouter buildRouter({
 /// refreshListenable so redirects re-evaluate on every auth transition.
 class _AuthStateNotifier extends ChangeNotifier {
   _AuthStateNotifier(AuthRepository repository) {
-    _subscription =
-        repository.authStateChanges.listen((_) => notifyListeners());
+    _subscription = repository.authStateChanges.listen(
+      (_) => notifyListeners(),
+    );
   }
 
   late final StreamSubscription<AuthState> _subscription;

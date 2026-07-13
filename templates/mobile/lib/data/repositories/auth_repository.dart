@@ -37,10 +37,10 @@ class AuthRepository {
     required SecureStorageService secureStorage,
     required PrefsService prefs,
     required CachingClient cachingClient,
-  })  : _userApi = userApi,
-        _secureStorage = secureStorage,
-        _prefs = prefs,
-        _cachingClient = cachingClient;
+  }) : _userApi = userApi,
+       _secureStorage = secureStorage,
+       _prefs = prefs,
+       _cachingClient = cachingClient;
 
   final UserApiService _userApi;
   final SecureStorageService _secureStorage;
@@ -80,8 +80,7 @@ class AuthRepository {
   void _emit(AuthState state) {
     // Compare-before-write: identical re-emissions cause reactive loops
     // (docs/FLUTTER_ARCHITECTURE.md §6C).
-    if (state.runtimeType == _current.runtimeType &&
-        state is! Authenticated) {
+    if (state.runtimeType == _current.runtimeType && state is! Authenticated) {
       return;
     }
     if (state is Authenticated &&
@@ -136,15 +135,16 @@ class AuthRepository {
     required String verificationCode,
     String? displayName,
     required Map<String, bool> consents,
-  }) =>
-      _establishSession(() => _userApi.register(
-            username: username,
-            email: email,
-            password: password,
-            verificationCode: verificationCode,
-            name: displayName,
-            consents: consents,
-          ));
+  }) => _establishSession(
+    () => _userApi.register(
+      username: username,
+      email: email,
+      password: password,
+      verificationCode: verificationCode,
+      name: displayName,
+      consents: consents,
+    ),
+  );
 
   Future<Result<User>> signInWithGoogle(String idToken) =>
       _establishSession(() => _userApi.googleSignIn(idToken));
@@ -158,8 +158,10 @@ class AuthRepository {
       return Result.failure(StateError('No active session.'));
     }
     try {
-      final fetched =
-          await _userApi.getUser(current.user.id, forceRefresh: forceRefresh);
+      final fetched = await _userApi.getUser(
+        current.user.id,
+        forceRefresh: forceRefresh,
+      );
       final merged = current.user.copyWith(displayName: fetched.displayName);
       _emit(Authenticated(merged));
       return Result.success(merged);

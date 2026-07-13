@@ -24,25 +24,31 @@ void main() {
     blocTest<SignupBloc, SignupState>(
       'requesting a code emits SignupCodeSent carrying the pending data',
       build: () {
-        when(() => authRepository.sendSignupCode('new@example.com'))
-            .thenAnswer((_) async => const Result.success(null));
+        when(
+          () => authRepository.sendSignupCode('new@example.com'),
+        ).thenAnswer((_) async => const Result.success(null));
         return SignupBloc(
           authRepository: authRepository,
           timeProvider: const SystemTimeProvider(),
         );
       },
-      act: (bloc) => bloc.add(const SignupSubmitted(
-        email: 'new@example.com',
-        password: 's3cur3P@ss',
-        displayName: 'New User',
-        consents: {'terms_and_privacy': true},
-      )),
+      act: (bloc) => bloc.add(
+        const SignupSubmitted(
+          email: 'new@example.com',
+          password: 's3cur3P@ss',
+          displayName: 'New User',
+          consents: {'terms_and_privacy': true},
+        ),
+      ),
       expect: () => [
         const SignupLoading(),
         isA<SignupCodeSent>()
             .having((s) => s.pending.email, 'email', 'new@example.com')
-            .having((s) => s.pending.username, 'derived username',
-                startsWith('new'))
+            .having(
+              (s) => s.pending.username,
+              'derived username',
+              startsWith('new'),
+            )
             .having((s) => s.pending.displayName, 'name', 'New User'),
       ],
     );
@@ -52,7 +58,9 @@ void main() {
       build: () {
         when(() => authRepository.sendSignupCode(any())).thenAnswer(
           (_) async => const Result.failure(
-            AppException(ProblemDetails(status: 409, detail: 'Email already exists.')),
+            AppException(
+              ProblemDetails(status: 409, detail: 'Email already exists.'),
+            ),
           ),
         );
         return SignupBloc(
@@ -60,11 +68,13 @@ void main() {
           timeProvider: const SystemTimeProvider(),
         );
       },
-      act: (bloc) => bloc.add(const SignupSubmitted(
-        email: 'taken@example.com',
-        password: 's3cur3P@ss',
-        consents: {},
-      )),
+      act: (bloc) => bloc.add(
+        const SignupSubmitted(
+          email: 'taken@example.com',
+          password: 's3cur3P@ss',
+          consents: {},
+        ),
+      ),
       expect: () => const [
         SignupLoading(),
         SignupFailure('Email already exists.'),
@@ -83,16 +93,20 @@ void main() {
     blocTest<VerifyEmailCubit, VerifyEmailState>(
       'submitting the code registers with the pending data and verifies',
       build: () {
-        when(() => authRepository.register(
-              username: 'new1234',
-              email: 'new@example.com',
-              password: 's3cur3P@ss',
-              verificationCode: '123456',
-              displayName: null,
-              consents: {'terms_and_privacy': true},
-            )).thenAnswer((_) async => const Result.success(_user));
+        when(
+          () => authRepository.register(
+            username: 'new1234',
+            email: 'new@example.com',
+            password: 's3cur3P@ss',
+            verificationCode: '123456',
+            displayName: null,
+            consents: {'terms_and_privacy': true},
+          ),
+        ).thenAnswer((_) async => const Result.success(_user));
         return VerifyEmailCubit(
-          authRepository: authRepository, pending: pending);
+          authRepository: authRepository,
+          pending: pending,
+        );
       },
       act: (cubit) => cubit.verify('123456'),
       expect: () => const [VerifyEmailSubmitting(), VerifyEmailVerified()],
@@ -101,33 +115,47 @@ void main() {
     blocTest<VerifyEmailCubit, VerifyEmailState>(
       'resend re-requests a code for the pending email',
       build: () {
-        when(() => authRepository.sendSignupCode('new@example.com'))
-            .thenAnswer((_) async => const Result.success(null));
+        when(
+          () => authRepository.sendSignupCode('new@example.com'),
+        ).thenAnswer((_) async => const Result.success(null));
         return VerifyEmailCubit(
-          authRepository: authRepository, pending: pending);
+          authRepository: authRepository,
+          pending: pending,
+        );
       },
       act: (cubit) => cubit.resend(),
       expect: () => const [VerifyEmailSubmitting(), VerifyEmailResent()],
-      verify: (_) =>
-          verify(() => authRepository.sendSignupCode('new@example.com')).called(1),
+      verify: (_) => verify(
+        () => authRepository.sendSignupCode('new@example.com'),
+      ).called(1),
     );
 
     blocTest<VerifyEmailCubit, VerifyEmailState>(
       'a wrong code surfaces the API message',
       build: () {
-        when(() => authRepository.register(
-              username: any(named: 'username'),
-              email: any(named: 'email'),
-              password: any(named: 'password'),
-              verificationCode: any(named: 'verificationCode'),
-              displayName: any(named: 'displayName'),
-              consents: any(named: 'consents'),
-            )).thenAnswer((_) async => const Result.failure(
-              AppException(ProblemDetails(
-                status: 400, detail: 'Invalid or expired verification code.')),
-            ));
+        when(
+          () => authRepository.register(
+            username: any(named: 'username'),
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+            verificationCode: any(named: 'verificationCode'),
+            displayName: any(named: 'displayName'),
+            consents: any(named: 'consents'),
+          ),
+        ).thenAnswer(
+          (_) async => const Result.failure(
+            AppException(
+              ProblemDetails(
+                status: 400,
+                detail: 'Invalid or expired verification code.',
+              ),
+            ),
+          ),
+        );
         return VerifyEmailCubit(
-          authRepository: authRepository, pending: pending);
+          authRepository: authRepository,
+          pending: pending,
+        );
       },
       act: (cubit) => cubit.verify('000000'),
       expect: () => const [

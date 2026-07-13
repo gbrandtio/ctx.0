@@ -24,9 +24,8 @@ class MapScreen extends StatelessWidget {
               builder: (context) => IconButton(
                 icon: const Icon(Icons.refresh),
                 tooltip: context.l10n.mapRefresh,
-                onPressed: () => context
-                    .read<MapBloc>()
-                    .add(const MapRefreshRequested()),
+                onPressed: () =>
+                    context.read<MapBloc>().add(const MapRefreshRequested()),
               ),
             ),
           ],
@@ -57,8 +56,7 @@ class MapScreen extends StatelessWidget {
           return Stack(
             children: [
               GoogleMap(
-                initialCameraPosition:
-                    CameraPosition(target: center, zoom: 13),
+                initialCameraPosition: CameraPosition(target: center, zoom: 13),
                 myLocationEnabled:
                     state.status != MapStatus.locationUnavailable,
                 myLocationButtonEnabled: true,

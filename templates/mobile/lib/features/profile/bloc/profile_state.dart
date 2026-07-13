@@ -9,9 +9,8 @@ class ProfileState extends Equatable {
     this.errorMessage,
   });
 
-  factory ProfileState.from(AuthState authState) => ProfileState(
-        user: authState is Authenticated ? authState.user : null,
-      );
+  factory ProfileState.from(AuthState authState) =>
+      ProfileState(user: authState is Authenticated ? authState.user : null);
 
   final ProfileStatus status;
   final User? user;

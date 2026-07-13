@@ -28,8 +28,7 @@ class PushTokenService {
   Stream<String> get onTokenRefresh => _messaging.onTokenRefresh;
 
   /// Foreground messages, for in-app surfacing.
-  Stream<RemoteMessage> get onForegroundMessage =>
-      FirebaseMessaging.onMessage;
+  Stream<RemoteMessage> get onForegroundMessage => FirebaseMessaging.onMessage;
 
   Future<void> deleteToken() async {
     try {

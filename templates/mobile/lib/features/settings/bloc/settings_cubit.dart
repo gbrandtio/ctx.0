@@ -14,9 +14,9 @@ class SettingsCubit extends Cubit<SettingsState> {
   SettingsCubit({
     required AuthRepository authRepository,
     required PrefsService prefs,
-  })  : _authRepository = authRepository,
-        _prefs = prefs,
-        super(const SettingsIdle());
+  }) : _authRepository = authRepository,
+       _prefs = prefs,
+       super(const SettingsIdle());
 
   final AuthRepository _authRepository;
   final PrefsService _prefs;
@@ -27,7 +27,9 @@ class SettingsCubit extends Cubit<SettingsState> {
 
     if (state is SettingsWorking) return;
     emit(const SettingsWorking());
-    final result = await _authRepository.updateProfile(hasTrackingConsent: granted);
+    final result = await _authRepository.updateProfile(
+      hasTrackingConsent: granted,
+    );
     switch (result) {
       case Success():
         emit(const SettingsIdle());

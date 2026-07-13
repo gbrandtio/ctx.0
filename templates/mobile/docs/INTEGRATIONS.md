@@ -120,8 +120,8 @@ agent must never invent or commit:
 - **app_updates** — Update the App Store numeric ID (`YOUR_APP_ID`) in
   `AppUpdatesOverlay` (`lib/features/app_updates/views/app_updates_overlay.dart`)
   for iOS releases. The Android Play Store package name is handled automatically
-  by the scaffolder. Also ensure `ClientSettings:MinimumClientVersion` is set
-  in the API's `appsettings.json`.
+  by the scaffolder. Also ensure the `MINIMUM_CLIENT_VERSION` environment
+  variable is set on the API to trigger the forced update.
 
 Cross-cutting rule (root `AGENTS.md`): enabling `push_firebase` or
 `payments_stripe` on mobile without its API-side counterpart is an

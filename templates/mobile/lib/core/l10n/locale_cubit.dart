@@ -12,8 +12,8 @@ class LocaleCubit extends Cubit<Locale?> {
   LocaleCubit({
     required PrefsService prefs,
     required AuthRepository authRepository,
-  })  : _prefs = prefs,
-        super(_load(prefs)) {
+  }) : _prefs = prefs,
+       super(_load(prefs)) {
     _authSubscription = authRepository.authStateChanges.listen((state) {
       if (state is Unauthenticated) emit(null);
     });

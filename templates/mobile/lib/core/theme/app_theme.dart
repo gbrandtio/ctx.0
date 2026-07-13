@@ -16,13 +16,16 @@ abstract final class AppTheme {
   static ThemeData _build(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
     final primary = isDark ? AppColors.primaryDark : AppColors.primary;
-    final background =
-        isDark ? AppColors.backgroundDark : AppColors.backgroundLight;
+    final background = isDark
+        ? AppColors.backgroundDark
+        : AppColors.backgroundLight;
     final surface = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
-    final textPrimary =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight;
-    final textSecondary =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
+    final textPrimary = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimaryLight;
+    final textSecondary = isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondaryLight;
 
     final colorScheme = ColorScheme.fromSeed(
       seedColor: primary,
@@ -87,7 +90,9 @@ abstract final class AppTheme {
           ),
         ),
       ),
-      snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 }

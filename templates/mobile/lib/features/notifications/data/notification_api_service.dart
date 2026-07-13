@@ -38,10 +38,10 @@ class NotificationApiService with ApiBaseMixin {
 
   Future<NotificationPage> getNotifications({required int page}) async {
     final response = await _client.get(
-      ApiConstants.uri(
-        ApiConstants.notifications,
-        {'page': page, 'pageSize': 20},
-      ),
+      ApiConstants.uri(ApiConstants.notifications, {
+        'page': page,
+        'pageSize': 20,
+      }),
       headers: _noCacheHeaders,
     );
     return NotificationPage.fromJson(

@@ -15,12 +15,14 @@ class ItemsRepository {
     bool forceRefresh = false,
   }) async {
     try {
-      return Result.success(await _api.getNearby(
-        latitude: latitude,
-        longitude: longitude,
-        radiusKm: radiusKm,
-        forceRefresh: forceRefresh,
-      ));
+      return Result.success(
+        await _api.getNearby(
+          latitude: latitude,
+          longitude: longitude,
+          radiusKm: radiusKm,
+          forceRefresh: forceRefresh,
+        ),
+      );
     } on Exception catch (e) {
       return Result.failure(e);
     }

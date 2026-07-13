@@ -15,8 +15,8 @@ part 'profile_state.dart';
 /// The user itself comes from the AuthRepository stream — the SSOT.
 class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit({required AuthRepository authRepository})
-      : _authRepository = authRepository,
-        super(ProfileState.from(authRepository.currentState)) {
+    : _authRepository = authRepository,
+      super(ProfileState.from(authRepository.currentState)) {
     _authSubscription = authRepository.authStateChanges.listen((authState) {
       if (authState is Authenticated) {
         emit(state.copyWith(user: authState.user));
@@ -38,26 +38,31 @@ class ProfileCubit extends Cubit<ProfileState> {
         // The stream listener above delivers the merged user.
         emit(state.copyWith(status: ProfileStatus.idle));
       case Failure(:final error):
-        emit(state.copyWith(
-          status: ProfileStatus.failure,
-          errorMessage: AppException.from(error).userFriendlyMessage,
-        ));
+        emit(
+          state.copyWith(
+            status: ProfileStatus.failure,
+            errorMessage: AppException.from(error).userFriendlyMessage,
+          ),
+        );
     }
   }
 
   Future<void> save({required String displayName}) async {
     if (state.status == ProfileStatus.saving) return;
     emit(state.copyWith(status: ProfileStatus.saving));
-    final result =
-        await _authRepository.updateProfile(displayName: displayName);
+    final result = await _authRepository.updateProfile(
+      displayName: displayName,
+    );
     switch (result) {
       case Success():
         emit(state.copyWith(status: ProfileStatus.saveSuccess));
       case Failure(:final error):
-        emit(state.copyWith(
-          status: ProfileStatus.failure,
-          errorMessage: AppException.from(error).userFriendlyMessage,
-        ));
+        emit(
+          state.copyWith(
+            status: ProfileStatus.failure,
+            errorMessage: AppException.from(error).userFriendlyMessage,
+          ),
+        );
     }
   }
 

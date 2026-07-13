@@ -27,7 +27,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   const loggingService = ConsoleLoggingService();
   const timeProvider = SystemTimeProvider();
-  
+
   Bloc.observer = const AppBlocObserver(loggingService);
 
   // RASP first (docs/SECURITY.md §4.1): a compromised environment must be
@@ -67,26 +67,28 @@ Future<void> main() async {
   );
 
   http.Client apiClient = apiFactory.cachingClient;
-// ctx:app_updates:begin
+  // ctx:app_updates:begin
   final packageInfo = await PackageInfo.fromPlatform();
   apiClient = VersionCheckClient(
     inner: apiClient,
     clientVersion: packageInfo.version,
     onUpgradeRequired: () => updateRequiredNotifier.value = true,
   );
-// ctx:app_updates:end
+  // ctx:app_updates:end
 
   // Don't block the first frame: the router holds on /splash until the
   // restore settles (AuthUnknown → Authenticated/Unauthenticated).
   unawaited(authRepository.restoreSession());
 
-  runApp(App(
-    modules: appModules,
-    authRepository: authRepository,
-    prefs: prefs,
-    apiClient: apiClient,
-    cachingClient: apiFactory.cachingClient,
-    timeProvider: timeProvider,
-    loggingService: loggingService,
-  ));
+  runApp(
+    App(
+      modules: appModules,
+      authRepository: authRepository,
+      prefs: prefs,
+      apiClient: apiClient,
+      cachingClient: apiFactory.cachingClient,
+      timeProvider: timeProvider,
+      loggingService: loggingService,
+    ),
+  );
 }

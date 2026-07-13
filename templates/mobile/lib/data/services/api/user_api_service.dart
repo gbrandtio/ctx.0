@@ -118,8 +118,9 @@ class UserApiService with ApiBaseMixin {
 
   /// GDPR anonymizing delete (docs/APP_SHELL.md §4).
   Future<void> deleteUser(String userId) async {
-    final response =
-        await _client.delete(ApiConstants.uri(ApiConstants.user(userId)));
+    final response = await _client.delete(
+      ApiConstants.uri(ApiConstants.user(userId)),
+    );
     decodeResponse(response);
   }
 

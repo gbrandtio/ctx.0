@@ -70,7 +70,10 @@ class _GdprBannerOverlayState extends State<GdprBannerOverlay> {
                   bottom: false,
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Row(
                       children: [
                         Icon(
@@ -83,7 +86,9 @@ class _GdprBannerOverlayState extends State<GdprBannerOverlay> {
                           child: Text(
                             context.l10n.gdprWarningMessage,
                             style: TextStyle(
-                              color: Theme.of(context).colorScheme.onErrorContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onErrorContainer,
                               height: 1.2,
                             ),
                           ),
@@ -108,8 +113,12 @@ class _GdprBannerOverlayState extends State<GdprBannerOverlay> {
                       bottom: 0,
                       child: Material(
                         elevation: 8,
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
                         child: SafeArea(
                           top: false,
                           child: Padding(
@@ -122,13 +131,17 @@ class _GdprBannerOverlayState extends State<GdprBannerOverlay> {
                                   children: [
                                     Icon(
                                       Icons.privacy_tip_outlined,
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
                                         context.l10n.gdprBannerTitle,
-                                        style: Theme.of(context).textTheme.titleMedium,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
                                       ),
                                     ),
                                   ],

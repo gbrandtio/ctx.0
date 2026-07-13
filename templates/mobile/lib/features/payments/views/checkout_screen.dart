@@ -64,9 +64,9 @@ class CheckoutScreen extends StatelessWidget {
                   builder: (context, state) => AppPrimaryButton(
                     label: l10n.payNow,
                     loading: state is CheckoutProcessing,
-                    onPressed: () => context
-                        .read<CheckoutBloc>()
-                        .add(CheckoutSubmitted(orderId)),
+                    onPressed: () => context.read<CheckoutBloc>().add(
+                      CheckoutSubmitted(orderId),
+                    ),
                   ),
                 ),
               ],

@@ -47,6 +47,12 @@ These variables are only required if you have enabled the corresponding feature 
 | `Stripe__WebhookSecret` | `Stripe:WebhookSecret` | Your Stripe Webhook Endpoint Secret (starts with `whsec_`). | Only with `payments_stripe` |
 | `Authentication__Google__ClientIds__0` | `Authentication:Google:ClientIds:0` | Your Google OAuth Client ID for verifying tokens from the mobile app. Add `__1`, `__2` for additional IDs. | Only with `auth_google` |
 
+## 6. Client App Controls
+
+| Environment Variable | AppSettings Key | Description | Required |
+| :--- | :--- | :--- | :--- |
+| `MINIMUM_CLIENT_VERSION` | N/A | Semantic version (e.g., `1.0.0`). If set, the API rejects requests from older clients with `426 Upgrade Required`. | Only with `app_updates` |
+
 ## Usage Examples
 
 ### Local Development (appsettings.Development.json)

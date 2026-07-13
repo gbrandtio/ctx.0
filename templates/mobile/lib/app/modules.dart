@@ -1,4 +1,7 @@
 import '../features/auth/auth_module.dart';
+// ctx:ux_onboarding:begin
+import '../features/onboarding/onboarding_module.dart';
+// ctx:ux_onboarding:end
 // ctx:maps_google:begin
 // ctx:off import '../features/maps/maps_module.dart';
 // ctx:maps_google:end
@@ -31,6 +34,9 @@ import 'feature_module.dart';
 /// `dart run tool/scaffold.dart` (docs/INTEGRATIONS.md), never by hand.
 const List<FeatureModule> appModules = [
   AuthModule(),
+  // ctx:ux_onboarding:begin
+  OnboardingModule(),
+  // ctx:ux_onboarding:end
   // ctx:maps_google:begin
   // ctx:off MapsModule(),
   // ctx:maps_google:end

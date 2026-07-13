@@ -29,8 +29,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     final l10n = context.l10n;
     return Scaffold(
       appBar: AppHeader(
-        config:
-            HeaderConfig(title: (context) => context.l10n.verifyEmailTitle),
+        config: HeaderConfig(title: (context) => context.l10n.verifyEmailTitle),
       ),
       body: BlocListener<VerifyEmailCubit, VerifyEmailState>(
         listener: (context, state) {
@@ -86,8 +85,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                           label: l10n.resendCode,
                           onPressed: loading
                               ? null
-                              : () =>
-                                  context.read<VerifyEmailCubit>().resend(),
+                              : () => context.read<VerifyEmailCubit>().resend(),
                         ),
                       ],
                     );

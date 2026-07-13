@@ -61,17 +61,15 @@ class AppUpdatesOverlay extends StatelessWidget {
                         const SizedBox(height: 24),
                         Text(
                           'Update Required',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            color: AppColors.textPrimaryDark,
-                          ),
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(color: AppColors.textPrimaryDark),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'A new version of the app is required to continue. Please update to the latest version.',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: AppColors.textSecondaryDark,
-                          ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(color: AppColors.textSecondaryDark),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 32),
@@ -88,9 +86,8 @@ class AppUpdatesOverlay extends StatelessWidget {
                             onPressed: _launchStore,
                             child: Text(
                               'Update Now',
-                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                color: Colors.white,
-                              ),
+                              style: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(color: Colors.white),
                             ),
                           ),
                         ),

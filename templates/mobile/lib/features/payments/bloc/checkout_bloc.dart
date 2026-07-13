@@ -15,8 +15,8 @@ part 'checkout_state.dart';
 /// also enforces idempotency via `payment-intent:{orderId}`).
 class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
   CheckoutBloc({required PaymentsRepository repository})
-      : _repository = repository,
-        super(const CheckoutInitial()) {
+    : _repository = repository,
+      super(const CheckoutInitial()) {
     on<CheckoutSubmitted>(_onSubmitted, transformer: droppable());
   }
 
@@ -30,9 +30,11 @@ class CheckoutBloc extends Bloc<CheckoutEvent, CheckoutState> {
     final result = await _repository.pay(orderId: event.orderId);
     switch (result) {
       case Success(:final value):
-        emit(value == PaymentSheetOutcome.success
-            ? const CheckoutSuccess()
-            : const CheckoutInitial()); // canceled: back to idle
+        emit(
+          value == PaymentSheetOutcome.success
+              ? const CheckoutSuccess()
+              : const CheckoutInitial(),
+        ); // canceled: back to idle
       case Failure(:final error):
         emit(CheckoutFailure(AppException.from(error).userFriendlyMessage));
     }

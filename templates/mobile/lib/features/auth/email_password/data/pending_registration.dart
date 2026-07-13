@@ -28,16 +28,15 @@ class PendingRegistration {
     required Map<String, bool> consents,
     required TimeProvider timeProvider,
   }) {
-    final localPart = email.split('@').first.replaceAll(
-          RegExp(r'[^a-zA-Z0-9_]'),
-          '',
-        );
+    final localPart = email
+        .split('@')
+        .first
+        .replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '');
     final base = localPart.isEmpty ? 'user' : localPart;
     final suffix = (timeProvider.now.microsecondsSinceEpoch % 10000)
         .toString()
         .padLeft(4, '0');
-    final username =
-        '${base.substring(0, base.length.clamp(0, 35))}$suffix';
+    final username = '${base.substring(0, base.length.clamp(0, 35))}$suffix';
     return PendingRegistration(
       username: username,
       email: email,

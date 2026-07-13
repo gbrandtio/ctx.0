@@ -18,27 +18,24 @@ class PaymentsModule extends FeatureModule {
 
   @override
   List<RouteBase> get routes => [
-        GoRoute(
-          path: '/checkout/:orderId',
-          builder: (context, state) => BlocProvider(
-            create: (context) => CheckoutBloc(
-              repository: context.read<PaymentsRepository>(),
-            ),
-            child: CheckoutScreen(
-              orderId: state.pathParameters['orderId']!,
-            ),
-          ),
-        ),
-      ];
+    GoRoute(
+      path: '/checkout/:orderId',
+      builder: (context, state) => BlocProvider(
+        create: (context) =>
+            CheckoutBloc(repository: context.read<PaymentsRepository>()),
+        child: CheckoutScreen(orderId: state.pathParameters['orderId']!),
+      ),
+    ),
+  ];
 
   @override
   List<RepositoryProvider> get repositories => [
-        RepositoryProvider<PaymentsRepository>(
-          create: (context) => PaymentsRepository(
-            api: PaymentApiService(context.read<http.Client>()),
-            stripe: StripeService(),
-            cachingClient: context.read<CachingClient>(),
-          ),
-        ),
-      ];
+    RepositoryProvider<PaymentsRepository>(
+      create: (context) => PaymentsRepository(
+        api: PaymentApiService(context.read<http.Client>()),
+        stripe: StripeService(),
+        cachingClient: context.read<CachingClient>(),
+      ),
+    ),
+  ];
 }

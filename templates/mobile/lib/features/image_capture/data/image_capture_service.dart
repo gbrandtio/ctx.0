@@ -4,7 +4,8 @@ import '../../../core/result/result.dart';
 
 /// Service to handle device camera and gallery image picking.
 class ImageCaptureService {
-  ImageCaptureService({ImagePicker? picker}) : _picker = picker ?? ImagePicker();
+  ImageCaptureService({ImagePicker? picker})
+    : _picker = picker ?? ImagePicker();
 
   final ImagePicker _picker;
 

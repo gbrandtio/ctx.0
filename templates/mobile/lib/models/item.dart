@@ -34,6 +34,12 @@ class Item extends Equatable {
   final double? distanceMeters;
 
   @override
-  List<Object?> get props =>
-      [id, name, description, latitude, longitude, distanceMeters];
+  List<Object?> get props => [
+    id,
+    name,
+    description,
+    latitude,
+    longitude,
+    distanceMeters,
+  ];
 }

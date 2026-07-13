@@ -18,9 +18,9 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   MapBloc({
     required ItemsRepository itemsRepository,
     required LocationService locationService,
-  })  : _items = itemsRepository,
-        _location = locationService,
-        super(const MapState()) {
+  }) : _items = itemsRepository,
+       _location = locationService,
+       super(const MapState()) {
     on<MapOpened>(_onLoad, transformer: restartable());
     on<MapRefreshRequested>(_onLoad, transformer: restartable());
   }
@@ -35,10 +35,9 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     if (position == null) {
       // No location: show the default viewport without markers rather
       // than an error — permission is the user's choice.
-      emit(state.copyWith(
-        status: MapStatus.locationUnavailable,
-        items: const [],
-      ));
+      emit(
+        state.copyWith(status: MapStatus.locationUnavailable, items: const []),
+      );
       return;
     }
 
@@ -49,19 +48,23 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     );
     switch (result) {
       case Success(:final value):
-        emit(state.copyWith(
-          status: MapStatus.success,
-          latitude: position.latitude,
-          longitude: position.longitude,
-          items: value,
-        ));
+        emit(
+          state.copyWith(
+            status: MapStatus.success,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            items: value,
+          ),
+        );
       case Failure(:final error):
-        emit(state.copyWith(
-          status: MapStatus.failure,
-          latitude: position.latitude,
-          longitude: position.longitude,
-          errorMessage: AppException.from(error).userFriendlyMessage,
-        ));
+        emit(
+          state.copyWith(
+            status: MapStatus.failure,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            errorMessage: AppException.from(error).userFriendlyMessage,
+          ),
+        );
     }
   }
 }

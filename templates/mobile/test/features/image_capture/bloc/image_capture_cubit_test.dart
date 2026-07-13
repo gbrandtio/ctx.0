@@ -32,44 +32,50 @@ void main() {
     blocTest<ImageCaptureCubit, ImageCaptureState>(
       'emits [ImageCaptureLoading, ImageCaptureSuccess] when captureImage succeeds with an image',
       build: () {
-        when(() => mockImageCaptureService.pickImage(any())).thenAnswer(
-            (_) async => Result.success(XFile('path/to/image')));
+        when(
+          () => mockImageCaptureService.pickImage(any()),
+        ).thenAnswer((_) async => Result.success(XFile('path/to/image')));
         return ImageCaptureCubit(imageCaptureService: mockImageCaptureService);
       },
       act: (cubit) => cubit.captureImage(ImageSource.camera),
       expect: () => [
         const ImageCaptureLoading(),
-        isA<ImageCaptureSuccess>()
-            .having((s) => s.image.path, 'image path', 'path/to/image'),
+        isA<ImageCaptureSuccess>().having(
+          (s) => s.image.path,
+          'image path',
+          'path/to/image',
+        ),
       ],
     );
 
     blocTest<ImageCaptureCubit, ImageCaptureState>(
       'emits [ImageCaptureLoading, ImageCaptureInitial] when captureImage succeeds with null (user cancelled)',
       build: () {
-        when(() => mockImageCaptureService.pickImage(any()))
-            .thenAnswer((_) async => const Result.success(null));
+        when(
+          () => mockImageCaptureService.pickImage(any()),
+        ).thenAnswer((_) async => const Result.success(null));
         return ImageCaptureCubit(imageCaptureService: mockImageCaptureService);
       },
       act: (cubit) => cubit.captureImage(ImageSource.camera),
-      expect: () => [
-        const ImageCaptureLoading(),
-        const ImageCaptureInitial(),
-      ],
+      expect: () => [const ImageCaptureLoading(), const ImageCaptureInitial()],
     );
 
     blocTest<ImageCaptureCubit, ImageCaptureState>(
       'emits [ImageCaptureLoading, ImageCaptureFailure] when captureImage fails',
       build: () {
-        when(() => mockImageCaptureService.pickImage(any()))
-            .thenAnswer((_) async => const Result.failure('Error occurred'));
+        when(
+          () => mockImageCaptureService.pickImage(any()),
+        ).thenAnswer((_) async => const Result.failure('Error occurred'));
         return ImageCaptureCubit(imageCaptureService: mockImageCaptureService);
       },
       act: (cubit) => cubit.captureImage(ImageSource.camera),
       expect: () => [
         const ImageCaptureLoading(),
-        isA<ImageCaptureFailure>()
-            .having((s) => s.error, 'error', 'Error occurred'),
+        isA<ImageCaptureFailure>().having(
+          (s) => s.error,
+          'error',
+          'Error occurred',
+        ),
       ],
     );
   });
