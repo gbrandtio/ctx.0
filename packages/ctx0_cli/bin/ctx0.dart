@@ -40,38 +40,38 @@ Future<void> main(List<String> args) async {
     case 'status':
       if (workspace != null) {
         var code = 0;
-        for (final repo in workspaceRepos(workspace)) {
+        for (final repo in await workspaceRepos(workspace)) {
           stdout.writeln('--- ${repo.root.path} (${repo.catalog.kind})');
           if (cmdStatus(repo) != 0) code = 1;
         }
         exit(code);
       }
-      exit(cmdStatus(openRepo()));
+      exit(cmdStatus(await openRepo()));
     case 'doctor':
       exit(workspace != null
           ? await workspaceDoctor(workspace)
-          : cmdDoctor(openRepo()));
+          : cmdDoctor(await openRepo()));
     case 'enable' when args.length == 2:
       exit(workspace != null
           ? await workspaceToggle(workspace, args[1], enable: true)
-          : await cmdEnable(openRepo(), args[1]));
+          : await cmdEnable(await openRepo(), args[1]));
     case 'disable' when args.length == 2:
       exit(workspace != null
           ? await workspaceToggle(workspace, args[1], enable: false)
-          : await cmdDisable(openRepo(), args[1]));
+          : await cmdDisable(await openRepo(), args[1]));
     case 'docs' when args.length == 2 && args[1] == 'sync':
-      exit(await cmdDocsSync(openRepo()));
+      exit(await cmdDocsSync(await openRepo()));
     case 'upgrade':
       final docsOnly = args.contains('--docs');
       if (workspace != null) {
         var code = 0;
-        for (final repo in workspaceRepos(workspace)) {
+        for (final repo in await workspaceRepos(workspace)) {
           stdout.writeln('--- ${repo.root.path} (${repo.catalog.kind})');
           if (await cmdUpgrade(repo, docsOnly: docsOnly) != 0) code = 1;
         }
         exit(code);
       }
-      exit(await cmdUpgrade(openRepo(), docsOnly: docsOnly));
+      exit(await cmdUpgrade(await openRepo(), docsOnly: docsOnly));
     default:
       stderr.writeln('error: unrecognized command "${args.join(' ')}"\n');
       stderr.writeln(_usage);

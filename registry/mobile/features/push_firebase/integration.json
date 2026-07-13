@@ -1,0 +1,33 @@
+{
+  "id": "push_firebase",
+  "summary": "FCM push + in-app notification feed (NotificationsModule)",
+  "providesNavTab": true,
+  "markedFiles": [
+    "pubspec.yaml",
+    "lib/app/modules.dart",
+    "android/app/src/main/AndroidManifest.xml"
+  ],
+  "sourceDirs": [
+    "lib/features/notifications"
+  ],
+  "testDirs": [
+    "test/features/notifications"
+  ],
+  "envVars": [],
+  "userSteps": [
+    "Create a Firebase project and register the Android/iOS apps, then either run `flutterfire configure` or place android/app/google-services.json and ios/Runner/GoogleService-Info.plist manually.",
+    "Enable FCM dispatch on the API side (templates/api/docs — notifications feature)."
+  ],
+  "injections": {
+    "pubspec.yaml": [
+      "  firebase_core: ^4.11.0\n  firebase_messaging: 16.4.1"
+    ],
+    "lib/app/modules.dart": [
+      "import '../features/notifications/notifications_module.dart';",
+      "  NotificationsModule(),"
+    ],
+    "android/app/src/main/AndroidManifest.xml": [
+      "    <uses-permission android:name=\"android.permission.POST_NOTIFICATIONS\"/>"
+    ]
+  }
+}

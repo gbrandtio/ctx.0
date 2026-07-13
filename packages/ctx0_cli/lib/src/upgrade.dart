@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'commands.dart';
 import 'docs_sync.dart';
-import 'markers.dart';
+import 'injector.dart';
 
 /// `ctx0 upgrade [--docs]` — bump the security packages within their
 /// compatible range (pub/NuGet constraints already pin the protocol
 /// major.minor), re-materialize the package docs, and report drift.
 /// `--docs` skips the dependency bump and only refreshes the docs.
-Future<int> cmdUpgrade(MarkerRepo repo, {required bool docsOnly}) async {
+Future<int> cmdUpgrade(InjectorRepo repo, {required bool docsOnly}) async {
   if (!docsOnly) {
     if (repo.catalog.kind == 'mobile') {
       stdout.writeln('Upgrading ${mobileDocPackages.join(', ')} ...');

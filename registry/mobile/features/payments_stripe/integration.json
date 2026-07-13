@@ -1,0 +1,33 @@
+{
+  "id": "payments_stripe",
+  "summary": "Stripe PaymentSheet checkout (PaymentsModule)",
+  "providesNavTab": false,
+  "markedFiles": [
+    "pubspec.yaml",
+    "lib/app/modules.dart"
+  ],
+  "sourceDirs": [
+    "lib/features/payments"
+  ],
+  "testDirs": [
+    "test/features/payments"
+  ],
+  "envVars": [
+    "STRIPE_PUBLISHABLE_KEY",
+    "APPLE_PAY_MERCHANT_ID",
+    "MERCHANT_COUNTRY_CODE"
+  ],
+  "userSteps": [
+    "Set STRIPE_PUBLISHABLE_KEY from https://dashboard.stripe.com (publishable key only — the secret key lives on the API).",
+    "Configure the Stripe secret key + webhook endpoint on the API side (templates/api/docs/features/PAYMENTS_STRIPE.md)."
+  ],
+  "injections": {
+    "pubspec.yaml": [
+      "  flutter_stripe: ^13.0.0"
+    ],
+    "lib/app/modules.dart": [
+      "import '../features/payments/payments_module.dart';",
+      "  PaymentsModule(),"
+    ]
+  }
+}

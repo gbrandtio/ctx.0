@@ -1,0 +1,22 @@
+{
+  "id": "auth_google",
+  "summary": "Google Sign-In endpoint + identity link (ships enabled; token validation lives in Ctx0.Security)",
+  "providesNavTab": false,
+  "markedFiles": [
+    "AppApi/Endpoints/v1/UsersEndpoints.cs"
+  ],
+  "sourceDirs": [],
+  "testDirs": [],
+  "envVars": [
+    "Authentication__Google__ClientIds"
+  ],
+  "userSteps": [
+    "Register the OAuth client ids under Authentication:Google:ClientIds (docs/security/AUTHENTICATION.md)."
+  ],
+  "injections": {
+    "AppApi/Endpoints/v1/UsersEndpoints.cs": [
+      "using Application.Features.Users.Google;",
+      "        users.MapPost(\"/google/authenticate\", async (\n                GoogleAuthenticateRequest request, IMediator mediator, CancellationToken ct) =>\n                Results.Ok(await mediator.Send(\n                    new AuthenticateGoogleUserCommand(request.IdToken), ct)))\n            .AllowAnonymous()\n            .RequireRateLimiting(\"auth\");"
+    ]
+  }
+}

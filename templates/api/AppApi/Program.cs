@@ -27,17 +27,12 @@ builder.Services.AddOpenApi();
 // its only publisher today and toggles with payments_stripe.
 builder.Services.AddSingleton<ProjectEventsBroadcaster>();
 // ctx:payments_stripe:begin
-builder.Services.AddHostedService<PostgresPaymentUpdateListener>();
 // ctx:payments_stripe:end
 
 // Output caching: 30s for high-traffic reads (CACHING_STRATEGY.md).
 builder.Services.AddOutputCache(options =>
 {
     // ctx:maps_google:begin
-    options.AddPolicy("items-nearby", policy => policy
-        .Expire(TimeSpan.FromSeconds(30))
-        .SetVaryByQuery("lat", "lng", "radiusKm")
-        .Tag("items"));
     // ctx:maps_google:end
 });
 
@@ -63,7 +58,6 @@ app.UseRouting();
 app.UseAppSecurity();
 
 // ctx:app_updates:begin
-app.UseMiddleware<VersionCheckMiddleware>();
 // ctx:app_updates:end
 
 
@@ -84,10 +78,8 @@ List<IEndpointModule> modules =
     new UsersEndpoints(),
     new OrdersEndpoints(),
     // ctx:payments_stripe:begin
-    new PaymentsEndpoints(),
     // ctx:payments_stripe:end
     // ctx:maps_google:begin
-    new ItemsEndpoints(),
     // ctx:maps_google:end
     new ProjectsEndpoints(),
 ];

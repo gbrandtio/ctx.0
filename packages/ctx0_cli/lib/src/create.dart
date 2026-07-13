@@ -3,7 +3,8 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'catalog.dart';
-import 'markers.dart';
+import 'commands.dart';
+import 'injector.dart';
 
 const cliVersion = '0.1.0';
 
@@ -47,11 +48,7 @@ Future<int> createApp({
     stderr.writeln('error: ${outDir.path} exists and is not empty.');
     return 2;
   }
-  if (!File('${templateDir.path}/.ctx/integrations.json').existsSync()) {
-    stderr.writeln('error: ${templateDir.path} is not a ctx template '
-        '(no .ctx/integrations.json).');
-    return 2;
-  }
+  // No integrations.json check here anymore as it lives in the registry
 
   final pascal = _pascal(name);
   final camel = _camel(name);
@@ -90,7 +87,9 @@ Future<int> createApp({
   }
   pubspec.writeAsStringSync(pubspecText);
 
-  // ---- Manifest ----
+  // ---- Workspace & Manifest ----
+  File('${outDir.path}/.ctx/workspace.json').writeAsStringSync(
+      '{"kind": "mobile", "enabledFeatures": []}\n');
   File('${outDir.path}/.ctx/manifest.json').writeAsStringSync(
       '${const JsonEncoder.withIndent('  ').convert({
         'kind': 'mobile',
@@ -103,7 +102,7 @@ Future<int> createApp({
       })}\n');
 
   // ---- Requested integrations ----
-  final repo = MarkerRepo(outDir, Catalog.load(outDir));
+  final repo = await openRepo(outDir);
   for (final id in withIntegrations) {
     final integration = repo.catalog.byId(id);
     repo.setIntegrationState(integration, enable: true);
@@ -158,9 +157,7 @@ Future<Directory?> resolveTemplateDir(String kind, String? flagValue) async {
   final repoRoot = script.parent.parent.parent.parent;
   candidates.add('${repoRoot.path}/templates/$kind');
   for (final path in candidates) {
-    final catalogFile = File('$path/.ctx/integrations.json');
-    if (catalogFile.existsSync() &&
-        catalogFile.readAsStringSync().contains('"kind": "$kind"')) {
+    if (Directory('$path/.ctx').existsSync()) {
       return Directory(path);
     }
   }
@@ -223,11 +220,7 @@ Future<int> createApi({
     stderr.writeln('error: ${outDir.path} exists and is not empty.');
     return 2;
   }
-  if (!File('${templateDir.path}/.ctx/integrations.json').existsSync()) {
-    stderr.writeln('error: ${templateDir.path} is not a ctx template '
-        '(no .ctx/integrations.json).');
-    return 2;
-  }
+  // No integrations.json check here anymore as it lives in the registry
 
   final pascal = _pascal(name);
 
@@ -280,7 +273,9 @@ Future<int> createApi({
     'App.sln': '$pascal.sln',
   });
 
-  // ---- Manifest ----
+  // ---- Workspace & Manifest ----
+  File('${outDir.path}/.ctx/workspace.json').writeAsStringSync(
+      '{"kind": "api", "enabledFeatures": []}\n');
   File('${outDir.path}/.ctx/manifest.json').writeAsStringSync(
       '${const JsonEncoder.withIndent('  ').convert({
         'kind': 'api',
@@ -295,7 +290,7 @@ Future<int> createApi({
   // ---- Requested integrations (the API catalog ships everything
   // enabled; --with ids are re-enabled idempotently so a workspace can
   // pass one list to both sides) ----
-  final repo = MarkerRepo(outDir, Catalog.load(outDir));
+  final repo = await openRepo(outDir);
   for (final id in withIntegrations) {
     if (repo.catalog.integrations.any((i) => i.id == id)) {
       repo.setIntegrationState(repo.catalog.byId(id), enable: true);

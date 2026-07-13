@@ -1,0 +1,31 @@
+{
+  "id": "push_firebase",
+  "summary": "FCM dispatch worker + firebase token registration endpoints (ships enabled)",
+  "providesNavTab": false,
+  "markedFiles": [
+    "Infrastructure/Infrastructure.csproj",
+    "AppApi/Extensions/ServiceCollectionExtensions.cs",
+    "AppApi/Endpoints/v1/UsersEndpoints.cs"
+  ],
+  "sourceDirs": [],
+  "testDirs": [],
+  "envVars": [
+    "GOOGLE_APPLICATION_CREDENTIALS"
+  ],
+  "userSteps": [
+    "Create a Firebase service account and initialize FirebaseApp with its credentials (docs/features/NOTIFICATIONS.md); the dispatch worker no-ops until configured.",
+    "Mobile counterpart: `ctx0 enable push_firebase` in the app repo."
+  ],
+  "injections": {
+    "Infrastructure/Infrastructure.csproj": [
+      "    <CtxPushFirebase>true</CtxPushFirebase>"
+    ],
+    "AppApi/Extensions/ServiceCollectionExtensions.cs": [
+      "        services.AddHostedService<PostgresNotificationListener>();"
+    ],
+    "AppApi/Endpoints/v1/UsersEndpoints.cs": [
+      "using Application.Features.Users.Firebase;",
+      "        users.MapPost(\"/firebase/token\", async (\n                RegisterFcmTokenRequest request, ClaimsPrincipal user,\n                IMediator mediator, CancellationToken ct) =>\n            {\n                await mediator.Send(\n                    new RegisterFcmTokenCommand(UserId(user), request.Token), ct);\n                return Results.NoContent();\n            })\n            .RequireAuthorization();\n\n        users.MapDelete(\"/firebase/token\", async (\n                ClaimsPrincipal user, IMediator mediator, CancellationToken ct) =>\n            {\n                await mediator.Send(new UnregisterFcmTokenCommand(UserId(user)), ct);\n                return Results.NoContent();\n            })\n            .RequireAuthorization();"
+    ]
+  }
+}

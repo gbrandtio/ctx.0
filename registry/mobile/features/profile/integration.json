@@ -1,0 +1,22 @@
+{
+  "id": "profile",
+  "summary": "Profile tab: view/edit profile (ships enabled)",
+  "providesNavTab": true,
+  "markedFiles": [
+    "lib/app/modules.dart"
+  ],
+  "sourceDirs": [
+    "lib/features/profile"
+  ],
+  "testDirs": [
+    "test/features/profile"
+  ],
+  "envVars": [],
+  "userSteps": [],
+  "injections": {
+    "lib/app/modules.dart": [
+      "import '../features/profile/profile_module.dart';",
+      "  ProfileModule(),"
+    ]
+  }
+}

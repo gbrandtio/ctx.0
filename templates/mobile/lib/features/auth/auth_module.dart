@@ -5,20 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../app/feature_module.dart';
 import '../../core/l10n/l10n.dart';
 // ctx:auth_email_password:begin
-import '../../core/utils/time_provider.dart';
 // ctx:auth_email_password:end
 import '../../data/repositories/auth_repository.dart';
 import 'bloc/auth_bloc.dart';
 import 'bloc/login_bloc.dart';
 // ctx:auth_email_password:begin
-import 'email_password/bloc/signup_bloc.dart';
-import 'email_password/bloc/verify_email_cubit.dart';
-import 'email_password/data/pending_registration.dart';
-import 'email_password/views/signup_screen.dart';
-import 'email_password/views/verify_email_screen.dart';
 // ctx:auth_email_password:end
 // ctx:auth_google:begin
-import 'google/google_auth_service.dart';
 // ctx:auth_google:end
 import 'views/login_screen.dart';
 
@@ -40,44 +33,18 @@ class AuthModule extends FeatureModule {
         create: (context) => LoginBloc(
           authRepository: context.read<AuthRepository>(),
           // ctx:auth_google:begin
-          googleAuth: context.read<GoogleAuthService>(),
           // ctx:auth_google:end
         ),
         child: const LoginScreen(),
       ),
     ),
     // ctx:auth_email_password:begin
-    GoRoute(
-      path: '/signup',
-      builder: (context, state) => BlocProvider(
-        create: (context) => SignupBloc(
-          authRepository: context.read<AuthRepository>(),
-          timeProvider: context.read<TimeProvider>(),
-        ),
-        child: const SignupScreen(),
-      ),
-    ),
-    GoRoute(
-      path: '/verify-email',
-      // Reached only from the signup screen, which passes the pending
-      // registration as `extra`; a direct hit falls back to signup.
-      redirect: (context, state) =>
-          state.extra is PendingRegistration ? null : '/signup',
-      builder: (context, state) => BlocProvider(
-        create: (context) => VerifyEmailCubit(
-          authRepository: context.read<AuthRepository>(),
-          pending: state.extra as PendingRegistration,
-        ),
-        child: const VerifyEmailScreen(),
-      ),
-    ),
     // ctx:auth_email_password:end
   ];
 
   @override
   List<RepositoryProvider> get repositories => [
     // ctx:auth_google:begin
-    RepositoryProvider<GoogleAuthService>(create: (_) => GoogleAuthService()),
     // ctx:auth_google:end
   ];
 
@@ -112,7 +79,6 @@ class AuthModule extends FeatureModule {
   List<String> get publicRoutePaths => const [
     '/login',
     // ctx:auth_email_password:begin
-    '/signup',
     // ctx:auth_email_password:end
   ];
 }

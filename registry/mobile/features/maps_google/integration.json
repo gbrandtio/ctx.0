@@ -1,0 +1,44 @@
+{
+  "id": "maps_google",
+  "summary": "Google Map + nearby geo-tagged items (MapsModule)",
+  "providesNavTab": true,
+  "markedFiles": [
+    "pubspec.yaml",
+    "lib/app/modules.dart",
+    "android/app/src/main/AndroidManifest.xml",
+    "ios/Runner/AppDelegate.swift",
+    "ios/Runner/Info.plist"
+  ],
+  "sourceDirs": [
+    "lib/features/maps"
+  ],
+  "testDirs": [
+    "test/features/maps"
+  ],
+  "envVars": [
+    "MAPS_API_KEY"
+  ],
+  "userSteps": [
+    "Create a Google Maps API key (Maps SDK for Android + iOS) at https://console.cloud.google.com and pass it as MAPS_API_KEY (docs/ENVIRONMENT_VARIABLES.md)."
+  ],
+  "injections": {
+    "pubspec.yaml": [
+      "  google_maps_flutter: ^2.17.1\n  geolocator: ^14.0.2"
+    ],
+    "lib/app/modules.dart": [
+      "import '../features/maps/maps_module.dart';",
+      "  MapsModule(),"
+    ],
+    "android/app/src/main/AndroidManifest.xml": [
+      "    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>\n    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+      "        <meta-data\n            android:name=\"com.google.android.geo.API_KEY\"\n            android:value=\"${MAPS_API_KEY}\" />"
+    ],
+    "ios/Runner/AppDelegate.swift": [
+      "import GoogleMaps",
+      "    if let mapsApiKey = Bundle.main.object(forInfoDictionaryKey: \"GMSApiKey\") as? String,\n       !mapsApiKey.isEmpty {\n      GMSServices.provideAPIKey(mapsApiKey)\n    }"
+    ],
+    "ios/Runner/Info.plist": [
+      "\t<key>GMSApiKey</key>\n\t<string>$(MAPS_API_KEY)</string>\n\t<key>NSLocationWhenInUseUsageDescription</key>\n\t<string>Your location is used to show nearby items on the map.</string>"
+    ]
+  }
+}

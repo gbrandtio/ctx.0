@@ -46,18 +46,8 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<!-- ctx:maps_google:begin -->
-	<!-- ctx:off
-	<key>GMSApiKey</key>
-	<string>$(MAPS_API_KEY)</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Your location is used to show nearby items on the map.</string>
-	ctx:off -->
 	<!-- ctx:maps_google:end -->
 	<!-- ctx:image_capture:begin -->
-	<key>NSCameraUsageDescription</key>
-	<string>Used to capture images for the application.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Used to select images from your device for the application.</string>
 	<!-- ctx:image_capture:end -->
 	<key>CFBundleLocalizations</key>
 	<array>

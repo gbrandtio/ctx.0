@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'markers.dart';
+import 'injector.dart';
 
 /// Packages whose embedded consumer docs are materialized into the
 /// generated repo's `docs/packages/` by `ctx0 docs sync`. The doc travels
@@ -10,7 +10,7 @@ import 'markers.dart';
 const mobileDocPackages = ['ctx0_mobile_security'];
 const apiDocPackages = ['Ctx0.Security.Abstractions', 'Ctx0.Security', 'Ctx0.Security.EfCore'];
 
-Future<int> cmdDocsSync(MarkerRepo repo) async {
+Future<int> cmdDocsSync(InjectorRepo repo) async {
   final sources = repo.catalog.kind == 'mobile'
       ? mobilePackageDirs(repo)
       : apiPackageDirs(repo);
@@ -41,7 +41,7 @@ Future<int> cmdDocsSync(MarkerRepo repo) async {
 
 /// `docs/packages/(pkg).md` version headers must match the installed
 /// packages; consumed by `ctx0 doctor`.
-List<String> docsDriftProblems(MarkerRepo repo) {
+List<String> docsDriftProblems(InjectorRepo repo) {
   final problems = <String>[];
   final outDir = Directory('${repo.root.path}/docs/packages');
   if (!outDir.existsSync()) return problems;
@@ -66,7 +66,7 @@ List<String> docsDriftProblems(MarkerRepo repo) {
   return problems;
 }
 
-Map<String, Directory>? mobilePackageDirs(MarkerRepo repo, {bool quiet = false}) {
+Map<String, Directory>? mobilePackageDirs(InjectorRepo repo, {bool quiet = false}) {
   final configFile = File('${repo.root.path}/.dart_tool/package_config.json');
   if (!configFile.existsSync()) {
     if (!quiet) {
@@ -98,7 +98,7 @@ Map<String, Directory>? mobilePackageDirs(MarkerRepo repo, {bool quiet = false})
 /// API packages resolve through the NuGet global-packages folder for
 /// hosted references, or straight to the project directory for
 /// repo-local ProjectReferences.
-Map<String, Directory>? apiPackageDirs(MarkerRepo repo, {bool quiet = false}) {
+Map<String, Directory>? apiPackageDirs(InjectorRepo repo, {bool quiet = false}) {
   final home = Platform.environment['HOME'] ??
       Platform.environment['USERPROFILE'] ??
       '';

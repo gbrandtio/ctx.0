@@ -40,6 +40,14 @@ void main() {
     _copyTree(from, Directory('${target.path}/$kind'));
     stdout.writeln('packed templates/$kind');
   }
+
+  // Pack registry
+  final registryFrom = Directory('${repoRoot.path}/registry');
+  if (registryFrom.existsSync()) {
+    _copyTree(registryFrom, Directory('${target.path}/registry'));
+    stdout.writeln('packed registry');
+  }
+
   stdout.writeln('done — publish packages/ctx0_cli to ship them.');
 }
 

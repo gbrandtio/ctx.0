@@ -18,7 +18,6 @@
   <!-- Scaffoldable integrations — managed ONLY by `ctx0 enable/disable`. -->
   <PropertyGroup>
     <!-- ctx:payments_stripe:begin -->
-    <CtxPaymentsStripe>true</CtxPaymentsStripe>
     <!-- ctx:payments_stripe:end -->
   </PropertyGroup>
   <ItemGroup Condition="'$(CtxPaymentsStripe)' != 'true'">

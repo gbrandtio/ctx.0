@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import '../data/repositories/auth_repository.dart';
 // ctx:ux_onboarding:begin
-import '../data/services/storage/prefs_service.dart';
 // ctx:ux_onboarding:end
 import 'feature_module.dart';
 import 'shell_scaffold.dart';
@@ -18,7 +17,6 @@ GoRouter buildRouter({
   required List<FeatureModule> modules,
   required AuthRepository authRepository,
   // ctx:ux_onboarding:begin
-    required PrefsService prefs,
   // ctx:ux_onboarding:end
 }) {
   final navModules = modules.where((m) => m.navItem != null).toList();
@@ -45,9 +43,6 @@ GoRouter buildRouter({
         AuthUnknown() => path == '/splash' ? null : '/splash',
         Unauthenticated() =>
           // ctx:ux_onboarding:begin
-                      (!prefs.onboardingDone && path != '/onboarding')
-                          ? '/onboarding'
-                          :
           // ctx:ux_onboarding:end
           isPublic
               ? null
@@ -59,9 +54,6 @@ GoRouter buildRouter({
                 ).toString(),
         Authenticated() =>
           // ctx:ux_onboarding:begin
-                      (!prefs.onboardingDone && path != '/onboarding')
-                          ? '/onboarding'
-                          :
           // ctx:ux_onboarding:end
           (isPublic || path == '/splash')
               ? (state.uri.queryParameters['from'] ?? homePath)

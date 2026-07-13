@@ -1,0 +1,49 @@
+{
+  "id": "auth_email_password",
+  "summary": "Email/password + email verification method (ships enabled)",
+  "providesNavTab": false,
+  "markedFiles": [
+    "lib/features/auth/auth_module.dart",
+    "lib/features/auth/bloc/login_bloc.dart",
+    "lib/features/auth/bloc/login_event.dart",
+    "lib/features/auth/views/login_screen.dart",
+    "test/features/auth/login_bloc_test.dart"
+  ],
+  "sourceDirs": [
+    "lib/features/auth/email_password"
+  ],
+  "testDirs": [
+    "test/features/auth/email_password"
+  ],
+  "envVars": [],
+  "userSteps": [
+    "Signup requires the API to send verification codes — configure the API-side email sender (send-code -> register flow, templates/api/docs/security/AUTHENTICATION.md)."
+  ],
+  "injections": {
+    "lib/features/auth/auth_module.dart": [
+      "import '../../core/utils/time_provider.dart';",
+      "import 'email_password/bloc/signup_bloc.dart';\nimport 'email_password/bloc/verify_email_cubit.dart';\nimport 'email_password/data/pending_registration.dart';\nimport 'email_password/views/signup_screen.dart';\nimport 'email_password/views/verify_email_screen.dart';",
+      "    GoRoute(\n      path: '/signup',\n      builder: (context, state) => BlocProvider(\n        create: (context) => SignupBloc(\n          authRepository: context.read<AuthRepository>(),\n          timeProvider: context.read<TimeProvider>(),\n        ),\n        child: const SignupScreen(),\n      ),\n    ),\n    GoRoute(\n      path: '/verify-email',\n      // Reached only from the signup screen, which passes the pending\n      // registration as `extra`; a direct hit falls back to signup.\n      redirect: (context, state) =>\n          state.extra is PendingRegistration ? null : '/signup',\n      builder: (context, state) => BlocProvider(\n        create: (context) => VerifyEmailCubit(\n          authRepository: context.read<AuthRepository>(),\n          pending: state.extra as PendingRegistration,\n        ),\n        child: const VerifyEmailScreen(),\n      ),\n    ),",
+      "    '/signup',"
+    ],
+    "lib/features/auth/bloc/login_bloc.dart": [
+      "    on<LoginSubmitted>(_onSubmitted, transformer: droppable());",
+      "  Future<void> _onSubmitted(\n    LoginSubmitted event,\n    Emitter<LoginState> emit,\n  ) async {\n    emit(const LoginLoading());\n    final result = await _authRepository.login(event.email, event.password);\n    switch (result) {\n      case Success():\n        emit(const LoginSuccess()); // Router redirect handles navigation.\n      case Failure(:final error):\n        emit(LoginFailure(AppException.from(error).userFriendlyMessage));\n    }\n  }"
+    ],
+    "lib/features/auth/bloc/login_event.dart": [
+      "final class LoginSubmitted extends LoginEvent {\n  const LoginSubmitted(this.email, this.password);\n  final String email;\n  final String password;\n}"
+    ],
+    "lib/features/auth/views/login_screen.dart": [
+      "import 'package:go_router/go_router.dart';",
+      "import '../../../core/widgets/app_button.dart';",
+      "import '../../../core/widgets/app_text_field.dart';",
+      "                _EmailPasswordLoginForm(),\n                SizedBox(height: 16),",
+      "class _EmailPasswordLoginForm extends StatefulWidget {\n  const _EmailPasswordLoginForm();\n\n  @override\n  State<_EmailPasswordLoginForm> createState() =>\n      _EmailPasswordLoginFormState();\n}\n\nclass _EmailPasswordLoginFormState extends State<_EmailPasswordLoginForm> {\n  final _formKey = GlobalKey<FormState>();\n  final _emailController = TextEditingController();\n  final _passwordController = TextEditingController();\n\n  @override\n  void dispose() {\n    _emailController.dispose();\n    _passwordController.dispose();\n    super.dispose();\n  }\n\n  void _submit() {\n    if (_formKey.currentState?.validate() ?? false) {\n      context.read<LoginBloc>().add(\n        LoginSubmitted(_emailController.text.trim(), _passwordController.text),\n      );\n    }\n  }\n\n  @override\n  Widget build(BuildContext context) {\n    final l10n = context.l10n;\n    return Form(\n      key: _formKey,\n      child: Column(\n        crossAxisAlignment: CrossAxisAlignment.stretch,\n        children: [\n          AppTextField(\n            label: l10n.emailLabel,\n            controller: _emailController,\n            prefixIcon: Icons.email_outlined,\n            keyboardType: TextInputType.emailAddress,\n            textInputAction: TextInputAction.next,\n            autofillHints: const [AutofillHints.email],\n            validator: (value) => (value == null || !value.contains('@'))\n                ? l10n.emailInvalid\n                : null,\n          ),\n          const SizedBox(height: 16),\n          AppTextField(\n            label: l10n.passwordLabel,\n            controller: _passwordController,\n            prefixIcon: Icons.lock_outline,\n            obscureText: true,\n            textInputAction: TextInputAction.done,\n            autofillHints: const [AutofillHints.password],\n            onSubmitted: (_) => _submit(),\n            validator: (value) =>\n                (value == null || value.isEmpty) ? l10n.passwordRequired : null,\n          ),\n          const SizedBox(height: 32),\n          BlocBuilder<LoginBloc, LoginState>(\n            builder: (context, state) => AppPrimaryButton(\n              label: l10n.loginButton,\n              loading: state is LoginLoading,\n              onPressed: _submit,\n            ),\n          ),\n          const SizedBox(height: 24),\n          AppSecondaryButton(\n            label: l10n.noAccountSignUp,\n            onPressed: () => context.go('/signup'),\n          ),\n        ],\n      ),\n    );\n  }\n}"
+    ],
+    "test/features/auth/login_bloc_test.dart": [
+      "import 'package:app_template/core/models/problem_details.dart';",
+      "import 'package:app_template/core/utils/app_exception.dart';",
+      "  blocTest<LoginBloc, LoginState>(\n    'emits [loading, success] on accepted credentials',\n    build: () {\n      when(\n        () => authRepository.login(any(), any()),\n      ).thenAnswer((_) async => const Result.success(_user));\n      return build();\n    },\n    act: (bloc) => bloc.add(const LoginSubmitted('a@b.com', 'pw')),\n    expect: () => const [LoginLoading(), LoginSuccess()],\n  );\n\n  blocTest<LoginBloc, LoginState>(\n    'emits [loading, failure] with the client-safe message when rejected',\n    build: () {\n      when(() => authRepository.login(any(), any())).thenAnswer(\n        (_) async => const Result.failure(\n          AppException(\n            ProblemDetails(status: 400, detail: 'Invalid credentials.'),\n          ),\n        ),\n      );\n      return build();\n    },\n    act: (bloc) => bloc.add(const LoginSubmitted('a@b.com', 'wrong')),\n    expect: () => const [LoginLoading(), LoginFailure('Invalid credentials.')],\n  );\n\n  blocTest<LoginBloc, LoginState>(\n    'double-tap cannot double-submit (droppable transformer)',\n    build: () {\n      when(() => authRepository.login(any(), any())).thenAnswer((_) async {\n        await Future<void>.delayed(const Duration(milliseconds: 10));\n        return const Result.success(_user);\n      });\n      return build();\n    },\n    act: (bloc) => bloc\n      ..add(const LoginSubmitted('a@b.com', 'pw'))\n      ..add(const LoginSubmitted('a@b.com', 'pw')),\n    wait: const Duration(milliseconds: 50),\n    expect: () => const [LoginLoading(), LoginSuccess()],\n    verify: (_) => verify(() => authRepository.login(any(), any())).called(1),\n  );"
+    ]
+  }
+}

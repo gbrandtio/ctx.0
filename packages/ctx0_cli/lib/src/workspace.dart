@@ -5,7 +5,7 @@ import 'catalog.dart';
 import 'commands.dart';
 import 'create.dart';
 import 'docs_sync.dart';
-import 'markers.dart';
+import 'injector.dart';
 
 /// A workspace is a directory with `.ctx/workspace.json` holding one
 /// mobile repo and one API repo generated with the same name — the
@@ -14,18 +14,28 @@ import 'markers.dart';
 Directory? findWorkspace([Directory? cwd]) {
   var dir = (cwd ?? Directory.current).absolute;
   while (true) {
-    if (File('${dir.path}/.ctx/workspace.json').existsSync()) return dir;
+    final file = File('${dir.path}/.ctx/workspace.json');
+    if (file.existsSync()) {
+      final text = file.readAsStringSync();
+      if (!text.contains('"kind": "mobile"') && !text.contains('"kind": "api"')) {
+        return dir;
+      }
+    }
     final parent = dir.parent;
     if (parent.path == dir.path) return null;
     dir = parent;
   }
 }
 
-List<MarkerRepo> workspaceRepos(Directory workspace) => [
-      for (final entity in workspace.listSync().whereType<Directory>())
-        if (File('${entity.path}/.ctx/integrations.json').existsSync())
-          MarkerRepo(entity, Catalog.load(entity)),
-    ];
+Future<List<InjectorRepo>> workspaceRepos(Directory workspace) async {
+  final repos = <InjectorRepo>[];
+  for (final entity in workspace.listSync().whereType<Directory>()) {
+    if (File('${entity.path}/.ctx/workspace.json').existsSync()) {
+      repos.add(await openRepo(entity));
+    }
+  }
+  return repos;
+}
 
 Future<int> createWorkspace({
   required String name,
@@ -90,7 +100,7 @@ Future<int> workspaceToggle(
     Directory workspace, String id, {required bool enable}) async {
   var applied = 0;
   var exitCode = 0;
-  for (final repo in workspaceRepos(workspace)) {
+  for (final repo in await workspaceRepos(workspace)) {
     if (!repo.catalog.integrations.any((i) => i.id == id)) continue;
     applied++;
     stdout.writeln('--- ${repo.root.path} (${repo.catalog.kind})');
@@ -108,7 +118,7 @@ Future<int> workspaceToggle(
 
 Future<int> workspaceDoctor(Directory workspace) async {
   var exitCode = 0;
-  final repos = workspaceRepos(workspace);
+  final repos = await workspaceRepos(workspace);
   for (final repo in repos) {
     stdout.writeln('--- ${repo.root.path} (${repo.catalog.kind})');
     if (cmdDoctor(repo) != 0) exitCode = 1;
