@@ -74,6 +74,7 @@ flutter test
 | `maps_google` | `MapsModule` — Google Map + nearby geo-tagged items | disabled | `MAPS_API_KEY` |
 | `push_firebase` | `NotificationsModule` — FCM push + in-app feed | disabled | — (platform config files instead) |
 | `payments_stripe` | `PaymentsModule` — Stripe PaymentSheet checkout | disabled | `STRIPE_PUBLISHABLE_KEY`, `APPLE_PAY_MERCHANT_ID`, `MERCHANT_COUNTRY_CODE` |
+| `image_capture` | `ImageCaptureModule` — Device camera and gallery image picker | disabled | — |
 | `nav_bottom` | Standard BottomNavigationBar | enabled | — |
 | `nav_rail` | Side NavigationRail for tablets/desktop | disabled | — |
 | `nav_drawer` | NavigationDrawer hamburger menu | disabled | — |
@@ -112,6 +113,9 @@ agent must never invent or commit:
   the secret key exists solely on the API). Configure the Stripe secret
   key + webhook endpoint on the API side
   (`templates/api/docs/features/PAYMENTS_STRIPE.md`).
+- **image_capture** — Ensure `NSCameraUsageDescription` and
+  `NSPhotoLibraryUsageDescription` are set appropriately in `Info.plist`
+  for production use.
 
 Cross-cutting rule (root `AGENTS.md`): enabling `push_firebase` or
 `payments_stripe` on mobile without its API-side counterpart is an

@@ -65,6 +65,9 @@ dependencies:
   # ctx:off google_maps_flutter: ^2.17.1
   # ctx:off geolocator: ^14.0.2
   # ctx:maps_google:end
+  # ctx:image_capture:begin
+  image_picker: ^1.1.2
+  # ctx:image_capture:end
 
 dev_dependencies:
   flutter_test:

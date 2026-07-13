@@ -475,6 +475,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Decline'**
   String get decline;
+
+  /// No description provided for @imageCaptureCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a Photo'**
+  String get imageCaptureCamera;
+
+  /// No description provided for @imageCaptureGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get imageCaptureGallery;
+
+  /// No description provided for @imageCaptureCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get imageCaptureCancel;
+
+  /// No description provided for @imageCaptureError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to capture image'**
+  String get imageCaptureError;
 }
 
 class _AppLocalizationsDelegate

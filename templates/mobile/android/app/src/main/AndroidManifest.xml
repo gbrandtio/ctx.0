@@ -14,6 +14,10 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     ctx:off -->
     <!-- ctx:push_firebase:end -->
+    <!-- Image capture module: declare hardware requirement as false so it doesn't restrict installs. -->
+    <!-- ctx:image_capture:begin -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <!-- ctx:image_capture:end -->
     <application
         android:label="app_template"
         android:name="${applicationName}"

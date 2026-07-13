@@ -208,4 +208,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get decline => 'Rechazar';
+
+  @override
+  String get imageCaptureCamera => 'Tomar una foto';
+
+  @override
+  String get imageCaptureGallery => 'Elegir de la galería';
+
+  @override
+  String get imageCaptureCancel => 'Cancelar';
+
+  @override
+  String get imageCaptureError => 'Error al capturar la imagen';
 }

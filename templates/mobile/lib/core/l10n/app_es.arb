@@ -70,5 +70,9 @@
   "gdprBannerMessage": "Usamos datos anónimos para mejorar tu experiencia. Siempre puedes cambiar esto en Configuración.",
   "gdprWarningMessage": "Algunas funciones están deshabilitadas para proteger tu privacidad.",
   "accept": "Aceptar",
-  "decline": "Rechazar"
+  "decline": "Rechazar",
+  "imageCaptureCamera": "Tomar una foto",
+  "imageCaptureGallery": "Elegir de la galería",
+  "imageCaptureCancel": "Cancelar",
+  "imageCaptureError": "Error al capturar la imagen"
 }

@@ -8,6 +8,9 @@ import '../features/auth/auth_module.dart';
 // ctx:payments_stripe:begin
 // ctx:off import '../features/payments/payments_module.dart';
 // ctx:payments_stripe:end
+// ctx:image_capture:begin
+import '../features/image_capture/image_capture_module.dart';
+// ctx:image_capture:end
 // ctx:profile:begin
 import '../features/profile/profile_module.dart';
 // ctx:profile:end
@@ -37,6 +40,9 @@ const List<FeatureModule> appModules = [
   // ctx:payments_stripe:begin
   // ctx:off PaymentsModule(),
   // ctx:payments_stripe:end
+  // ctx:image_capture:begin
+  ImageCaptureModule(),
+  // ctx:image_capture:end
   // ctx:settings:begin
   SettingsModule(),
   // ctx:settings:end

@@ -233,8 +233,29 @@
         "MERCHANT_COUNTRY_CODE"
       ],
       "userSteps": [
-        "Set STRIPE_PUBLISHABLE_KEY from https://dashboard.stripe.com (publishable key only \u2014 the secret key lives on the API).",
+        "Set STRIPE_PUBLISHABLE_KEY from https://dashboard.stripe.com (publishable key only — the secret key lives on the API).",
         "Configure the Stripe secret key + webhook endpoint on the API side (templates/api/docs/features/PAYMENTS_STRIPE.md)."
+      ]
+    },
+    {
+      "id": "image_capture",
+      "summary": "Image capturing using device camera or gallery (ImageCaptureModule)",
+      "providesNavTab": false,
+      "markedFiles": [
+        "pubspec.yaml",
+        "lib/app/modules.dart",
+        "ios/Runner/Info.plist",
+        "android/app/src/main/AndroidManifest.xml"
+      ],
+      "sourceDirs": [
+        "lib/features/image_capture"
+      ],
+      "testDirs": [
+        "test/features/image_capture"
+      ],
+      "envVars": [],
+      "userSteps": [
+        "Ensure NSCameraUsageDescription and NSPhotoLibraryUsageDescription are set appropriately in Info.plist for production use."
       ]
     }
   ]
