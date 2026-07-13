@@ -33,6 +33,8 @@ ctx0 doctor                                 # integrity + mobile↔API wire-prot
 ### Out-of-the-box capabilities (scaffoldable)
 
 - **Auth**: email + password with email verification, Google Sign-In, JWT access tokens + rotating refresh tokens with reuse detection
+- **Navigation variants**: standard bottom navigation, side rail for tablets/desktop, drawer, top tabs, and pure routes.
+- **GDPR & Privacy**: delete account flow, export data request, and configurable privacy policy / terms of service links within the settings tab.
 - **Payments**: Stripe (PaymentIntents + webhooks), Google Pay / Apple Pay
 - **Push notifications**: Firebase Cloud Messaging via a transactional outbox
 - **Maps & location**: Google Maps client-side, PostGIS spatial queries server-side

@@ -17,10 +17,11 @@ flutter test
 Every shipped feature except the security plane and the auth core is
 toggleable via the scaffolder (`docs/INTEGRATIONS.md`): vendor
 integrations (Google Maps, Firebase push, Stripe checkout) ship disabled —
-their SDKs are not compiled until you opt in — while the profile and
-settings tabs and the auth module's sign-in methods (`auth_google`,
-`auth_email_password`; at least one must stay enabled) ship enabled. Wire
-them **only** via the scaffolder:
+their SDKs are not compiled until you opt in. Navigation variants (bottom,
+rail, drawer, tabs, etc.) are mutually exclusive toggles. The GDPR & Privacy
+surface (account deletion, data export) ships enabled within the settings
+module. The auth module's sign-in methods (`auth_google`, `auth_email_password`)
+ship enabled (at least one must stay enabled). Wire them **only** via the scaffolder:
 
 ```bash
 dart run tool/scaffold.dart status
