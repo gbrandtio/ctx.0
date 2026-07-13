@@ -7,9 +7,9 @@
 
 <p align="center"><strong>Build secure applications fast, with minimum tokens burned.</strong></p>
 
-`ctx.0` is a production-grade, security-first application scaffolding framework designed specifically to be driven by LLM coding agents. It provides a CLI (`ctx0`) that generates a fully integrated Flutter mobile app and a .NET REST API. 
+`ctx.0` is a security-first application scaffolding framework designed specifically to be driven by LLM coding agents. It provides a CLI (`ctx0`) that generates a fully integrated Flutter mobile app and a .NET REST API. 
 
-The security pillar arrives as **compiled packages you cannot weaken**. Every architectural, security, and performance decision is pre-made and documented in a token-efficient way. This allows agents (and human developers) to focus entirely on business logic, rather than rediscovering how to build a secure CRUD app from scratch.
+The security pillars arrive as compiled packages you cannot weaken (unless you try hard). Every architectural, security, and performance decision is pre-made and documented in a token-efficient way. This allows agents (and human developers) to focus entirely on business logic, rather than rediscovering how to build a secure CRUD app from scratch.
 
 ## What It Offers
 
