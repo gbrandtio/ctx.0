@@ -10,7 +10,7 @@ namespace Ctx0.Security.Abstractions;
 /// </summary>
 public static class CtxProtocol
 {
-    public const string Version = "1.0";
+    public const string Version = "1.1";
     public const string HeaderName = "X-Ctx-Protocol";
 }
 

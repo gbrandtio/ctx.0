@@ -36,7 +36,13 @@ class ApiServiceFactory {
       signing,
       secureStorage,
       config,
-      onSessionExpired: onSessionExpired,
+      onSessionExpired: () {
+        // Purge the response cache when a session expires (not just on
+        // explicit logout) so the next user on a shared device can never be
+        // served the previous user's cached responses (M7).
+        cacheService.clear();
+        onSessionExpired?.call();
+      },
     );
     cachingClient = CachingClient(authRefresh, cacheService);
   }

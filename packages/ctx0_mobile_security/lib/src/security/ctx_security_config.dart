@@ -3,7 +3,7 @@
 /// its version in the [ctxProtocolHeader] response header; a mismatch is
 /// asserted in debug builds. Bump together with the server packages
 /// whenever the signing string, ALE scheme, or security headers change.
-const String ctxProtocolVersion = '1.0';
+const String ctxProtocolVersion = '1.1';
 const String ctxProtocolHeader = 'X-Ctx-Protocol';
 
 /// Configuration surface of the security plane (docs/SECURITY.md §4.1).

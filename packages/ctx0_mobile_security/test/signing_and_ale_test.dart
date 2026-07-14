@@ -60,7 +60,8 @@ bool _verify(
 
 void main() {
   group('SecureDeviceSigningClient', () {
-    test('signs METHOD|PATH|TIMESTAMP|PLAINTEXT_BODY and sets both headers',
+    test(
+        'signs METHOD|PATH?QUERY|TIMESTAMP|NONCE|BODY and sets a 3-part header',
         () async {
       final identity = await _freshIdentity();
       late http.Request seen;
@@ -75,23 +76,49 @@ void main() {
 
       const body = '{"email":"a@b.com"}';
       await client.post(
-        Uri.parse('https://api.example.com/v1/Users/Login'),
+        Uri.parse('https://api.example.com/v1/Users/Login?next=%2Fhome'),
         body: body,
       );
 
       expect(seen.headers[CtxSecurityConfig.defaultDeviceIdHeader],
           identity.deviceId);
-      final header =
-          seen.headers[CtxSecurityConfig.defaultSignatureHeader]!;
-      final separator = header.indexOf(':');
-      final timestamp = header.substring(0, separator);
-      final signature = header.substring(separator + 1);
-      // Canonical string: uppercase method, LOWERCASE path, plaintext body.
-      final canonical = 'POST|/v1/users/login|$timestamp|$body';
+      final header = seen.headers[CtxSecurityConfig.defaultSignatureHeader]!;
+      // Protocol 1.1 header: timestamp:nonce:signature.
+      final parts = header.split(':');
+      expect(parts, hasLength(3));
+      final timestamp = parts[0];
+      final nonce = parts[1];
+      final signature = parts[2];
+      expect(nonce, isNotEmpty);
+      // Canonical: uppercase method, LOWERCASE path + verbatim query, nonce,
+      // plaintext body.
+      final canonical =
+          'POST|/v1/users/login?next=%2Fhome|$timestamp|$nonce|$body';
       expect(
         _verify(identity.publicKeyBase64, canonical, signature),
         isTrue,
       );
+    });
+
+    test('each request gets a unique nonce', () async {
+      final identity = await _freshIdentity();
+      final nonces = <String>[];
+      final client = SecureDeviceSigningClient(
+        MockClient((request) async {
+          final header =
+              request.headers[CtxSecurityConfig.defaultSignatureHeader]!;
+          nonces.add(header.split(':')[1]);
+          return http.Response('{}', 200, request: request);
+        }),
+        identity,
+        _testConfig,
+      );
+
+      await client.post(Uri.parse('https://api.example.com/v1/a'), body: '{}');
+      await client.post(Uri.parse('https://api.example.com/v1/a'), body: '{}');
+
+      expect(nonces, hasLength(2));
+      expect(nonces[0], isNot(nonces[1]));
     });
 
     test(

@@ -38,7 +38,11 @@ Future<void> main() async {
   final prefs = await PrefsService.create();
   final secureStorage = SecureStorageService();
   final cacheService = HiveCacheService();
-  await cacheService.init();
+  // Encrypt the on-device HTTP cache at rest — cached responses can include
+  // authenticated per-user payloads (docs/SECURITY.md §5).
+  await cacheService.init(
+    encryptionKey: await secureStorage.readOrCreateCacheEncryptionKey(),
+  );
 
   final deviceIdentity = DeviceIdentityService(secureStorage);
   await deviceIdentity.init();

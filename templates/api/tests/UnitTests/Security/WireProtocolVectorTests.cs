@@ -41,18 +41,23 @@ public class WireProtocolVectorTests
 
     [Fact]
     public void Package_protocol_version_matches_the_shared_vectors() =>
-        Assert.Equal(Vectors.GetProperty("protocolVersion").GetString(),
-            CtxProtocol.Version);
+        Assert.Equal(CtxProtocol.Version,
+            Vectors.GetProperty("protocolVersion").GetString());
 
     [Fact]
     public void Canonical_signing_string_matches_the_middleware_construction()
     {
         var signing = Vectors.GetProperty("signing");
-        // Mirrors RequestSigningMiddleware: METHOD|lowercase path|timestamp|body.
+        // Mirrors RequestSigningMiddleware (protocol 1.1):
+        // METHOD|lowercase path[?query]|timestamp|nonce|body.
+        var query = signing.GetProperty("query").GetString()!;
+        var pathAndQuery = signing.GetProperty("path").GetString()!.ToLowerInvariant() +
+            (query.Length == 0 ? string.Empty : $"?{query}");
         var canonical =
             $"{signing.GetProperty("method").GetString()!.ToUpperInvariant()}" +
-            $"|{signing.GetProperty("path").GetString()!.ToLowerInvariant()}" +
+            $"|{pathAndQuery}" +
             $"|{signing.GetProperty("timestamp").GetInt64()}" +
+            $"|{signing.GetProperty("nonce").GetString()}" +
             $"|{signing.GetProperty("body").GetString()}";
         Assert.Equal(signing.GetProperty("canonical").GetString(), canonical);
     }

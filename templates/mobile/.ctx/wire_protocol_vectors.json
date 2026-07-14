@@ -1,15 +1,17 @@
 {
-  "protocolVersion": "1.0",
+  "protocolVersion": "1.1",
   "signing": {
     "method": "POST",
     "path": "/v1/Users/Login",
+    "query": "lat=52.52&lng=13.405&radiusKm=10",
     "timestamp": 1752300000,
-    "body": "{\u0022email\u0022:\u0022a@b.com\u0022}",
-    "canonical": "POST|/v1/users/login|1752300000|{\u0022email\u0022:\u0022a@b.com\u0022}"
+    "nonce": "bm9uY2UtdmVjdG9yLTE2Yg==",
+    "body": "{\"email\":\"a@b.com\"}",
+    "canonical": "POST|/v1/users/login?lat=52.52&lng=13.405&radiusKm=10|1752300000|bm9uY2UtdmVjdG9yLTE2Yg==|{\"email\":\"a@b.com\"}"
   },
   "aesGcm": {
     "keyBase64": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
     "payloadBase64": "ZGVmZ2hpamtsbW5viWHlkH83p2yvtJG23XICGzM5twJb03TxYVN9xPgEB5I3rHIosVnDQto=",
-    "plaintext": "{\u0022id\u0022:\u0022o_1\u0022,\u0022amount\u0022:500}"
+    "plaintext": "{\"id\":\"o_1\",\"amount\":500}"
   }
 }

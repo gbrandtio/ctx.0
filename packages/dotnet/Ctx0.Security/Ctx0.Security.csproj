@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Ctx0.Security</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Description>The ctx.0 server security plane: JWT issuance, password hashing, ALE (hybrid RSA-OAEP + AES-256-GCM) and ECDSA request-signing middlewares, envelope-encryption crypto, blind indexes, RBAC role catalog, and the AddCtxSecurity/UseCtxSecurity wiring seam. Consumers pin versions; the pipeline order is contractual.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>

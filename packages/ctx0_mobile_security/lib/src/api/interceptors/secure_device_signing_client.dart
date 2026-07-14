@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -10,6 +12,12 @@ import 'http_interceptor_utils.dart';
 /// docs/SECURITY.md §4.2). Sits ABOVE the AleClient so the signature is
 /// computed over the plaintext body — the server decrypts first, then
 /// verifies against the recovered plaintext.
+///
+/// Protocol 1.1: the canonical string is
+/// METHOD|PATH?QUERY|TIMESTAMP|NONCE|BODY — the query string is signed so
+/// it cannot be tampered in transit, and a fresh per-request nonce (echoed
+/// in the signature header as `timestamp:nonce:signature`) lets the server
+/// reject replays within the timestamp window.
 ///
 /// Also implements self-healing registration: a 401 "Device not
 /// registered." triggers POST /v1/security/app-instances (through the
@@ -45,17 +53,32 @@ class SecureDeviceSigningClient extends http.BaseClient {
     return _inner.send(_signed(HttpInterceptorUtils.copyRequest(request)));
   }
 
+  static final Random _random = Random.secure();
+
+  static String _generateNonce() {
+    final bytes = Uint8List(16);
+    for (var i = 0; i < bytes.length; i++) {
+      bytes[i] = _random.nextInt(256);
+    }
+    return base64Encode(bytes);
+  }
+
   http.Request _signed(http.Request request) {
     final timestamp =
         (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final nonce = _generateNonce();
+    final query = request.url.query;
+    final pathAndQuery = request.url.path.toLowerCase() +
+        (query.isEmpty ? '' : '?$query');
     final canonical = '${request.method.toUpperCase()}'
-        '|${request.url.path.toLowerCase()}'
+        '|$pathAndQuery'
         '|$timestamp'
+        '|$nonce'
         '|${utf8.decode(request.bodyBytes)}';
     final signature = _identity.sign(canonical);
     return request
       ..headers[_config.deviceIdHeader] = _identity.deviceId
-      ..headers[_config.signatureHeader] = '$timestamp:$signature';
+      ..headers[_config.signatureHeader] = '$timestamp:$nonce:$signature';
   }
 
   Future<void> _registerAppInstance() async {

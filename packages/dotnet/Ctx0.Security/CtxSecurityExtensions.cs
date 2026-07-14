@@ -30,6 +30,7 @@ public static class CtxSecurityExtensions
         RoleCatalogSeed roleCatalogSeed)
     {
         services.AddHttpContextAccessor();
+        services.AddMemoryCache(); // request-signing nonce replay cache
 
         // ---- Options (env-var secrets; validated at startup) ----
         services.AddOptions<JwtOptions>()

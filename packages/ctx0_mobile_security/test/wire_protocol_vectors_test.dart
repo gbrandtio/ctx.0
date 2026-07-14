@@ -19,11 +19,17 @@ void main() {
     expect(ctxProtocolVersion, vectors['protocolVersion']);
   });
 
-  test('canonical signing string: METHOD|lowercase path|timestamp|body', () {
+  test(
+      'canonical signing string: METHOD|lowercase path[?query]|timestamp|nonce|body',
+      () {
     final signing = vectors['signing'] as Map<String, dynamic>;
+    final query = signing['query'] as String;
+    final pathAndQuery = (signing['path'] as String).toLowerCase() +
+        (query.isEmpty ? '' : '?$query');
     final canonical = '${(signing['method'] as String).toUpperCase()}'
-        '|${(signing['path'] as String).toLowerCase()}'
+        '|$pathAndQuery'
         '|${signing['timestamp']}'
+        '|${signing['nonce']}'
         '|${signing['body']}';
     expect(canonical, signing['canonical']);
   });

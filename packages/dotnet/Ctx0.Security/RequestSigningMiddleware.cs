@@ -1,5 +1,6 @@
 using Ctx0.Security.Abstractions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 namespace Ctx0.Security;
@@ -7,14 +8,17 @@ namespace Ctx0.Security;
 /// <summary>
 /// ECDSA P-256 request-signature verification
 /// (APPLICATION_LAYER_SECURITY.md §2). Runs AFTER AleMiddleware so the
-/// canonical string METHOD|PATH|TIMESTAMP|BODY is built from the
-/// decrypted plaintext. Timestamps outside the signature window are
-/// rejected (replay protection). Registration/metadata endpoints bypass
-/// via [SkipRequestSigning] plus a path-based fail-safe.
+/// canonical string METHOD|PATH?QUERY|TIMESTAMP|NONCE|BODY is built from
+/// the decrypted plaintext. Protocol 1.1: the query string is part of the
+/// signature (a MITM can no longer tamper query parameters), and every
+/// request carries a single-use nonce so a captured signed request cannot
+/// be replayed within the timestamp window. Registration/metadata
+/// endpoints bypass via [SkipRequestSigning] plus a path-based fail-safe.
 /// </summary>
 public sealed class RequestSigningMiddleware(
     RequestDelegate next,
     IOptions<AleOptions> options,
+    IMemoryCache nonceCache,
     IClock clock)
 {
     public async Task Invoke(HttpContext context, IDeviceKeyStore deviceKeys)
@@ -38,13 +42,17 @@ public sealed class RequestSigningMiddleware(
             return;
         }
 
-        var separator = signatureHeader.IndexOf(':');
-        if (separator <= 0 ||
-            !long.TryParse(signatureHeader[..separator], out var timestamp))
+        // Protocol 1.1 header: timestamp:nonce:signature (three parts).
+        var parts = signatureHeader.Split(':');
+        if (parts.Length != 3 ||
+            !long.TryParse(parts[0], out var timestamp) ||
+            parts[1].Length == 0)
         {
             await Reject(context, "Request signature verification failed.");
             return;
         }
+        var nonce = parts[1];
+        var signature = parts[2];
 
         var now = new DateTimeOffset(clock.UtcNow).ToUnixTimeSeconds();
         if (Math.Abs(now - timestamp) > options.Value.SignatureWindowSeconds)
@@ -78,14 +86,36 @@ public sealed class RequestSigningMiddleware(
             context.Request.Body.Position = 0;
         }
 
+        // Protocol 1.1: sign the path AND query string (QueryString.Value
+        // already includes the leading '?'), the nonce, and the untrimmed
+        // body — matching the mobile SecureDeviceSigningClient byte for byte.
+        var pathAndQuery = context.Request.Path.Value!.ToLowerInvariant() +
+            (context.Request.QueryString.HasValue
+                ? context.Request.QueryString.Value
+                : string.Empty);
         var canonical =
             $"{context.Request.Method.ToUpperInvariant()}" +
-            $"|{context.Request.Path.Value!.ToLowerInvariant()}" +
+            $"|{pathAndQuery}" +
             $"|{timestamp}" +
-            $"|{body.Trim()}";
+            $"|{nonce}" +
+            $"|{body}";
 
-        if (!EcdsaSignatureVerifier.Verify(
-                publicKey, canonical, signatureHeader[(separator + 1)..]))
+        if (!EcdsaSignatureVerifier.Verify(publicKey, canonical, signature))
+        {
+            await Reject(context, "Request signature verification failed.");
+            return;
+        }
+
+        // Single-use nonce (per device) within the signature window: a
+        // captured, still-in-window signed request cannot be replayed
+        // because its nonce is already spent.
+        var nonceKey = $"ctx-sig-nonce:{deviceId}:{nonce}";
+        if (!nonceCache.TryGetValue(nonceKey, out _))
+        {
+            nonceCache.Set(nonceKey, true,
+                TimeSpan.FromSeconds(options.Value.SignatureWindowSeconds));
+        }
+        else
         {
             await Reject(context, "Request signature verification failed.");
             return;

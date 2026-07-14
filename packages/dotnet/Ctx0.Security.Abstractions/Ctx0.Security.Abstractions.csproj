@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>Ctx0.Security.Abstractions</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Description>Contracts of the ctx.0 server security plane: identity/crypto interfaces, options types, claim and protocol constants, and the [CtxEncrypted] envelope-encryption annotation. Referenced by consumer Domain/Application layers.</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>

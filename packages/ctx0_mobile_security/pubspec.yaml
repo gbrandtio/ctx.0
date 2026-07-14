@@ -5,7 +5,7 @@ description: >-
   encryption (ALE), token refresh, secure storage, and response caching —
   assembled as a fixed interceptor chain. Consumers configure it through
   CtxSecurityConfig; the chain itself is not modifiable.
-version: 0.1.0
+version: 0.2.0
 repository: https://github.com/brant-io/ctx.0
 
 environment:

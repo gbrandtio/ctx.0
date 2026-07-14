@@ -3,15 +3,19 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/cache_entry.dart';
 
 /// Encapsulates all Hive operations for the HTTP cache
-/// (docs/CACHING_IMPLEMENTATION.md). Only non-sensitive GET responses are
-/// stored here.
+/// (docs/CACHING_IMPLEMENTATION.md). Cached GET responses can include
+/// authenticated per-user payloads, so the box is encrypted at rest with a
+/// key from secure storage ([encryptionKey]).
 class HiveCacheService {
   static const _boxName = 'http_cache';
 
   Box<CacheEntry>? _box;
 
   /// [directory] overrides the default app-documents location (tests).
-  Future<void> init({String? directory}) async {
+  /// [encryptionKey] is a 32-byte key that encrypts the box at rest; pass
+  /// `SecureStorageService.readOrCreateCacheEncryptionKey()` in production.
+  /// When omitted the box is unencrypted (tests only).
+  Future<void> init({String? directory, List<int>? encryptionKey}) async {
     if (directory != null) {
       Hive.init(directory);
     } else {
@@ -20,7 +24,11 @@ class HiveCacheService {
     if (!Hive.isAdapterRegistered(CacheEntryAdapter().typeId)) {
       Hive.registerAdapter(CacheEntryAdapter());
     }
-    _box = await Hive.openBox<CacheEntry>(_boxName);
+    _box = await Hive.openBox<CacheEntry>(
+      _boxName,
+      encryptionCipher:
+          encryptionKey == null ? null : HiveAesCipher(encryptionKey),
+    );
   }
 
   Box<CacheEntry> get _requireBox {

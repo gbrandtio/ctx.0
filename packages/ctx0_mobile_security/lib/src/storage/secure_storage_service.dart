@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -20,6 +21,7 @@ class SecureStorageService {
   static const _userIdKey = 'user_id';
   static const _deviceIdKey = 'device_id';
   static const _devicePrivateKeyKey = 'device_private_key';
+  static const _cacheEncryptionKeyKey = 'cache_encryption_key';
 
   /// The authenticated user's id, needed to address `/users/{id}` on
   /// session restore. Not a secret, but its lifecycle matches the tokens.
@@ -58,6 +60,26 @@ class SecureStorageService {
 
   Future<void> writeDevicePrivateKey(Uint8List bytes) =>
       _storage.write(key: _devicePrivateKeyKey, value: base64Encode(bytes));
+
+  /// Returns the 256-bit key that encrypts the on-device HTTP cache
+  /// (docs/CACHING_IMPLEMENTATION.md), generating and persisting one on
+  /// first use. Kept in hardware-backed storage so cached PII is never at
+  /// rest in the clear.
+  Future<Uint8List> readOrCreateCacheEncryptionKey() async {
+    final existing = await _storage.read(key: _cacheEncryptionKeyKey);
+    if (existing != null) {
+      return base64Decode(existing);
+    }
+    final rnd = Random.secure();
+    final key = Uint8List.fromList(
+      List<int>.generate(32, (_) => rnd.nextInt(256)),
+    );
+    await _storage.write(
+      key: _cacheEncryptionKeyKey,
+      value: base64Encode(key),
+    );
+    return key;
+  }
 
   /// Full purge — GDPR delete account (docs/APP_SHELL.md §4). Deliberately
   /// also removes the device identity; a fresh key pair is generated and
