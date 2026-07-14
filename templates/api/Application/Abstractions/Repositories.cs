@@ -34,6 +34,10 @@ public interface IGoogleIdentityRepository
 {
     Task<UserGoogleIdentity?> FindBySubjectHashAsync(string subjectHash, CancellationToken ct);
     void Add(UserGoogleIdentity identity);
+
+    /// <summary>Removes every Google link for a user (GDPR delete) so a
+    /// later Google sign-in cannot resurrect an anonymized account.</summary>
+    Task RemoveForUserAsync(long userId, CancellationToken ct);
     Task SaveChangesAsync(CancellationToken ct);
 }
 

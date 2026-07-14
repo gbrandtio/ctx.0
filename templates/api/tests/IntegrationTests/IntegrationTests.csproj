@@ -30,9 +30,16 @@
     <!-- ctx:maps_google:begin -->
     <CtxMapsGoogle>true</CtxMapsGoogle>
     <!-- ctx:maps_google:end -->
+    <!-- ctx:payments_stripe:begin -->
+    <CtxPaymentsStripe>true</CtxPaymentsStripe>
+    <!-- ctx:payments_stripe:end -->
   </PropertyGroup>
   <ItemGroup Condition="'$(CtxMapsGoogle)' != 'true'">
     <Compile Remove="SpatialTests.cs" />
+    <Compile Remove="OutputCacheTests.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(CtxPaymentsStripe)' != 'true'">
+    <Compile Remove="PaymentRlsTests.cs" />
   </ItemGroup>
 
 </Project>

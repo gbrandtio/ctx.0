@@ -58,8 +58,9 @@ public sealed class PaymentWebhookTests
         _orders.Setup(o => o.TryMarkPaidAsync(10, "pi_1", 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        await CreateHandler().Handle(Command(), CancellationToken.None);
+        var marked = await CreateHandler().Handle(Command(), CancellationToken.None);
 
+        Assert.True(marked); // signals the endpoint to broadcast exactly once
         _ledger.Verify(l => l.Add(It.Is<LedgerEntry>(e => e.StripePaymentIntentId == "pi_1")), Times.Once);
         _notifications.Verify(n => n.Add(It.Is<UserNotification>(x => x.Type == "payment_completed")), Times.Once);
     }
@@ -74,8 +75,9 @@ public sealed class PaymentWebhookTests
         _orders.Setup(o => o.TryMarkPaidAsync(10, "pi_1", 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false); // another concurrent event already consumed it
 
-        await CreateHandler().Handle(Command(), CancellationToken.None);
+        var marked = await CreateHandler().Handle(Command(), CancellationToken.None);
 
+        Assert.False(marked); // no broadcast on the losing race
         _ledger.Verify(l => l.Add(It.IsAny<LedgerEntry>()), Times.Never);
         _notifications.Verify(n => n.Add(It.IsAny<UserNotification>()), Times.Never);
     }

@@ -5,6 +5,7 @@ public sealed record UserResponse(
     string Username,
     string Email,
     string? Name,
+    bool HasTrackingConsent,
     DateTime CreatedAt);
 
 public sealed record UpdateUserRequest(string? Name, bool? HasTrackingConsent = null);

@@ -10,28 +10,33 @@ public sealed record ProcessPaidPaymentIntentCommand(
     long OrderId,
     long UserId,
     long AmountMinor,
-    string Currency) : IRequest;
+    string Currency) : IRequest<bool>;
 
 /// <summary>
 /// Invoked by the verified Stripe webhook (PAYMENTS_STRIPE.md §4):
 /// re-validates against the server-side order, atomically consumes it
 /// (single-use), blocks replays via the ledger's unique PaymentIntent
-/// index, and writes the user notification through the outbox in the
-/// same transaction scope.
+/// index, and writes the user notification through the outbox. The
+/// caller (the webhook endpoint) opens the enclosing transaction and the
+/// RLS system-bypass scope, so the order UPDATE, ledger INSERT and
+/// notification INSERT all commit together as the internal worker role.
+/// Returns true only when this call is the one that transitioned the
+/// order to paid — the caller uses that to fire the SSE broadcast exactly
+/// once (never on a replayed delivery).
 /// </summary>
 public sealed class ProcessPaidPaymentIntentHandler(
     IOrderRepository orders,
     ILedgerRepository ledger,
     INotificationRepository notifications,
     IIdGenerator ids,
-    IClock clock) : IRequestHandler<ProcessPaidPaymentIntentCommand>
+    IClock clock) : IRequestHandler<ProcessPaidPaymentIntentCommand, bool>
 {
-    public async Task Handle(ProcessPaidPaymentIntentCommand command, CancellationToken ct)
+    public async Task<bool> Handle(ProcessPaidPaymentIntentCommand command, CancellationToken ct)
     {
         // Replay/duplicate event guard.
         if (await ledger.PaymentIntentExistsAsync(command.PaymentIntentId, ct))
         {
-            return;
+            return false;
         }
 
         var order = await orders.GetByIdAsync(command.OrderId, ct)
@@ -49,7 +54,7 @@ public sealed class ProcessPaidPaymentIntentHandler(
         if (!await orders.TryMarkPaidAsync(
                 order.Id, command.PaymentIntentId, command.UserId, ct))
         {
-            return;
+            return false;
         }
 
         ledger.Add(new LedgerEntry
@@ -74,5 +79,6 @@ public sealed class ProcessPaidPaymentIntentHandler(
             CreatedAt = clock.UtcNow,
         });
         await notifications.SaveChangesAsync(ct);
+        return true;
     }
 }

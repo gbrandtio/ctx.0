@@ -32,6 +32,10 @@ public class User
     /// <summary>Whether the user has granted consent for tracking and analytics.</summary>
     public bool HasTrackingConsent { get; set; }
 
+    /// <summary>Whether the user opted in to marketing emails at signup
+    /// (the optional `marketing_emails` consent).</summary>
+    public bool HasMarketingConsent { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

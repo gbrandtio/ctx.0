@@ -3,6 +3,7 @@ using Application.Common;
 using Contracts.Auth;
 using Domain.Constants;
 using Domain.Entities;
+using Domain.Exceptions;
 using MediatR;
 
 namespace Application.Features.Users.Google;
@@ -34,6 +35,13 @@ public sealed class AuthenticateGoogleUserHandler(
         if (identity is not null)
         {
             user = (await users.GetByIdAsync(identity.UserId, ct))!;
+
+            // Defence in depth: a delete severs the Google link, but never
+            // re-enter an anonymized account even if a stale link survives (H4).
+            if (user.IsAnonymized)
+            {
+                throw DomainException.Unauthorized("Invalid credentials provided.");
+            }
         }
         else
         {

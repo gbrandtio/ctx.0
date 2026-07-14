@@ -16,6 +16,7 @@ public sealed class DeleteUserHandler(
     IUserRepository users,
     IRefreshTokenRepository refreshTokens,
     IFirebaseIdentityRepository firebaseIdentities,
+    IGoogleIdentityRepository googleIdentities,
     IClock clock) : IRequestHandler<DeleteUserCommand>
 {
     public async Task Handle(DeleteUserCommand command, CancellationToken ct)
@@ -39,6 +40,10 @@ public sealed class DeleteUserHandler(
             firebaseIdentities.Remove(fcm);
             await firebaseIdentities.SaveChangesAsync(ct);
         }
+
+        // Sever the Google link so a later Google sign-in creates a fresh
+        // account instead of re-entering this anonymized one (H4).
+        await googleIdentities.RemoveForUserAsync(user.Id, ct);
 
         await refreshTokens.RevokeAllForUserAsync(
             user.Id, SecurityConstants.Roles.User, ct);

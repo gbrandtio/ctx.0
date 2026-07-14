@@ -17,6 +17,7 @@ public sealed class GetUserHandler(IUserRepository users)
         {
             throw DomainException.NotFound("User not found.");
         }
-        return new UserResponse(user.Id, user.Username, user.Email, user.Name, user.CreatedAt);
+        return new UserResponse(user.Id, user.Username, user.Email, user.Name,
+            user.HasTrackingConsent, user.CreatedAt);
     }
 }

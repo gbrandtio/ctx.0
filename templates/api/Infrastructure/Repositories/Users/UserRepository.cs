@@ -34,6 +34,9 @@ public sealed class GoogleIdentityRepository(AppDbContext db) : IGoogleIdentityR
 
     public void Add(UserGoogleIdentity identity) => db.UserGoogleIdentities.Add(identity);
 
+    public Task RemoveForUserAsync(long userId, CancellationToken ct) =>
+        db.UserGoogleIdentities.Where(g => g.UserId == userId).ExecuteDeleteAsync(ct);
+
     public Task SaveChangesAsync(CancellationToken ct) => db.SaveChangesAsync(ct);
 }
 

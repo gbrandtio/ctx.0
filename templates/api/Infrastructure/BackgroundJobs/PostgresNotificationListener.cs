@@ -23,6 +23,7 @@ public sealed class PostgresNotificationListener(
 {
     private const int MaxParallelSends = 10;
     private static readonly TimeSpan CatchUpWindow = TimeSpan.FromDays(7);
+    private static readonly TimeSpan SweepInterval = TimeSpan.FromMinutes(5);
 
     private readonly SemaphoreSlim _sendSlots = new(MaxParallelSends);
 
@@ -34,7 +35,11 @@ public sealed class PostgresNotificationListener(
             return;
         }
 
-        await CatchUpAsync(stoppingToken);
+        // A periodic sweep is the safety net: any notification whose LISTEN
+        // event was missed (connection down) or whose send failed transiently
+        // stays sent_at NULL and is retried here rather than waiting for a
+        // process restart (M6).
+        _ = RunPeriodicSweepAsync(stoppingToken);
 
         var connectionString = new NpgsqlConnectionStringBuilder(
             configuration.GetConnectionString("Default"))
@@ -56,6 +61,11 @@ public sealed class PostgresNotificationListener(
                     await listen.ExecuteNonQueryAsync(stoppingToken);
                 }
 
+                // Catch up on every (re)connect — this covers the window
+                // between losing the previous connection and establishing
+                // this one, not just process startup (M6).
+                await CatchUpAsync(stoppingToken);
+
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     await connection.WaitAsync(stoppingToken);
@@ -70,6 +80,22 @@ public sealed class PostgresNotificationListener(
                 logger.LogError(e, "Notification listener connection failed; retrying.");
                 await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }
+        }
+    }
+
+    private async Task RunPeriodicSweepAsync(CancellationToken stoppingToken)
+    {
+        using var timer = new PeriodicTimer(SweepInterval);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+            {
+                await CatchUpAsync(stoppingToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // shutdown
         }
     }
 

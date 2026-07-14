@@ -18,8 +18,9 @@ public sealed class StripeOptions
 /// <summary>
 /// Stripe PaymentIntents (PAYMENTS_STRIPE.md §3): the amount comes from
 /// the server-side order row; metadata carries the correlation ids the
-/// webhook re-validates; the idempotency key payment-intent:{orderId}
-/// makes client retries safe.
+/// webhook re-validates; the idempotency key payment-intent:{orderId}:{userId}
+/// makes a single consumer's retries safe without colliding when two
+/// different consumers attempt the same order (M5).
 /// </summary>
 public sealed class StripePaymentGateway : IPaymentGateway
 {
@@ -49,7 +50,7 @@ public sealed class StripePaymentGateway : IPaymentGateway
                     ["projectId"] = projectId.ToString(),
                 },
             },
-            new RequestOptions { IdempotencyKey = $"payment-intent:{orderId}" },
+            new RequestOptions { IdempotencyKey = $"payment-intent:{orderId}:{userId}" },
             ct);
         return (intent.Id, intent.ClientSecret);
     }

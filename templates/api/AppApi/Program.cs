@@ -34,10 +34,11 @@ builder.Services.AddHostedService<PostgresPaymentUpdateListener>();
 builder.Services.AddOutputCache(options =>
 {
     // ctx:maps_google:begin
-    options.AddPolicy("items-nearby", policy => policy
-        .Expire(TimeSpan.FromSeconds(30))
-        .SetVaryByQuery("lat", "lng", "radiusKm")
-        .Tag("items"));
+    // A custom policy that caches this authenticated-but-not-user-specific
+    // endpoint; the fluent builder cannot express it because the auth-header
+    // lockout and the Allow* enablement both live in the default policy
+    // (see ItemsNearbyCachePolicy) — M11.
+    options.AddPolicy("items-nearby", new ItemsNearbyCachePolicy());
     // ctx:maps_google:end
 });
 
@@ -63,7 +64,12 @@ app.UseRouting();
 app.UseAppSecurity();
 
 // ctx:app_updates:begin
-app.UseMiddleware<VersionCheckMiddleware>();
+// Exempt infrastructure endpoints (health probes carry no client version
+// header and must never receive a 426, or load balancers mark the instance
+// unhealthy) — M13.
+app.UseWhen(
+    ctx => !ctx.Request.Path.StartsWithSegments("/health"),
+    branch => branch.UseMiddleware<VersionCheckMiddleware>());
 // ctx:app_updates:end
 
 

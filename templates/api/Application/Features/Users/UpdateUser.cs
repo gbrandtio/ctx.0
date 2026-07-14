@@ -28,6 +28,7 @@ public sealed class UpdateUserHandler(IUserRepository users, IClock clock)
         user.UpdatedAt = clock.UtcNow;
         await users.SaveChangesAsync(ct);
 
-        return new UserResponse(user.Id, user.Username, user.Email, user.Name, user.CreatedAt);
+        return new UserResponse(user.Id, user.Username, user.Email, user.Name,
+            user.HasTrackingConsent, user.CreatedAt);
     }
 }

@@ -43,6 +43,11 @@ public sealed class RegisterUserHandler(
             throw DomainException.Conflict("Email already exists.");
         }
 
+        // Persist the optional signup consents (M2). `terms_and_privacy` is
+        // a required gate enforced client-side; the analytics/marketing
+        // opt-ins are recorded here so they are not silently dropped.
+        var consents = request.Consents ?? new Dictionary<string, bool>();
+
         var user = new User
         {
             Id = ids.NextId(),
@@ -52,6 +57,9 @@ public sealed class RegisterUserHandler(
             UsernameHash = blindIndex.ComputeHash(username.ToLowerInvariant()),
             EmailHash = emailHash,
             PasswordHash = passwordHasher.Hash(password.Value),
+            HasMarketingConsent = consents.GetValueOrDefault("marketing_emails"),
+            HasTrackingConsent = consents.GetValueOrDefault("analytics")
+                || consents.GetValueOrDefault("tracking"),
             CreatedAt = clock.UtcNow,
             UpdatedAt = clock.UtcNow,
         };
