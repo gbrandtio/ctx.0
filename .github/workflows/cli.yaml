@@ -1,0 +1,80 @@
+# Guards the ctx0 CLI: unit tests plus a real end-to-end scaffold. Nothing
+# built or ran the CLI in CI before, so a test suite that did not compile and
+# an engine that injected unrendered `app_template`/`AppApi` placeholders both
+# shipped undetected (review findings C2/C3/H7). The e2e job generates a
+# renamed workspace, asserts there are no placeholder leaks, exercises
+# enable/disable/doctor, and compiles both generated sides.
+name: cli
+
+on:
+  pull_request:
+    paths:
+      - "packages/ctx0_cli/**"
+      - "templates/**"
+  push:
+    branches: [main]
+    paths:
+      - "packages/ctx0_cli/**"
+      - "templates/**"
+
+jobs:
+  unit:
+    name: analyze + unit tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/ctx0_cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart analyze
+      - run: dart test
+
+  e2e:
+    name: scaffold a renamed workspace and compile both sides
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+      - name: dart pub get
+        run: dart pub get
+        working-directory: packages/ctx0_cli
+      - name: ctx0 create workspace
+        run: |
+          dart run packages/ctx0_cli/bin/ctx0.dart create workspace acme \
+            --org com.acme --local-packages --out "$RUNNER_TEMP/acme"
+      - name: no placeholder leaks
+        run: |
+          if grep -rn "app_template\|AppApi\|AppDbContext\|X-App-" \
+               "$RUNNER_TEMP/acme/mobile/lib" \
+               "$RUNNER_TEMP/acme/api/AppApi" \
+               "$RUNNER_TEMP/acme/api/Application"; then
+            echo "unrendered placeholders leaked into the generated app" >&2
+            exit 1
+          fi
+      - name: ctx0 status + doctor
+        working-directory: ${{ runner.temp }}/acme
+        run: |
+          dart run "$GITHUB_WORKSPACE/packages/ctx0_cli/bin/ctx0.dart" status
+          dart run "$GITHUB_WORKSPACE/packages/ctx0_cli/bin/ctx0.dart" doctor
+      - name: toggle a feature off across the workspace
+        working-directory: ${{ runner.temp }}/acme
+        run: |
+          dart run "$GITHUB_WORKSPACE/packages/ctx0_cli/bin/ctx0.dart" disable maps_google
+          dart run "$GITHUB_WORKSPACE/packages/ctx0_cli/bin/ctx0.dart" enable auth_2fa_email
+          dart run "$GITHUB_WORKSPACE/packages/ctx0_cli/bin/ctx0.dart" doctor
+      - name: generated mobile analyzes
+        working-directory: ${{ runner.temp }}/acme/mobile
+        run: |
+          flutter pub get
+          flutter analyze
+      - name: generated API builds
+        working-directory: ${{ runner.temp }}/acme/api
+        run: dotnet build Acme.sln

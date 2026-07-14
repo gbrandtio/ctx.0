@@ -1,0 +1,48 @@
+# Guards the .NET API template and the server security packages: both must
+# build and (for the template) test green, including the Testcontainers
+# Postgres+PostGIS integration tests that exercise real RLS. Nothing ran
+# dotnet in CI before this, so review finding C1/H1 (payments denied under
+# RLS) shipped undetected — the integration suite now includes an
+# RLS-engaged payment-flow test.
+name: api-integrations
+
+on:
+  pull_request:
+    paths:
+      - "templates/api/**"
+      - "packages/dotnet/**"
+  push:
+    branches: [main]
+    paths:
+      - "templates/api/**"
+      - "packages/dotnet/**"
+
+jobs:
+  api-template:
+    name: API template build + test (real Postgres/PostGIS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: templates/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+      - run: dotnet build App.sln
+      # Docker is available on ubuntu-latest; Testcontainers pulls
+      # postgis/postgis automatically.
+      - run: dotnet test App.sln --no-build
+
+  security-packages:
+    name: Ctx0.Security packages build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/dotnet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+      - run: dotnet build Ctx0.Security.sln
