@@ -89,7 +89,7 @@
       "testDirs": [],
       "envVars": [
         "MINIMUM_CLIENT_VERSION"
-      ],
+      ]
     },
     {
       "id": "auth_2fa_email",

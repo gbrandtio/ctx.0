@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'catalog.dart';
 import 'commands.dart';
 import 'create.dart';
 import 'docs_sync.dart';

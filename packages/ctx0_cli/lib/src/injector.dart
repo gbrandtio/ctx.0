@@ -1,14 +1,19 @@
 import 'dart:convert';
 import 'dart:io';
-import 'catalog.dart';
 
+import 'catalog.dart';
+import 'markers.dart';
+
+/// A generated repo (`.ctx/workspace.json` present). `enabledFeatures` is a
+/// cache of the marker state; the marker blocks in the tree are the source
+/// of truth, and [doctor] reconciles the two.
 class Workspace {
   Workspace(this.root) {
     file = File('${root.path}/.ctx/workspace.json');
     if (file.existsSync()) {
-      final data = jsonDecode(file.readAsStringSync());
-      kind = data['kind'];
-      enabledFeatures = Set<String>.from(data['enabledFeatures'] ?? []);
+      final data = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
+      kind = data['kind'] as String? ?? 'unknown';
+      enabledFeatures = Set<String>.from(data['enabledFeatures'] ?? const []);
     } else {
       kind = 'unknown';
       enabledFeatures = {};
@@ -22,10 +27,10 @@ class Workspace {
 
   void save() {
     if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
-    file.writeAsStringSync(const JsonEncoder.withIndent('  ').convert({
-      'kind': kind,
-      'enabledFeatures': enabledFeatures.toList()..sort(),
-    }) + '\n');
+    file.writeAsStringSync('${const JsonEncoder.withIndent('  ').convert({
+          'kind': kind,
+          'enabledFeatures': enabledFeatures.toList()..sort(),
+        })}\n');
   }
 }
 
@@ -39,116 +44,99 @@ class InjectorRepo {
 
   File fileAt(String relative) => File('${workspace.root.path}/$relative');
 
+  /// The integration's state, read from its first marked file that carries
+  /// a NON-EMPTY block (some features have an empty pubspec/csproj block —
+  /// e.g. no vendor deps — which says nothing about the feature's state).
+  BlockState currentState(Integration integration) {
+    for (final path in integration.markedFiles) {
+      final file = fileAt(path);
+      if (!file.existsSync()) continue;
+      final lines = file.readAsLinesSync();
+      final blocks = findBlocks(lines, integration.id);
+      for (final block in blocks) {
+        final state = blockState(lines, block, commentTokenFor(path));
+        if (state != BlockState.empty) return state;
+      }
+    }
+    return BlockState.empty;
+  }
+
+  bool isEnabled(Integration integration) =>
+      currentState(integration) == BlockState.enabled;
+
+  /// Comment-toggle every marker block for [integration], park/unpark its
+  /// tests, and (mobile) resync the analyzer excludes — identical to the
+  /// fallback engine, so state never diverges.
   void setIntegrationState(Integration integration, {required bool enable}) {
+    for (final path in integration.markedFiles) {
+      final file = fileAt(path);
+      if (!file.existsSync()) continue;
+      final token = commentTokenFor(path);
+      var lines = file.readAsLinesSync();
+      final blocks = findBlocks(lines, integration.id);
+      // Transform bottom-up so earlier indexes stay valid.
+      for (final block in blocks.reversed) {
+        lines = transformBlock(lines, block, token, enable: enable);
+      }
+      file.writeAsStringSync('${lines.join('\n')}\n');
+    }
+    _setTestsParked(integration, parked: !enable);
+    if (workspace.kind == 'mobile') _syncAnalyzerExcludes();
+
     if (enable) {
-      if (workspace.enabledFeatures.contains(integration.id)) return;
-      _copyDirs(integration.sourceDirs, integration);
-      _copyDirs(integration.testDirs, integration);
-      _injectCode(integration);
       workspace.enabledFeatures.add(integration.id);
     } else {
-      if (!workspace.enabledFeatures.contains(integration.id)) return;
-      _removeDirs(integration.sourceDirs);
-      _removeDirs(integration.testDirs);
-      _ejectCode(integration);
       workspace.enabledFeatures.remove(integration.id);
     }
     workspace.save();
   }
 
-  void _copyDirs(List<String> dirs, Integration integration) {
-    for (final dir in dirs) {
-      final srcDir = Directory('${catalog.registryRoot.path}/${integration.id}/$dir');
-      if (!srcDir.existsSync()) continue;
-      final destDir = Directory('${workspace.root.path}/$dir');
-      _copyTree(srcDir, destDir);
-    }
-  }
-
-  void _removeDirs(List<String> dirs) {
-    for (final dir in dirs) {
-      final destDir = Directory('${workspace.root.path}/$dir');
-      if (destDir.existsSync()) destDir.deleteSync(recursive: true);
-    }
-  }
-
-  void _copyTree(Directory from, Directory to) {
-    to.createSync(recursive: true);
-    for (final entity in from.listSync(followLinks: false)) {
-      final basename = entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty);
-      if (entity is Directory) {
-        _copyTree(entity, Directory('${to.path}/$basename'));
-      } else if (entity is File) {
-        entity.copySync('${to.path}/$basename');
-      }
-    }
-  }
-
-  void _injectCode(Integration integration) {
-    for (final entry in integration.injections.entries) {
-      final path = entry.key;
-      final snippets = entry.value;
-      final file = fileAt(path);
-      if (!file.existsSync()) continue;
-      
-      final lines = file.readAsLinesSync();
-      final newLines = <String>[];
-      var snippetIdx = 0;
-      
-      var i = 0;
-      while (i < lines.length) {
-        if (lines[i].contains('ctx:${integration.id}:begin')) {
-          newLines.add(lines[i]);
-          if (snippetIdx < snippets.length) {
-            newLines.add(snippets[snippetIdx]);
-            snippetIdx++;
-          }
-          i++;
-          while (i < lines.length && !lines[i].contains('ctx:${integration.id}:end')) {
-            i++; // skip any existing content inside
-          }
-          if (i < lines.length) {
-            newLines.add(lines[i]); // end marker
-          }
-        } else {
-          newLines.add(lines[i]);
+  void _setTestsParked(Integration integration, {required bool parked}) {
+    for (final dirPath in integration.testDirs) {
+      final dir = Directory('${workspace.root.path}/$dirPath');
+      if (!dir.existsSync()) continue;
+      for (final entity in dir.listSync(recursive: true).whereType<File>()) {
+        final path = entity.path;
+        if (parked && path.endsWith('.dart')) {
+          entity.renameSync('$path.off');
+        } else if (!parked && path.endsWith('.dart.off')) {
+          entity.renameSync(path.substring(0, path.length - 4));
         }
-        i++;
       }
-      file.writeAsStringSync(newLines.join('\n') + '\n');
     }
   }
 
-  void _ejectCode(Integration integration) {
-    for (final entry in integration.injections.entries) {
-      final path = entry.key;
-      final file = fileAt(path);
-      if (!file.existsSync()) continue;
-      
-      final lines = file.readAsLinesSync();
-      final newLines = <String>[];
-      
-      var i = 0;
-      while (i < lines.length) {
-        if (lines[i].contains('ctx:${integration.id}:begin')) {
-          newLines.add(lines[i]);
-          i++;
-          while (i < lines.length && !lines[i].contains('ctx:${integration.id}:end')) {
-            i++; // drop injected content
-          }
-          if (i < lines.length) {
-            newLines.add(lines[i]); // end marker
-          }
-        } else {
-          newLines.add(lines[i]);
+  /// Rewrites the managed exclude list in analysis_options.yaml to cover
+  /// exactly the currently-disabled integrations (mobile only).
+  void _syncAnalyzerExcludes() {
+    final file = fileAt('analysis_options.yaml');
+    if (!file.existsSync()) return;
+    var lines = file.readAsLinesSync();
+    final begin =
+        lines.indexWhere((l) => l.contains('ctx:integration-excludes:begin'));
+    final end =
+        lines.indexWhere((l) => l.contains('ctx:integration-excludes:end'));
+    if (begin == -1 || end == -1 || end < begin) return;
+    final excludes = <String>[];
+    for (final integration in catalog.integrations) {
+      if (currentState(integration) == BlockState.disabled) {
+        for (final dir in [...integration.sourceDirs, ...integration.testDirs]) {
+          excludes.add('    - $dir/**');
         }
-        i++;
       }
-      file.writeAsStringSync(newLines.join('\n') + '\n');
     }
+    lines = [...lines.sublist(0, begin + 1), ...excludes, ...lines.sublist(end)];
+    file.writeAsStringSync('${lines.join('\n')}\n');
   }
-}
 
-extension InjectorRepoRoot on InjectorRepo {
-  Directory get root => workspace.root;
+  /// Seeds `enabledFeatures` from the actual marker state in the tree —
+  /// used at create time so a fresh workspace reports the truth.
+  void syncEnabledFromMarkers() {
+    workspace.enabledFeatures
+      ..clear()
+      ..addAll(catalog.integrations
+          .where(isEnabled)
+          .map((i) => i.id));
+    workspace.save();
+  }
 }

@@ -1,40 +1,23 @@
 import 'dart:io';
-import 'dart:isolate';
 
 import 'catalog.dart';
-import 'docs_sync.dart';
+import 'doctor.dart';
 import 'injector.dart';
+import 'markers.dart';
 
-Future<Directory?> _resolveRegistryDir(String kind) async {
-  final candidates = <String>[];
-  final packageRoot = await Isolate.resolvePackageUri(Uri.parse('package:ctx0_cli/'));
-  if (packageRoot != null) {
-    candidates.add('${Directory.fromUri(packageRoot).parent.path}/templates/registry/$kind/features');
-  }
-  final script = File.fromUri(Platform.script);
-  final repoRoot = script.parent.parent.parent.parent;
-  candidates.add('${repoRoot.path}/registry/$kind/features');
-  for (final path in candidates) {
-    if (Directory(path).existsSync()) {
-      return Directory(path);
-    }
-  }
-  return null;
-}
-
+/// Walks up from [cwd] to the nearest generated repo (`.ctx/workspace.json`)
+/// and loads its catalog from `.ctx/integrations.json`.
 Future<InjectorRepo> openRepo([Directory? cwd]) async {
   var dir = (cwd ?? Directory.current).absolute;
   while (true) {
-    final workspaceFile = File('${dir.path}/.ctx/workspace.json');
-    if (workspaceFile.existsSync()) {
+    if (File('${dir.path}/.ctx/workspace.json').existsSync()) {
       final workspace = Workspace(dir);
-      final registryDir = await _resolveRegistryDir(workspace.kind);
-      if (registryDir == null) throw StateError('Registry not found');
-      return InjectorRepo(workspace, Catalog.load(workspace.kind, registryDir));
+      return InjectorRepo(workspace, Catalog.load(dir));
     }
     final parent = dir.parent;
     if (parent.path == dir.path) {
-      stderr.writeln('error: no .ctx/workspace.json found — run inside a ctx-scaffolded repo.');
+      stderr.writeln('error: no .ctx/workspace.json found — run inside a '
+          'ctx-scaffolded repo.');
       exit(2);
     }
     dir = parent;
@@ -44,12 +27,8 @@ Future<InjectorRepo> openRepo([Directory? cwd]) async {
 Future<void> runPubGet(InjectorRepo repo) async {
   if (repo.workspace.kind != 'mobile') return;
   stdout.writeln('\nRunning flutter pub get...');
-  final result = await Process.run(
-    'flutter',
-    ['pub', 'get'],
-    workingDirectory: repo.workspace.root.path,
-    runInShell: true,
-  );
+  final result = await Process.run('flutter', ['pub', 'get'],
+      workingDirectory: repo.workspace.root.path, runInShell: true);
   if (result.exitCode != 0) {
     stderr.writeln(result.stderr);
     stderr.writeln('warning: flutter pub get failed — run it manually.');
@@ -57,12 +36,26 @@ Future<void> runPubGet(InjectorRepo repo) async {
 }
 
 Future<int> cmdEnable(InjectorRepo repo, String id) async {
-  final integration = repo.catalog.byId(id);
-  
+  final Integration integration;
+  try {
+    integration = repo.catalog.byId(id);
+  } on ArgumentError catch (e) {
+    stderr.writeln('error: ${e.message}');
+    return 2;
+  }
+
+  if (repo.isEnabled(integration)) {
+    stdout.writeln('✓ ${integration.id} is already enabled.');
+    return 0;
+  }
+
+  // Navigation methods are mutually exclusive: enabling one disables the
+  // other active one.
   if (repo.catalog.navMethodIds.contains(id)) {
     for (final otherId in repo.catalog.navMethodIds) {
-      if (otherId != id && repo.workspace.enabledFeatures.contains(otherId)) {
-        repo.setIntegrationState(repo.catalog.byId(otherId), enable: false);
+      final other = repo.catalog.tryById(otherId);
+      if (other != null && otherId != id && repo.isEnabled(other)) {
+        repo.setIntegrationState(other, enable: false);
         stdout.writeln('  (auto-disabled mutually exclusive $otherId)');
       }
     }
@@ -72,7 +65,8 @@ Future<int> cmdEnable(InjectorRepo repo, String id) async {
   await runPubGet(repo);
   stdout.writeln('\n✓ ${integration.id} enabled.');
   if (integration.envVars.isNotEmpty) {
-    stdout.writeln('  Build-time variables to provide: ${integration.envVars.join(', ')}');
+    stdout.writeln('  Build-time variables to provide: '
+        '${integration.envVars.join(', ')}');
   }
   if (integration.userSteps.isNotEmpty) {
     stdout.writeln('  Manual steps remaining:');
@@ -84,39 +78,60 @@ Future<int> cmdEnable(InjectorRepo repo, String id) async {
 }
 
 Future<int> cmdDisable(InjectorRepo repo, String id) async {
-  final integration = repo.catalog.byId(id);
-  final authMethodIds = repo.catalog.authMethodIds;
-  if (authMethodIds.contains(id)) {
-    final otherId = authMethodIds.firstWhere((other) => other != id);
-    if (!repo.workspace.enabledFeatures.contains(otherId)) {
-      stderr.writeln('error: cannot disable $id — $otherId is already disabled.');
+  final Integration integration;
+  try {
+    integration = repo.catalog.byId(id);
+  } on ArgumentError catch (e) {
+    stderr.writeln('error: ${e.message}');
+    return 2;
+  }
+
+  if (!repo.isEnabled(integration)) {
+    stdout.writeln('✓ ${integration.id} is already disabled.');
+    return 0;
+  }
+
+  // Auth core invariant: at least one sign-in method must stay enabled.
+  if (repo.catalog.authMethodIds.contains(id)) {
+    final others = repo.catalog.authMethodIds.where((o) => o != id);
+    final anyOtherEnabled = others.any((o) {
+      final other = repo.catalog.tryById(o);
+      return other != null && repo.isEnabled(other);
+    });
+    if (!anyOtherEnabled) {
+      stderr.writeln('error: cannot disable $id — it is the last enabled '
+          'sign-in method; the app must keep at least one.');
       return 1;
     }
   }
-  
+
+  // Nav methods can only be switched by enabling another (never left with
+  // none), so refuse a direct disable.
   if (repo.catalog.navMethodIds.contains(id)) {
-    stderr.writeln('error: cannot disable a navigation method directly.');
+    stderr.writeln('error: cannot disable a navigation method directly — '
+        'enable a different nav method instead.');
     return 1;
   }
 
   repo.setIntegrationState(integration, enable: false);
   await runPubGet(repo);
-  stdout.writeln('\n✓ ${integration.id} disabled. Code ejected.');
+  stdout.writeln('\n✓ ${integration.id} disabled. Its code stays in the tree '
+      '(commented out / excluded); the vendor SDK is no longer a dependency.');
   return 0;
 }
 
 int cmdStatus(InjectorRepo repo) {
   stdout.writeln('Scaffoldable features:\n');
   for (final integration in repo.catalog.integrations) {
-    final enabled = repo.workspace.enabledFeatures.contains(integration.id);
-    final label = enabled ? 'ENABLED ' : 'disabled';
-    stdout.writeln('  [$label] ${integration.id.padRight(20)} ${integration.summary}');
+    final label = switch (repo.currentState(integration)) {
+      BlockState.enabled => 'ENABLED ',
+      BlockState.disabled => 'disabled',
+      _ => 'DRIFTED ',
+    };
+    stdout.writeln('  [$label] ${integration.id.padRight(20)} '
+        '${integration.summary}');
   }
   return 0;
 }
 
-int cmdDoctor(InjectorRepo repo) {
-  // Simplified doctor for now
-  stdout.writeln('doctor: OK');
-  return 0;
-}
+int cmdDoctor(InjectorRepo repo) => runDoctor(repo);

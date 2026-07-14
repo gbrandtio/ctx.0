@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'catalog.dart';
 import 'commands.dart';
-import 'injector.dart';
 
 const cliVersion = '0.1.0';
 
@@ -83,7 +81,7 @@ Future<int> createApp({
         pathDep, 'ctx0_mobile_security:\n    path: $local');
   } else {
     pubspecText = pubspecText.replaceFirst(
-        pathDep, 'ctx0_mobile_security: ^0.1.0');
+        pathDep, 'ctx0_mobile_security: ^0.2.0');
   }
   pubspec.writeAsStringSync(pubspecText);
 
@@ -101,11 +99,20 @@ Future<int> createApp({
         'signatureHeader': 'X-$pascal-Signature',
       })}\n');
 
-  // ---- Requested integrations ----
+  // ---- Seed workspace state from the template's actual marker state, then
+  // apply the requested integrations (comment-toggle, same engine as the
+  // fallback) so `ctx0 status`/`disable` tell the truth on a fresh app. ----
   final repo = await openRepo(outDir);
+  repo.syncEnabledFromMarkers();
   for (final id in withIntegrations) {
-    final integration = repo.catalog.byId(id);
-    repo.setIntegrationState(integration, enable: true);
+    final integration = repo.catalog.tryById(id);
+    if (integration == null) {
+      stderr.writeln('  warning: unknown integration "$id" — skipped.');
+      continue;
+    }
+    if (!repo.isEnabled(integration)) {
+      repo.setIntegrationState(integration, enable: true);
+    }
     stdout.writeln('  enabled ${integration.id}');
   }
 
@@ -119,7 +126,8 @@ Next steps:
   5. The signing headers are X-$pascal-* — configure the API side's
      Security:Ale:DeviceIdHeader / SignatureHeader to match.''');
   final userSteps = [
-    for (final id in withIntegrations) ...repo.catalog.byId(id).userSteps,
+    for (final id in withIntegrations)
+      ...?repo.catalog.tryById(id)?.userSteps,
   ];
   if (userSteps.isNotEmpty) {
     stdout.writeln('\nManual steps for the enabled integrations:');
@@ -140,24 +148,28 @@ String? _envTemplate(String kind) {
 }
 
 Future<Directory?> resolveTemplateDir(String kind, String? flagValue) async {
-  final candidates = <String>[
-    ?flagValue,
-    ?_envTemplate(kind),
-  ];
+  // Repo layout relative to this script: packages/ctx0_cli/bin/ctx.dart.
+  // Preferred over the embedded payload when running from a ctx.0 checkout,
+  // so a stale packed payload can never silently shadow the live templates.
+  final script = File.fromUri(Platform.script);
+  final repoTemplate = '${script.parent.parent.parent.parent.path}/templates/$kind';
   // Embedded payload of the installed CLI package (packed at publish by
   // tool/pack_templates.dart).
+  String? embedded;
   final packageRoot =
       await Isolate.resolvePackageUri(Uri.parse('package:ctx0_cli/'));
   if (packageRoot != null) {
-    candidates.add(
-        '${Directory.fromUri(packageRoot).parent.path}/templates/$kind');
+    embedded = '${Directory.fromUri(packageRoot).parent.path}/templates/$kind';
   }
-  // Repo layout relative to this script: packages/ctx0_cli/bin/ctx.dart.
-  final script = File.fromUri(Platform.script);
-  final repoRoot = script.parent.parent.parent.parent;
-  candidates.add('${repoRoot.path}/templates/$kind');
+  final candidates = <String>[
+    ?flagValue,
+    ?_envTemplate(kind),
+    repoTemplate,
+    ?embedded,
+  ];
   for (final path in candidates) {
     if (Directory('$path/.ctx').existsSync()) {
+      stdout.writeln('Using $kind template: $path');
       return Directory(path);
     }
   }
@@ -246,7 +258,7 @@ Future<int> createApi({
         projectRef,
         (m) => localPackages
             ? '<ProjectReference Include="$packagesDir/${m[1]}/${m[1]}.csproj" />'
-            : '<PackageReference Include="${m[1]}" Version="0.1.0" />');
+            : '<PackageReference Include="${m[1]}" Version="0.2.0" />');
     entity.writeAsStringSync(text);
   }
 
@@ -287,13 +299,15 @@ Future<int> createApi({
         'signatureHeader': 'X-$pascal-Signature',
       })}\n');
 
-  // ---- Requested integrations (the API catalog ships everything
-  // enabled; --with ids are re-enabled idempotently so a workspace can
-  // pass one list to both sides) ----
+  // ---- Seed workspace state from marker state, then apply --with ids
+  // idempotently (unknown ids are silently ignored so a workspace can pass
+  // one list to both sides). ----
   final repo = await openRepo(outDir);
+  repo.syncEnabledFromMarkers();
   for (final id in withIntegrations) {
-    if (repo.catalog.integrations.any((i) => i.id == id)) {
-      repo.setIntegrationState(repo.catalog.byId(id), enable: true);
+    final integration = repo.catalog.tryById(id);
+    if (integration != null && !repo.isEnabled(integration)) {
+      repo.setIntegrationState(integration, enable: true);
     }
   }
 
