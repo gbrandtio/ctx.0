@@ -47,6 +47,9 @@ void main() {
     when(() => secureStorage.deleteTokens()).thenAnswer((_) async {});
     when(() => secureStorage.clearAll()).thenAnswer((_) async {});
     when(() => prefs.clear()).thenAnswer((_) async {});
+    // No GDPR banner choice recorded by default → no consent replay on login.
+    when(() => prefs.hasSeenGdprBanner).thenReturn(false);
+    when(() => prefs.trackingConsentGranted).thenReturn(false);
     when(() => cachingClient.clearCache()).thenAnswer((_) async {});
     when(() => cachingClient.invalidatePattern(any())).thenAnswer((_) async {});
     repository = AuthRepository(
@@ -77,6 +80,24 @@ void main() {
       ),
     ).called(1);
   });
+
+  test(
+    'replays a pending GDPR consent choice to the API on login (M3)',
+    () async {
+      when(() => userApi.login(any(), any())).thenAnswer((_) async => _session);
+      // The user accepted tracking in the pre-login banner; the server row
+      // still has no consent, so login must push the local choice.
+      when(() => prefs.hasSeenGdprBanner).thenReturn(true);
+      when(() => prefs.trackingConsentGranted).thenReturn(true);
+      when(
+        () => userApi.updateUser(any(), hasTrackingConsent: any(named: 'hasTrackingConsent')),
+      ).thenAnswer((_) async => _user);
+
+      await repository.login('a@b.com', 'pw');
+
+      verify(() => userApi.updateUser('u1', hasTrackingConsent: true)).called(1);
+    },
+  );
 
   test(
     'login failure returns Failure and stays unauthenticated-safe',

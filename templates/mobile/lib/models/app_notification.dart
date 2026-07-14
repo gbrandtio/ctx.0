@@ -15,7 +15,7 @@ class AppNotification extends Equatable {
 
   factory AppNotification.fromJson(Map<String, dynamic> json) {
     return AppNotification(
-      id: json['id'] as String,
+      id: json['id'].toString(), // API serializes bigint ids as JSON numbers
       type: json['type'] as String,
       title: json['title'] as String,
       body: json['body'] as String? ?? '',

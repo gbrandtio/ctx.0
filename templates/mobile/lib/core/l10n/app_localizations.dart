@@ -389,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @exportRequested.
   ///
   /// In en, this message translates to:
-  /// **'Export requested — you will be notified when it is ready'**
+  /// **'Export requested'**
   String get exportRequested;
 
   /// No description provided for @privacyPolicy.

@@ -195,6 +195,7 @@
       "markedFiles": [
         "pubspec.yaml",
         "lib/app/modules.dart",
+        "lib/features/onboarding/views/onboarding_screen.dart",
         "android/app/src/main/AndroidManifest.xml",
         "ios/Runner/AppDelegate.swift",
         "ios/Runner/Info.plist"
@@ -219,6 +220,7 @@
       "markedFiles": [
         "pubspec.yaml",
         "lib/app/modules.dart",
+        "lib/features/onboarding/views/onboarding_screen.dart",
         "android/app/src/main/AndroidManifest.xml"
       ],
       "sourceDirs": [
@@ -264,6 +266,7 @@
       "markedFiles": [
         "pubspec.yaml",
         "lib/app/modules.dart",
+        "lib/features/onboarding/views/onboarding_screen.dart",
         "ios/Runner/Info.plist",
         "android/app/src/main/AndroidManifest.xml"
       ],

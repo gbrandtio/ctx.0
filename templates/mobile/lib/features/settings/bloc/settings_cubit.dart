@@ -52,7 +52,8 @@ class SettingsCubit extends Cubit<SettingsState> {
     }
   }
 
-  /// Server-side export request; delivery is notified via push.
+  /// Server-side export request. The API records the request only — the
+  /// template ships no fulfillment yet (see RequestUserExport on the API).
   Future<void> requestDataExport() async {
     if (state is SettingsWorking) return;
     emit(const SettingsWorking());

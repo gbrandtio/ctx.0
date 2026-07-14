@@ -157,8 +157,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get exportMyData => 'Export my data';
 
   @override
-  String get exportRequested =>
-      'Export requested — you will be notified when it is ready';
+  String get exportRequested => 'Export requested';
 
   @override
   String get privacyPolicy => 'Privacy policy';

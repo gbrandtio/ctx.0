@@ -15,7 +15,7 @@ class Item extends Equatable {
 
   factory Item.fromJson(Map<String, dynamic> json) {
     return Item(
-      id: json['id'] as String,
+      id: json['id'].toString(), // API serializes bigint ids as JSON numbers
       name: json['name'] as String,
       description: json['description'] as String?,
       latitude: (json['latitude'] as num).toDouble(),

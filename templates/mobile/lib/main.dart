@@ -59,22 +59,31 @@ Future<void> main() async {
     cacheService: cacheService,
     onSessionExpired: () => authRepository.onSessionExpired(),
   );
+
+  // Every outbound request must carry the client-version header and observe
+  // a 426, including auth traffic (login/signup/refresh/logout) — otherwise
+  // an armed server-side version gate rejects auth with no upgrade prompt.
+  // The wrapper is applied to BOTH the auth client and the module client so
+  // no request bypasses the gate (docs/INTEGRATIONS.md app_updates).
+  http.Client authClient = apiFactory.client;
+  http.Client apiClient = apiFactory.cachingClient;
+  // ctx:app_updates:begin
+  final packageInfo = await PackageInfo.fromPlatform();
+  http.Client wrapVersion(http.Client inner) => VersionCheckClient(
+        inner: inner,
+        clientVersion: packageInfo.version,
+        onUpgradeRequired: () => updateRequiredNotifier.value = true,
+      );
+  authClient = wrapVersion(authClient);
+  apiClient = wrapVersion(apiClient);
+  // ctx:app_updates:end
+
   authRepository = AuthRepository(
-    userApi: UserApiService(apiFactory.client),
+    userApi: UserApiService(authClient),
     secureStorage: secureStorage,
     prefs: prefs,
     cachingClient: apiFactory.cachingClient,
   );
-
-  http.Client apiClient = apiFactory.cachingClient;
-  // ctx:app_updates:begin
-  final packageInfo = await PackageInfo.fromPlatform();
-  apiClient = VersionCheckClient(
-    inner: apiClient,
-    clientVersion: packageInfo.version,
-    onUpgradeRequired: () => updateRequiredNotifier.value = true,
-  );
-  // ctx:app_updates:end
 
   // Don't block the first frame: the router holds on /splash until the
   // restore settles (AuthUnknown → Authenticated/Unauthenticated).

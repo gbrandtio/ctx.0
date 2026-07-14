@@ -160,8 +160,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get exportMyData => 'Exportar mis datos';
 
   @override
-  String get exportRequested =>
-      'Exportación solicitada — te avisaremos cuando esté lista';
+  String get exportRequested => 'Exportación solicitada';
 
   @override
   String get privacyPolicy => 'Política de privacidad';

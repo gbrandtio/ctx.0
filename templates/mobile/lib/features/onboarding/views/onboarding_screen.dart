@@ -1,7 +1,6 @@
 // ctx:ux_onboarding:begin
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// ignore: unused_import
 import 'package:permission_handler/permission_handler.dart';
 
 import '../bloc/onboarding_cubit.dart';
@@ -42,13 +41,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final slides = <Widget>[
       _WelcomeSlide(onNext: _nextPage),
       // ctx:maps_google:begin
-      // ctx:off       _LocationSlide(onNext: _nextPage),
+      _LocationSlide(onNext: _nextPage),
       // ctx:maps_google:end
       // ctx:image_capture:begin
-      // ctx:off       _CameraSlide(onNext: _nextPage),
+      _CameraSlide(onNext: _nextPage),
       // ctx:image_capture:end
       // ctx:push_firebase:begin
-      // ctx:off       _PushSlide(onNext: _nextPage),
+      _PushSlide(onNext: _nextPage),
       // ctx:push_firebase:end
       _FinalSlide(
         onComplete: () => context.read<OnboardingCubit>().completeOnboarding(),
@@ -120,72 +119,72 @@ class _WelcomeSlide extends StatelessWidget {
 }
 
 // ctx:maps_google:begin
-// ctx:off class _LocationSlide extends StatelessWidget {
-// ctx:off   const _LocationSlide({required this.onNext});
-// ctx:off
-// ctx:off   final VoidCallback onNext;
-// ctx:off
-// ctx:off   @override
-// ctx:off   Widget build(BuildContext context) {
-// ctx:off     return _BaseSlide(
-// ctx:off       icon: Icons.location_on_rounded,
-// ctx:off       title: 'Enable Location',
-// ctx:off       description:
-// ctx:off           'We use your location to show relevant content around you. You can change this later.',
-// ctx:off       buttonText: 'Grant Permission',
-// ctx:off       onButtonPressed: () async {
-// ctx:off         await Permission.location.request();
-// ctx:off         onNext();
-// ctx:off       },
-// ctx:off     );
-// ctx:off   }
-// ctx:off }
+class _LocationSlide extends StatelessWidget {
+  const _LocationSlide({required this.onNext});
+
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return _BaseSlide(
+      icon: Icons.location_on_rounded,
+      title: 'Enable Location',
+      description:
+          'We use your location to show relevant content around you. You can change this later.',
+      buttonText: 'Grant Permission',
+      onButtonPressed: () async {
+        await Permission.location.request();
+        onNext();
+      },
+    );
+  }
+}
 // ctx:maps_google:end
 
 // ctx:image_capture:begin
-// ctx:off class _CameraSlide extends StatelessWidget {
-// ctx:off   const _CameraSlide({required this.onNext});
-// ctx:off
-// ctx:off   final VoidCallback onNext;
-// ctx:off
-// ctx:off   @override
-// ctx:off   Widget build(BuildContext context) {
-// ctx:off     return _BaseSlide(
-// ctx:off       icon: Icons.camera_alt_rounded,
-// ctx:off       title: 'Enable Camera',
-// ctx:off       description:
-// ctx:off           'Capture moments and upload photos directly. We need camera access to do this.',
-// ctx:off       buttonText: 'Grant Permission',
-// ctx:off       onButtonPressed: () async {
-// ctx:off         await Permission.camera.request();
-// ctx:off         onNext();
-// ctx:off       },
-// ctx:off     );
-// ctx:off   }
-// ctx:off }
+class _CameraSlide extends StatelessWidget {
+  const _CameraSlide({required this.onNext});
+
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return _BaseSlide(
+      icon: Icons.camera_alt_rounded,
+      title: 'Enable Camera',
+      description:
+          'Capture moments and upload photos directly. We need camera access to do this.',
+      buttonText: 'Grant Permission',
+      onButtonPressed: () async {
+        await Permission.camera.request();
+        onNext();
+      },
+    );
+  }
+}
 // ctx:image_capture:end
 
 // ctx:push_firebase:begin
-// ctx:off class _PushSlide extends StatelessWidget {
-// ctx:off   const _PushSlide({required this.onNext});
-// ctx:off
-// ctx:off   final VoidCallback onNext;
-// ctx:off
-// ctx:off   @override
-// ctx:off   Widget build(BuildContext context) {
-// ctx:off     return _BaseSlide(
-// ctx:off       icon: Icons.notifications_active_rounded,
-// ctx:off       title: 'Stay Notified',
-// ctx:off       description:
-// ctx:off           'Get push notifications for important updates. Don\'t miss out!',
-// ctx:off       buttonText: 'Grant Permission',
-// ctx:off       onButtonPressed: () async {
-// ctx:off         await Permission.notification.request();
-// ctx:off         onNext();
-// ctx:off       },
-// ctx:off     );
-// ctx:off   }
-// ctx:off }
+class _PushSlide extends StatelessWidget {
+  const _PushSlide({required this.onNext});
+
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    return _BaseSlide(
+      icon: Icons.notifications_active_rounded,
+      title: 'Stay Notified',
+      description:
+          'Get push notifications for important updates. Don\'t miss out!',
+      buttonText: 'Grant Permission',
+      onButtonPressed: () async {
+        await Permission.notification.request();
+        onNext();
+      },
+    );
+  }
+}
 // ctx:push_firebase:end
 
 class _FinalSlide extends StatelessWidget {

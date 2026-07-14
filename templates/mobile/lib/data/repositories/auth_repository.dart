@@ -104,6 +104,7 @@ class AuthRepository {
     try {
       final user = await _userApi.getUser(userId, forceRefresh: true);
       _emit(Authenticated(user));
+      await _syncTrackingConsent(user);
     } on Exception {
       // Expired/invalid session or offline: the AuthRefreshClient will
       // have purged tokens if the refresh was rejected.
@@ -224,7 +225,10 @@ class AuthRepository {
     return const Result.success(null);
   }
 
-  /// GDPR data export request; delivery is notified via push.
+  /// GDPR data export request. NOTE: the API records the request but the
+  /// template ships no fulfillment (no worker/download) — see
+  /// RequestUserExport on the API side. Don't promise the user delivery
+  /// until you implement it.
   Future<Result<void>> requestDataExport() async {
     final current = _current;
     if (current is! Authenticated) {
@@ -264,9 +268,26 @@ class AuthRepository {
       );
       await _secureStorage.writeUserId(session.user.id);
       _emit(Authenticated(session.user));
+      await _syncTrackingConsent(session.user);
       return Result.success(session);
     } on Exception catch (e) {
       return Result.failure(e);
+    }
+  }
+
+  /// Replays a tracking-consent choice the user made in the GDPR banner
+  /// (which is shown pre-login, so the write could not reach the API then)
+  /// once a session exists and the server value disagrees. Best-effort: a
+  /// failure is retried on the next authenticated session (M3).
+  Future<void> _syncTrackingConsent(User user) async {
+    if (!_prefs.hasSeenGdprBanner) return; // no explicit choice recorded yet
+    final local = _prefs.trackingConsentGranted;
+    if (user.hasTrackingConsent == local) return; // already in sync
+    try {
+      await _userApi.updateUser(user.id, hasTrackingConsent: local);
+      await _cachingClient.invalidatePattern('/users/');
+    } on Exception {
+      // Server unreachable or rejected — the next login/restore retries.
     }
   }
 
@@ -278,6 +299,7 @@ class AuthRepository {
     );
     await _secureStorage.writeUserId(session.user.id);
     _emit(Authenticated(session.user));
+    await _syncTrackingConsent(session.user);
   }
 // ctx:auth_2fa_email:end
 
