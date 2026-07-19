@@ -5,7 +5,8 @@ import { loadCatalog, resolveFeatureOrder, type CatalogEntry } from './catalog.j
 import { applyWiring, copyTree, hashTree } from './overlay.js';
 import { scaffoldFlutterPlatforms } from './flutter.js';
 import { writeManifest } from './manifest.js';
-import { cliVersion } from './version.js';
+import { coreVersion } from './version.js';
+import { composeAgentsDoc, readAgentsFragment, type AgentsFragment } from './agents.js';
 import type {
   AppliedFeature,
   FeatureManifest,
@@ -27,6 +28,19 @@ export interface CreateOptions {
    * Left false by callers (e.g. unit tests) that need a deterministic, offline run.
    */
   scaffoldPlatforms?: boolean;
+  /**
+   * Version string to stamp into the workspace manifest as `ctx0Version`. A
+   * frontend passes its own tool version (e.g. the `ctx0` CLI version) so the
+   * manifest records the tool that generated the workspace. Defaults to the
+   * `@ctx0/core` engine version when omitted.
+   */
+  toolVersion?: string;
+  /**
+   * Explicit template-tree root. Frontends that bundle templates (a published
+   * CLI/MCP/portal) pass the path to their bundled `templates/` dir. Omitted in
+   * monorepo/dev runs, where the root is auto-detected.
+   */
+  templatesRoot?: string;
 }
 
 export interface CreateResult {
@@ -43,19 +57,20 @@ function sidePrefix(side: Side): string {
 
 /** Create a full workspace: base + security + requested features, all composed. */
 export async function createWorkspace(opts: CreateOptions): Promise<CreateResult> {
-  const layout = templateLayout();
+  const layout = templateLayout(opts.templatesRoot);
   const { targetDir, vars } = opts;
 
   await assertEmptyTarget(targetDir);
   await fs.ensureDir(targetDir);
 
-  const catalog = loadCatalog();
+  const catalog = loadCatalog(opts.templatesRoot);
   const order = resolveFeatureOrder(opts.features, catalog);
 
   const applied: AppliedFeature[] = [];
   const pendingWiring: WiringEdit[] = [];
   const env = new Set<string>();
   const userSteps: string[] = [];
+  const agentsFragments: AgentsFragment[] = [];
 
   const collectManifestExtras = (m: FeatureManifest | undefined) => {
     if (!m) return;
@@ -93,6 +108,11 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
       applied.push(await applyLayer(`${id}:${side}`, srcDir, targetDir, sidePrefix(side), vars));
     }
     collectManifestExtras(entry.manifest);
+    agentsFragments.push({
+      id,
+      summary: entry.manifest.summary,
+      body: await readFeatureAgents(entry, vars),
+    });
   }
 
   // 3. Apply wiring now that every base/overlay file exists (anchors present).
@@ -101,9 +121,14 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   // 4. Sync the shared wire-protocol spec + golden vectors into the workspace.
   await syncProtocol(targetDir, layout.protocol);
 
+  // 5. Assemble the workspace AGENTS.md from its static preamble plus a generated
+  //    section per enabled feature (in application order). The file is derived,
+  //    so enabling/disabling a feature regenerates the block deterministically.
+  await composeWorkspaceAgents(targetDir, agentsFragments);
+
   const manifest: WorkspaceManifest = {
     schema: 1,
-    ctx0Version: cliVersion(),
+    ctx0Version: opts.toolVersion ?? coreVersion(),
     protocolVersion: readProtocolVersion(layout.protocol),
     vars,
     features: applied,
@@ -127,6 +152,37 @@ async function applyLayer(
   const files = await copyTree(srcDir, workspaceRoot, destPrefix, vars);
   const hash = await hashTree(srcDir);
   return { id, files, hash };
+}
+
+/**
+ * Read a feature's `agents.md` fragment from whichever of its side overlays ship
+ * one (mobile first, then api), concatenated. A feature usually contributes a
+ * single fragment; a two-sided feature may contribute one per side.
+ */
+async function readFeatureAgents(entry: CatalogEntry, vars: TemplateVars): Promise<string> {
+  const parts: string[] = [];
+  for (const side of ['mobile', 'api'] as const) {
+    const dir = entry.dirs[side];
+    if (!dir) continue;
+    const fragment = await readAgentsFragment(dir, vars);
+    if (fragment) parts.push(fragment);
+  }
+  return parts.join('\n\n');
+}
+
+/**
+ * Rewrite the workspace root AGENTS.md as its static preamble plus a generated
+ * block documenting the enabled features. The preamble is the AGENTS.md already
+ * copied from the workspace template (token-substituted); when the workspace
+ * template ships none, the composed block stands on its own.
+ */
+async function composeWorkspaceAgents(
+  workspaceRoot: string,
+  fragments: AgentsFragment[],
+): Promise<void> {
+  const target = path.join(workspaceRoot, 'AGENTS.md');
+  const preamble = (await fs.pathExists(target)) ? await fs.readFile(target, 'utf8') : '';
+  await fs.writeFile(target, composeAgentsDoc(preamble, fragments), 'utf8');
 }
 
 /** Copy the wire-protocol vectors + spec into the workspace's .ctx directory. */

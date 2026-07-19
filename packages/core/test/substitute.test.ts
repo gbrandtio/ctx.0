@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pascalCase, resolveVars, slugify, substitute } from '../src/engine/substitute.js';
+import { pascalCase, resolveVars, slugify, substitute } from '../src/substitute.js';
 
 describe('slugify / pascalCase', () => {
   it('normalizes names to a snake slug', () => {

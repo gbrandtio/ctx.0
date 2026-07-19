@@ -1,34 +1,32 @@
 {
-  "name": "ctx0",
+  "name": "@ctx0/core",
   "version": "0.1.0",
-  "description": "ctx.0 CLI — scaffold a secure Flutter app + .NET API",
+  "description": "ctx.0 composition engine — the CLI-free scaffolder core (shared by the ctx0 CLI, ctx.0-MCP, and ctx.0-portal)",
   "type": "module",
-  "bin": {
-    "ctx0": "dist/index.js"
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "files": [
-    "dist",
-    "templates"
+    "dist"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "tsx src/index.ts",
-    "test": "vitest run --passWithNoTests",
+    "dev": "tsc -w -p tsconfig.json",
+    "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ctx0/core": "^0.1.0",
-    "commander": "^12.1.0",
-    "fs-extra": "^11.2.0",
-    "picocolors": "^1.1.0",
-    "prompts": "^2.4.2"
+    "fs-extra": "^11.2.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.7.0",
-    "@types/prompts": "^2.4.9",
-    "tsx": "^4.19.0",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
   },

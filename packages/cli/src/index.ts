@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import pc from 'picocolors';
-import { cliVersion } from './engine/version.js';
+import { cliVersion } from './version.js';
 import { runCreate } from './commands/create.js';
 import { runStatus } from './commands/status.js';
 import { runKeygen } from './commands/keygen.js';

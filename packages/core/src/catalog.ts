@@ -16,8 +16,8 @@ export interface CatalogEntry {
  * both sides, or present on either) is the source of truth. The two always-on
  * "features" (base, security) are not part of the toggleable catalog.
  */
-export function loadCatalog(): Map<string, CatalogEntry> {
-  const layout = templateLayout();
+export function loadCatalog(explicitRoot?: string): Map<string, CatalogEntry> {
+  const layout = templateLayout(explicitRoot);
   const entries = new Map<string, CatalogEntry>();
 
   const scan = (featuresRoot: string, side: Side) => {

@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import os from 'node:os';
 import path from 'node:path';
 import fs from 'fs-extra';
-import { createWorkspace } from '../src/engine/compose.js';
-import { resolveVars } from '../src/engine/substitute.js';
-import { loadCatalog, resolveFeatureOrder } from '../src/engine/catalog.js';
+import { createWorkspace } from '../src/compose.js';
+import { resolveVars } from '../src/substitute.js';
+import { loadCatalog, resolveFeatureOrder } from '../src/catalog.js';
 
 let tmp: string;
 
@@ -81,6 +81,36 @@ describe('createWorkspace', () => {
     );
     expect(dbContext).toContain('RefreshTokenConfiguration');
     expect(dbContext).toContain('UserCredentialConfiguration');
+  });
+
+  it('composes AGENTS.md from the preamble plus per-feature fragments', async () => {
+    const { targetDir } = await generate(['ping', 'auth', 'notes']);
+    const agents = await fs.readFile(path.join(targetDir, 'AGENTS.md'), 'utf8');
+
+    // Preamble (from the workspace template) is preserved and substituted.
+    expect(agents).toContain('# AGENTS.md — Acme');
+    // Generated block with a section per enabled feature, in order.
+    expect(agents).toContain('<!-- ctx:agents:features:start -->');
+    expect(agents).toContain('<!-- ctx:agents:features:end -->');
+    expect(agents).toContain('### ping — ');
+    expect(agents).toContain('### auth — ');
+    expect(agents).toContain('### notes — ');
+    expect(agents.indexOf('### ping')).toBeLessThan(agents.indexOf('### notes'));
+    // auth's mobile + api fragments are merged under the one auth heading.
+    expect(agents).toContain('token_store.dart');
+    expect(agents).toContain('reuse detection');
+
+    // Fragment files are engine metadata: never copied into the workspace tree.
+    const strays: string[] = [];
+    const walk = async (dir: string) => {
+      for (const name of await fs.readdir(dir)) {
+        const abs = path.join(dir, name);
+        if ((await fs.stat(abs)).isDirectory()) await walk(abs);
+        else if (name === 'agents.md') strays.push(abs);
+      }
+    };
+    await walk(targetDir);
+    expect(strays).toEqual([]);
   });
 
   it('syncs the golden vectors into the workspace', async () => {

@@ -5,7 +5,7 @@ import { isProbablyBinary, substitute } from './substitute.js';
 import type { TemplateVars, WiringEdit } from './types.js';
 
 /** Files that are engine metadata and must never be copied into a workspace. */
-const OVERLAY_META = new Set(['feature.json']);
+const OVERLAY_META = new Set(['feature.json', 'agents.md']);
 
 /**
  * Copy an overlay/base source tree into the workspace under `destPrefix`,

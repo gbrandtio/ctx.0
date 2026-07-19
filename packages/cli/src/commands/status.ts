@@ -1,6 +1,5 @@
 import pc from 'picocolors';
-import { loadCatalog } from '../engine/catalog.js';
-import { isWorkspace, readManifest } from '../engine/manifest.js';
+import { loadCatalog, isWorkspace, readManifest } from '@ctx0/core';
 
 /**
  * `ctx0 status` — outside a workspace, list the toggleable feature catalog;

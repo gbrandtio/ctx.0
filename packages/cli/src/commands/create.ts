@@ -1,8 +1,8 @@
 import path from 'node:path';
 import fs from 'fs-extra';
 import pc from 'picocolors';
-import { createWorkspace } from '../engine/compose.js';
-import { resolveVars } from '../engine/substitute.js';
+import { createWorkspace, resolveVars } from '@ctx0/core';
+import { cliVersion } from '../version.js';
 
 export interface CreateArgs {
   name: string;
@@ -32,7 +32,13 @@ export async function runCreate(args: CreateArgs): Promise<void> {
     console.log(pc.dim('  Running `flutter create` for the app/ platform scaffolding…'));
   }
 
-  const result = await createWorkspace({ targetDir, vars, features, scaffoldPlatforms });
+  const result = await createWorkspace({
+    targetDir,
+    vars,
+    features,
+    scaffoldPlatforms,
+    toolVersion: cliVersion(),
+  });
 
   console.log(pc.green('✓ Workspace generated.'));
   console.log(`  app/  Flutter (Bloc)   api/  .NET (Clean Architecture)`);
