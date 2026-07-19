@@ -1,0 +1,36 @@
+import pc from 'picocolors';
+import { loadCatalog } from '../engine/catalog.js';
+import { isWorkspace, readManifest } from '../engine/manifest.js';
+
+/**
+ * `ctx0 status` — outside a workspace, list the toggleable feature catalog;
+ * inside a workspace, show which features are enabled.
+ */
+export async function runStatus(): Promise<void> {
+  const cwd = process.cwd();
+  const catalog = loadCatalog();
+
+  if (await isWorkspace(cwd)) {
+    const manifest = await readManifest(cwd);
+    const enabled = new Set(
+      manifest.features
+        .map((f) => f.id.split(':')[0] ?? f.id)
+        .filter((id) => catalog.has(id)),
+    );
+    console.log(pc.bold(`\nWorkspace ${pc.cyan(manifest.vars.appName)} — protocol v${manifest.protocolVersion}\n`));
+    for (const [id, entry] of catalog) {
+      const on = enabled.has(id);
+      const mark = on ? pc.green('●') : pc.dim('○');
+      console.log(`  ${mark} ${id.padEnd(20)} ${pc.dim(entry.manifest.summary)}`);
+    }
+    console.log();
+    return;
+  }
+
+  console.log(pc.bold('\nAvailable features:\n'));
+  for (const [id, entry] of catalog) {
+    const sides = entry.manifest.sides.join('+');
+    console.log(`  ${id.padEnd(20)} ${pc.dim(`[${sides}]`)} ${entry.manifest.summary}`);
+  }
+  console.log(pc.dim('\nRun inside a workspace to see what is enabled.\n'));
+}

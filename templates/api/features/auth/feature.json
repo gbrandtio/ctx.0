@@ -1,0 +1,52 @@
+{
+  "id": "auth",
+  "summary": "Email/password auth: JWT + rotating refresh tokens with reuse detection (API), and a login/session UI (mobile).",
+  "sides": ["mobile", "api"],
+  "providesNavTab": false,
+  "env": [],
+  "userSteps": [
+    "In production, apply the schema with `dotnet ef database update`; in Development the app creates it at startup."
+  ],
+  "wiring": [
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "usings",
+      "insert": "using CtxApp.Api.Endpoints;"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "services",
+      "insert": "builder.Services.AddScoped<CtxApp.Application.Abstractions.IRefreshTokenStore, CtxApp.Infrastructure.Persistence.EfRefreshTokenStore>();\nbuilder.Services.AddScoped<CtxApp.Application.Security.RefreshTokenService>();"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "endpoints",
+      "insert": "app.MapAuthEndpoints();"
+    },
+    {
+      "file": "api/src/Infrastructure/Persistence/CtxAppDbContext.cs",
+      "anchor": "model-config",
+      "insert": "        modelBuilder.ApplyConfiguration(new CtxApp.Infrastructure.Persistence.Configurations.RefreshTokenConfiguration());\n        modelBuilder.ApplyConfiguration(new CtxApp.Infrastructure.Persistence.Configurations.UserCredentialConfiguration());"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import '../features/auth/bloc/auth_cubit.dart';\nimport '../features/auth/data/auth_repository.dart';\nimport '../features/auth/data/token_store.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "providers",
+      "insert": "    BlocProvider<AuthCubit>(create: (_) => AuthCubit(HttpAuthRepository(SecureTokenStore()))..restore()),"
+    },
+    {
+      "file": "app/lib/app/app.dart",
+      "anchor": "app-imports",
+      "insert": "import '../features/auth/views/auth_gate.dart';"
+    },
+    {
+      "file": "app/lib/app/app.dart",
+      "anchor": "home-wrap",
+      "insert": "    home = AuthGate(child: home);"
+    }
+  ]
+}

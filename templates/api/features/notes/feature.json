@@ -1,0 +1,33 @@
+{
+  "id": "notes",
+  "summary": "User notes with envelope-encrypted title/body, blind-index search, and per-user RLS isolation.",
+  "sides": ["api"],
+  "providesNavTab": false,
+  "requires": ["auth"],
+  "env": [],
+  "userSteps": [
+    "In production, apply the schema and RLS with `dotnet ef database update`; in Development the app creates the schema and RLS policies at startup."
+  ],
+  "wiring": [
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "usings",
+      "insert": "using CtxApp.Api.Endpoints;"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "services",
+      "insert": "builder.Services.AddSingleton(new CtxApp.Infrastructure.Security.Rls.RlsPolicy(\"notes\", \"UserId\"));"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "endpoints",
+      "insert": "app.MapNotesEndpoints();"
+    },
+    {
+      "file": "api/src/Infrastructure/Persistence/CtxAppDbContext.cs",
+      "anchor": "model-config",
+      "insert": "        modelBuilder.ApplyConfiguration(new CtxApp.Infrastructure.Persistence.Configurations.NoteConfiguration());"
+    }
+  ]
+}

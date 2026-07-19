@@ -1,0 +1,38 @@
+{
+  "id": "ping",
+  "summary": "Secure echo endpoint: proves the signed + ALE-encrypted round trip end to end.",
+  "sides": ["mobile", "api"],
+  "providesNavTab": true,
+  "wiring": [
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "usings",
+      "insert": "using CtxApp.Api.Endpoints;"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "endpoints",
+      "insert": "app.MapPingEndpoints();"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import '../features/ping/ping_cubit.dart';\nimport '../features/ping/ping_repository.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "providers",
+      "insert": "    BlocProvider<PingCubit>(create: (_) => PingCubit(PingRepository(ctxSecureClient))),"
+    },
+    {
+      "file": "app/lib/app/home_page.dart",
+      "anchor": "home-imports",
+      "insert": "import '../features/ping/views/ping_page.dart';"
+    },
+    {
+      "file": "app/lib/app/home_page.dart",
+      "anchor": "home-tiles",
+      "insert": "      ListTile(title: const Text('Secure ping'), leading: const Icon(Icons.lock), onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PingPage()))),"
+    }
+  ]
+}

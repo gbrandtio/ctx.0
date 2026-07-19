@@ -24,3 +24,14 @@ bin/
 obj/
 *.user
 appsettings.*.local.json
+
+# Node / TypeScript
+node_modules/
+packages/**/dist/
+*.tsbuildinfo
+npm-debug.log*
+.eslintcache
+
+# ctx0 scratch / generated test workspaces
+/.ctx-tmp/
+/tmp-workspace/
