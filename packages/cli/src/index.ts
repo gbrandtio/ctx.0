@@ -21,9 +21,18 @@ create
   .option('-o, --org <org>', 'reverse-DNS organization, e.g. com.acme')
   .option('-d, --dir <dir>', 'parent directory to create the workspace in')
   .option('-f, --features <ids...>', 'feature ids to enable (default: auth)')
-  .action(async (name: string, opts: { org?: string; dir?: string; features?: string[] }) => {
-    await runCreate({ name, org: opts.org, dir: opts.dir, features: opts.features });
-  });
+  .option('--no-platforms', 'skip `flutter create`; generate the ctx.0 source overlay only')
+  .action(
+    async (name: string, opts: { org?: string; dir?: string; features?: string[]; platforms?: boolean }) => {
+      await runCreate({
+        name,
+        org: opts.org,
+        dir: opts.dir,
+        features: opts.features,
+        platforms: opts.platforms,
+      });
+    },
+  );
 
 program
   .command('keygen')

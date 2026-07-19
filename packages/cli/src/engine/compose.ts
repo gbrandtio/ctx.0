@@ -3,6 +3,7 @@ import fs from 'fs-extra';
 import { templateLayout } from './paths.js';
 import { loadCatalog, resolveFeatureOrder, type CatalogEntry } from './catalog.js';
 import { applyWiring, copyTree, hashTree } from './overlay.js';
+import { scaffoldFlutterPlatforms } from './flutter.js';
 import { writeManifest } from './manifest.js';
 import { cliVersion } from './version.js';
 import type {
@@ -20,6 +21,12 @@ export interface CreateOptions {
   vars: TemplateVars;
   /** Toggleable feature ids to enable at create time (ping is the default). */
   features: string[];
+  /**
+   * When true, run `flutter create` to generate the app/ platform scaffolding
+   * before the mobile overlay is applied. Requires the Flutter SDK on PATH.
+   * Left false by callers (e.g. unit tests) that need a deterministic, offline run.
+   */
+  scaffoldPlatforms?: boolean;
 }
 
 export interface CreateResult {
@@ -59,6 +66,13 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
 
   // 1. Always-on layers: workspace root, both bases, both security overlays.
   applied.push(await applyLayer('workspace', layout.workspace, targetDir, '', vars));
+
+  // Generate the Flutter platform scaffolding first so the mobile overlay below
+  // lays ctx.0's lib/, test/ and pubspec.yaml on top of a runnable Flutter project.
+  if (opts.scaffoldPlatforms) {
+    await scaffoldFlutterPlatforms(path.join(targetDir, 'app'), vars);
+  }
+
   applied.push(await applyLayer('app_base', layout.mobileBase, targetDir, 'app', vars));
   applied.push(await applyLayer('api_base', layout.apiBase, targetDir, 'api', vars));
 

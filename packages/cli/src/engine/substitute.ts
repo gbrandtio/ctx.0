@@ -28,7 +28,8 @@ export function resolveVars(appNameInput: string, orgInput?: string): TemplateVa
   }
   const appName = pascalCase(appSlug);
   const org = normalizeOrg(orgInput) ?? `com.${appSlug}`;
-  const bundleId = `${org}.app`;
+  // Native app id follows `flutter create`'s scheme: <org>.<project-name>.
+  const bundleId = `${org}.${appSlug}`;
   return { appName, appSlug, org, bundleId };
 }
 

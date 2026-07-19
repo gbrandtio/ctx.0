@@ -9,6 +9,8 @@ export interface CreateArgs {
   org?: string;
   dir?: string;
   features?: string[];
+  /** Generate the Flutter platform scaffolding via `flutter create` (default true). */
+  platforms?: boolean;
 }
 
 /** Default feature set for `create workspace`: ping + auth + encrypted/RLS notes. */
@@ -25,7 +27,12 @@ export async function runCreate(args: CreateArgs): Promise<void> {
   const features = args.features?.length ? args.features : DEFAULT_FEATURES;
   console.log(`  features : ${pc.dim(features.join(', ') || '(none)')}\n`);
 
-  const result = await createWorkspace({ targetDir, vars, features });
+  const scaffoldPlatforms = args.platforms !== false;
+  if (scaffoldPlatforms) {
+    console.log(pc.dim('  Running `flutter create` for the app/ platform scaffolding…'));
+  }
+
+  const result = await createWorkspace({ targetDir, vars, features, scaffoldPlatforms });
 
   console.log(pc.green('✓ Workspace generated.'));
   console.log(`  app/  Flutter (Bloc)   api/  .NET (Clean Architecture)`);

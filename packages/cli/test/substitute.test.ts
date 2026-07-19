@@ -20,13 +20,13 @@ describe('resolveVars', () => {
     expect(v.appSlug).toBe('acme_app');
     expect(v.appName).toBe('AcmeApp');
     expect(v.org).toBe('com.acme');
-    expect(v.bundleId).toBe('com.acme.app');
+    expect(v.bundleId).toBe('com.acme.acme_app');
   });
 
   it('defaults org from the slug when omitted', () => {
     const v = resolveVars('Acme');
     expect(v.org).toBe('com.acme');
-    expect(v.bundleId).toBe('com.acme.app');
+    expect(v.bundleId).toBe('com.acme.acme');
   });
 
   it('rejects an empty name', () => {
@@ -40,7 +40,7 @@ describe('substitute', () => {
   it('replaces all three tokens', () => {
     expect(substitute('namespace CtxApp.Api;', vars)).toBe('namespace Acme.Api;');
     expect(substitute('name: ctxapp', vars)).toBe('name: acme');
-    expect(substitute('id "com.ctx.app"', vars)).toBe('id "com.acme.app"');
+    expect(substitute('id "com.ctx.app"', vars)).toBe('id "com.acme.acme"');
   });
 
   it('is case-sensitive: ctxapp does not match CtxApp', () => {
@@ -49,6 +49,6 @@ describe('substitute', () => {
   });
 
   it('handles the bundle token before bare tokens', () => {
-    expect(substitute('com.ctx.app / CtxApp / ctxapp', vars)).toBe('com.acme.app / Acme / acme');
+    expect(substitute('com.ctx.app / CtxApp / ctxapp', vars)).toBe('com.acme.acme / Acme / acme');
   });
 });
