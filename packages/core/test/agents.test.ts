@@ -3,6 +3,8 @@ import {
   AGENTS_BLOCK_END,
   AGENTS_BLOCK_START,
   composeAgentsDoc,
+  featureDocPath,
+  renderFeatureDoc,
   type AgentsFragment,
 } from '../src/agents.js';
 
@@ -13,22 +15,33 @@ const frags: AgentsFragment[] = [
   { id: 'auth', summary: 'Login.', body: 'Auth guidance.' },
 ];
 
+describe('featureDocPath', () => {
+  it('maps a feature id to an uppercase doc under docs/features', () => {
+    expect(featureDocPath('auth')).toBe('docs/features/AUTH.md');
+    expect(featureDocPath('payments_stripe')).toBe('docs/features/PAYMENTS_STRIPE.md');
+  });
+});
+
 describe('composeAgentsDoc', () => {
-  it('appends a delimited block after the preamble', () => {
+  it('appends a delimited routing table after the preamble', () => {
     const out = composeAgentsDoc(preamble, frags);
     expect(out).toContain('Static preamble.');
     expect(out).toContain(AGENTS_BLOCK_START);
     expect(out).toContain(AGENTS_BLOCK_END);
-    expect(out).toContain('### ping — Secure echo.');
-    expect(out).toContain('Ping guidance.');
-    expect(out).toContain('### auth — Login.');
+    // Table routes to each feature's dedicated doc rather than inlining the body.
+    expect(out).toContain('| Feature | Docs |');
+    expect(out).toContain('| ping — Secure echo. | `docs/features/PING.md` |');
+    expect(out).toContain('| auth — Login. | `docs/features/AUTH.md` |');
+    expect(out).not.toContain('Ping guidance.');
     // Block comes after the preamble.
     expect(out.indexOf('Static preamble.')).toBeLessThan(out.indexOf(AGENTS_BLOCK_START));
   });
 
   it('preserves feature order', () => {
     const out = composeAgentsDoc(preamble, frags);
-    expect(out.indexOf('### ping')).toBeLessThan(out.indexOf('### auth'));
+    expect(out.indexOf('docs/features/PING.md')).toBeLessThan(
+      out.indexOf('docs/features/AUTH.md'),
+    );
   });
 
   it('is idempotent: regenerating replaces the block in place', () => {
@@ -43,8 +56,8 @@ describe('composeAgentsDoc', () => {
   it('regenerates the block when the feature set changes (disable path)', () => {
     const full = composeAgentsDoc(preamble, frags);
     const reduced = composeAgentsDoc(full, [frags[0]!]);
-    expect(reduced).toContain('### ping');
-    expect(reduced).not.toContain('### auth');
+    expect(reduced).toContain('docs/features/PING.md');
+    expect(reduced).not.toContain('docs/features/AUTH.md');
     expect(reduced.match(new RegExp(AGENTS_BLOCK_START, 'g'))?.length).toBe(1);
   });
 
@@ -57,6 +70,22 @@ describe('composeAgentsDoc', () => {
   it('handles a missing preamble by emitting just the block', () => {
     const out = composeAgentsDoc('', frags);
     expect(out.startsWith(AGENTS_BLOCK_START)).toBe(true);
-    expect(out).toContain('### ping');
+    expect(out).toContain('docs/features/PING.md');
+  });
+});
+
+describe('renderFeatureDoc', () => {
+  it('wraps the fragment body in a titled, do-not-edit doc', () => {
+    const doc = renderFeatureDoc(frags[1]!);
+    expect(doc.startsWith('# auth — Login.')).toBe(true);
+    expect(doc).toContain('do not hand-edit');
+    expect(doc).toContain('Auth guidance.');
+    expect(doc.endsWith('\n')).toBe(true);
+  });
+
+  it('omits the body section when the fragment has none', () => {
+    const doc = renderFeatureDoc({ id: 'bare', summary: 'No body.', body: '   ' });
+    expect(doc).toContain('# bare — No body.');
+    expect(doc).toContain('do not hand-edit');
   });
 });

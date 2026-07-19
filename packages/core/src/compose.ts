@@ -6,7 +6,14 @@ import { applyWiring, copyTree, hashTree } from './overlay.js';
 import { scaffoldFlutterPlatforms } from './flutter.js';
 import { writeManifest } from './manifest.js';
 import { coreVersion } from './version.js';
-import { composeAgentsDoc, readAgentsFragment, type AgentsFragment } from './agents.js';
+import {
+  composeAgentsDoc,
+  featureDocPath,
+  readAgentsFragment,
+  renderFeatureDoc,
+  FEATURE_DOCS_DIR,
+  type AgentsFragment,
+} from './agents.js';
 import type {
   AppliedFeature,
   FeatureManifest,
@@ -122,9 +129,11 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   await syncProtocol(targetDir, layout.protocol);
 
   // 5. Assemble the workspace AGENTS.md from its static preamble plus a generated
-  //    section per enabled feature (in application order). The file is derived,
-  //    so enabling/disabling a feature regenerates the block deterministically.
+  //    table routing to each enabled feature's dedicated doc (in application
+  //    order), and write those docs under docs/features/. Both are derived, so
+  //    enabling/disabling a feature regenerates them deterministically.
   await composeWorkspaceAgents(targetDir, agentsFragments);
+  await writeFeatureDocs(targetDir, agentsFragments);
 
   const manifest: WorkspaceManifest = {
     schema: 1,
@@ -183,6 +192,33 @@ async function composeWorkspaceAgents(
   const target = path.join(workspaceRoot, 'AGENTS.md');
   const preamble = (await fs.pathExists(target)) ? await fs.readFile(target, 'utf8') : '';
   await fs.writeFile(target, composeAgentsDoc(preamble, fragments), 'utf8');
+}
+
+/**
+ * Write each enabled feature's dedicated doc under `docs/features/<ID>.md`, and
+ * prune any stale docs (from features no longer enabled) so a regeneration on
+ * enable/disable stays in sync with the routing table in `AGENTS.md`. The docs are
+ * derived artifacts (not tracked in the manifest); this is the sole mechanism that
+ * adds and removes them. A no-op prune on a fresh create.
+ */
+async function writeFeatureDocs(
+  workspaceRoot: string,
+  fragments: AgentsFragment[],
+): Promise<void> {
+  const docsDir = path.join(workspaceRoot, FEATURE_DOCS_DIR);
+  await fs.ensureDir(docsDir);
+
+  const wanted = new Set(fragments.map((f) => path.basename(featureDocPath(f.id))));
+  for (const name of await fs.readdir(docsDir)) {
+    if (name.endsWith('.md') && !wanted.has(name)) {
+      await fs.remove(path.join(docsDir, name));
+    }
+  }
+
+  for (const fragment of fragments) {
+    const target = path.join(workspaceRoot, featureDocPath(fragment.id));
+    await fs.writeFile(target, renderFeatureDoc(fragment), 'utf8');
+  }
 }
 
 /** Copy the wire-protocol vectors + spec into the workspace's .ctx directory. */

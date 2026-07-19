@@ -83,22 +83,50 @@ describe('createWorkspace', () => {
     expect(dbContext).toContain('UserCredentialConfiguration');
   });
 
-  it('composes AGENTS.md from the preamble plus per-feature fragments', async () => {
+  it('composes AGENTS.md as a router to per-feature docs', async () => {
     const { targetDir } = await generate(['ping', 'auth', 'notes']);
     const agents = await fs.readFile(path.join(targetDir, 'AGENTS.md'), 'utf8');
 
     // Preamble (from the workspace template) is preserved and substituted.
     expect(agents).toContain('# AGENTS.md — Acme');
-    // Generated block with a section per enabled feature, in order.
+    // Generated block is a routing table (one row per enabled feature, in order)
+    // that links to each feature's dedicated doc rather than inlining its body.
     expect(agents).toContain('<!-- ctx:agents:features:start -->');
     expect(agents).toContain('<!-- ctx:agents:features:end -->');
-    expect(agents).toContain('### ping — ');
-    expect(agents).toContain('### auth — ');
-    expect(agents).toContain('### notes — ');
-    expect(agents.indexOf('### ping')).toBeLessThan(agents.indexOf('### notes'));
-    // auth's mobile + api fragments are merged under the one auth heading.
-    expect(agents).toContain('token_store.dart');
-    expect(agents).toContain('reuse detection');
+    expect(agents).toContain('| Feature | Docs |');
+    expect(agents).toContain('`docs/features/PING.md`');
+    expect(agents).toContain('`docs/features/AUTH.md`');
+    expect(agents).toContain('`docs/features/NOTES.md`');
+    expect(agents.indexOf('docs/features/PING.md')).toBeLessThan(
+      agents.indexOf('docs/features/NOTES.md'),
+    );
+    // The deep guidance now lives in the docs, not the root AGENTS.md.
+    expect(agents).not.toContain('token_store.dart');
+  });
+
+  it('writes a dedicated doc per enabled feature and nothing more', async () => {
+    const { targetDir } = await generate(['ping', 'auth', 'notes', 'notifications']);
+    const docsDir = path.join(targetDir, 'docs', 'features');
+
+    const docs = (await fs.readdir(docsDir)).sort();
+    expect(docs).toEqual(['AUTH.md', 'NOTES.md', 'NOTIFICATIONS.md', 'PING.md']);
+
+    // The doc carries the fragment body, incl. auth's merged mobile + api guidance.
+    const authDoc = await fs.readFile(path.join(docsDir, 'AUTH.md'), 'utf8');
+    expect(authDoc.startsWith('# auth — ')).toBe(true);
+    expect(authDoc).toContain('do not hand-edit');
+    expect(authDoc).toContain('token_store.dart');
+    expect(authDoc).toContain('reuse detection');
+
+    // A smaller feature set yields only its docs — no doc for a disabled feature.
+    const smaller = path.join(tmp, 'smaller');
+    await createWorkspace({
+      targetDir: smaller,
+      vars: resolveVars('Acme', 'com.acme'),
+      features: ['ping', 'auth'],
+    });
+    const smallerDocs = (await fs.readdir(path.join(smaller, 'docs', 'features'))).sort();
+    expect(smallerDocs).toEqual(['AUTH.md', 'PING.md']);
 
     // Fragment files are engine metadata: never copied into the workspace tree.
     const strays: string[] = [];
