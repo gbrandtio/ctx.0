@@ -136,6 +136,46 @@ describe('createWorkspace', () => {
     }
   });
 
+  it('scaffolds the notifications feature on both sides with idempotent wiring', async () => {
+    const { targetDir } = await generate(['ping', 'auth', 'notes', 'notifications']);
+
+    // API + mobile source landed under the right trees.
+    expect(await fs.pathExists(
+      path.join(targetDir, 'api', 'src', 'Api', 'Endpoints', 'NotificationsEndpoints.cs'),
+    )).toBe(true);
+    expect(await fs.pathExists(
+      path.join(targetDir, 'api', 'src', 'Domain', 'Notifications', 'Notification.cs'),
+    )).toBe(true);
+    expect(await fs.pathExists(
+      path.join(targetDir, 'app', 'lib', 'features', 'notifications', 'bloc', 'notifications_cubit.dart'),
+    )).toBe(true);
+
+    const program = await fs.readFile(path.join(targetDir, 'api', 'src', 'Api', 'Program.cs'), 'utf8');
+    // Endpoint + services wired exactly once.
+    expect(program.match(/app\.MapNotificationsEndpoints\(\);/g)?.length).toBe(1);
+    expect(program).toContain('builder.Services.AddCtxNotifications(builder.Configuration);');
+    // The shared `using` is not duplicated even though notes + notifications both wire it.
+    expect(program.match(/using Acme\.Api\.Endpoints;/g)?.length).toBe(1);
+
+    // Firebase deps injected into pubspec via the shared anchor.
+    const pubspec = await fs.readFile(path.join(targetDir, 'app', 'pubspec.yaml'), 'utf8');
+    expect(pubspec).toContain('firebase_messaging:');
+
+    // Both entity configurations registered on the DbContext.
+    const dbContext = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Infrastructure', 'Persistence', 'AcmeDbContext.cs'),
+      'utf8',
+    );
+    expect(dbContext).toContain('NotificationConfiguration');
+    expect(dbContext).toContain('DeviceTokenConfiguration');
+
+    // Manifest records both sides.
+    const manifest = await fs.readJson(path.join(targetDir, '.ctx', 'manifest.json'));
+    const ids = manifest.features.map((f: { id: string }) => f.id);
+    expect(ids).toContain('notifications:mobile');
+    expect(ids).toContain('notifications:api');
+  });
+
   it('refuses a non-empty target directory', async () => {
     const { targetDir, vars } = await generate();
     await expect(

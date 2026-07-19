@@ -1,0 +1,74 @@
+{
+  "id": "notifications",
+  "summary": "Per-user in-app notifications (RLS-isolated, envelope-encrypted) with unread badge and mark-read, plus device push via FCM.",
+  "sides": ["mobile", "api"],
+  "providesNavTab": true,
+  "requires": ["auth"],
+  "env": [
+    "Notifications__Fcm__ProjectId — Firebase project id; unset means pushes are logged, not delivered.",
+    "Notifications__Fcm__ServiceAccountJson — service-account key JSON (inline or file path); unset means pushes are logged, not delivered."
+  ],
+  "userSteps": [
+    "Push is optional: with no FCM config the API logs pushes and the app skips device registration — in-app notifications work either way.",
+    "To enable push, create a Firebase project, add the Android/iOS apps, and place google-services.json / GoogleService-Info.plist into the app per the FlutterFire setup.",
+    "Set Notifications__Fcm__ProjectId and Notifications__Fcm__ServiceAccountJson on the API to deliver through FCM.",
+    "In production apply the schema and RLS with `dotnet ef database update`; in Development the app creates them at startup."
+  ],
+  "wiring": [
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "usings",
+      "insert": "using CtxApp.Api.Endpoints;"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "usings",
+      "insert": "using CtxApp.Api.Notifications;"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "services",
+      "insert": "builder.Services.AddCtxNotifications(builder.Configuration);"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "endpoints",
+      "insert": "app.MapNotificationsEndpoints();"
+    },
+    {
+      "file": "api/src/Infrastructure/Persistence/CtxAppDbContext.cs",
+      "anchor": "model-config",
+      "insert": "        modelBuilder.ApplyConfiguration(new CtxApp.Infrastructure.Persistence.Configurations.NotificationConfiguration());\n        modelBuilder.ApplyConfiguration(new CtxApp.Infrastructure.Persistence.Configurations.DeviceTokenConfiguration());"
+    },
+    {
+      "file": "app/pubspec.yaml",
+      "anchor": "pubspec-deps",
+      "insert": "  firebase_core: ^3.6.0\n  firebase_messaging: ^15.1.3"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import '../features/notifications/bloc/notifications_cubit.dart';\nimport '../features/notifications/data/notifications_repository.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import '../features/auth/data/token_store.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "providers",
+      "insert": "    BlocProvider<NotificationsCubit>(create: (_) => NotificationsCubit(HttpNotificationsRepository(SecureTokenStore()))),"
+    },
+    {
+      "file": "app/lib/app/home_page.dart",
+      "anchor": "home-imports",
+      "insert": "import '../features/notifications/views/notifications_page.dart';"
+    },
+    {
+      "file": "app/lib/app/home_page.dart",
+      "anchor": "home-tiles",
+      "insert": "      ListTile(title: const Text('Notifications'), leading: const Icon(Icons.notifications), onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsPage()))),"
+    }
+  ]
+}
