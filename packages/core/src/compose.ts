@@ -3,6 +3,7 @@ import fs from 'fs-extra';
 import { templateLayout } from './paths.js';
 import { loadCatalog, resolveFeatureOrder, type CatalogEntry } from './catalog.js';
 import { applyWiring, copyTree, hashTree } from './overlay.js';
+import { composeShell, navCapable } from './shell.js';
 import { scaffoldFlutterPlatforms } from './flutter.js';
 import { writeManifest } from './manifest.js';
 import { coreVersion } from './version.js';
@@ -17,6 +18,7 @@ import {
 import type {
   AppliedFeature,
   FeatureManifest,
+  LayoutId,
   Side,
   TemplateVars,
   WiringEdit,
@@ -27,8 +29,18 @@ export interface CreateOptions {
   /** Absolute path of the workspace root to create (must be empty or absent). */
   targetDir: string;
   vars: TemplateVars;
-  /** Toggleable feature ids to enable at create time (ping is the default). */
+  /** Toggleable feature ids to enable at create time. */
   features: string[];
+  /**
+   * The mobile-shell layout structure. Defaults to `bottom_nav` when omitted.
+   */
+  layout?: LayoutId;
+  /**
+   * Enabled, nav-capable feature ids to surface as main-navigation tabs, in tab
+   * order. Must be a subset of the enabled features. Defaults to every enabled
+   * nav-capable feature when omitted. An empty array yields a placeholder shell.
+   */
+  tabs?: string[];
   /**
    * When true, run `flutter create` to generate the app/ platform scaffolding
    * before the mobile overlay is applied. Requires the Flutter SDK on PATH.
@@ -125,6 +137,12 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   // 3. Apply wiring now that every base/overlay file exists (anchors present).
   await applyWiring(targetDir, pendingWiring, vars);
 
+  // 3b. Generate the mobile navigation shell from the chosen layout + tabs.
+  const navLayout: LayoutId = opts.layout ?? 'bottom_nav';
+  const tabs = opts.tabs ?? navCapable(catalog, order);
+  assertTabsEnabled(tabs, order);
+  await composeShell(targetDir, navLayout, tabs, catalog, vars, opts.templatesRoot);
+
   // 4. Sync the shared wire-protocol spec + golden vectors into the workspace.
   await syncProtocol(targetDir, layout.protocol);
 
@@ -136,11 +154,12 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   await writeFeatureDocs(targetDir, agentsFragments);
 
   const manifest: WorkspaceManifest = {
-    schema: 1,
+    schema: 2,
     ctx0Version: opts.toolVersion ?? coreVersion(),
     protocolVersion: readProtocolVersion(layout.protocol),
     vars,
     features: applied,
+    navigation: { layout: navLayout, tabs },
   };
   await writeManifest(targetDir, manifest);
 
@@ -245,6 +264,18 @@ function readProtocolVersion(protocolDir: string): string {
     if (j.version) return j.version;
   }
   return '1.0';
+}
+
+/** Every requested nav tab must be one of the features actually enabled. */
+function assertTabsEnabled(tabs: string[], enabled: string[]): void {
+  const enabledSet = new Set(enabled);
+  for (const id of tabs) {
+    if (!enabledSet.has(id)) {
+      throw new Error(
+        `Nav tab "${id}" is not an enabled feature. Enable it (or drop it from --tabs).`,
+      );
+    }
+  }
 }
 
 async function assertEmptyTarget(dir: string): Promise<void> {

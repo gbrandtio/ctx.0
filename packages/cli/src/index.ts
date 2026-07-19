@@ -20,15 +20,29 @@ create
   .description('Create a full workspace (Flutter app + .NET API)')
   .option('-o, --org <org>', 'reverse-DNS organization, e.g. com.acme')
   .option('-d, --dir <dir>', 'parent directory to create the workspace in')
-  .option('-f, --features <ids...>', 'feature ids to enable (default: auth)')
+  .option('-f, --features <ids...>', 'feature ids to enable (skips the interactive picker)')
+  .option('-l, --layout <id>', 'app layout: bottom_nav | nav_rail | drawer | home_list')
+  .option('-t, --tabs <ids...>', 'feature ids to show as main-navigation tabs')
   .option('--no-platforms', 'skip `flutter create`; generate the ctx.0 source overlay only')
   .action(
-    async (name: string, opts: { org?: string; dir?: string; features?: string[]; platforms?: boolean }) => {
+    async (
+      name: string,
+      opts: {
+        org?: string;
+        dir?: string;
+        features?: string[];
+        layout?: string;
+        tabs?: string[];
+        platforms?: boolean;
+      },
+    ) => {
       await runCreate({
         name,
         org: opts.org,
         dir: opts.dir,
         features: opts.features,
+        layout: opts.layout,
+        tabs: opts.tabs,
         platforms: opts.platforms,
       });
     },

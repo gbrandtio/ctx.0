@@ -12,10 +12,13 @@
 // Types (the shared vocabulary: manifests, wiring, vars).
 export type {
   Side,
+  LayoutId,
+  FeatureNav,
   WiringEdit,
   FeatureDeps,
   FeatureManifest,
   AppliedFeature,
+  WorkspaceNavigation,
   WorkspaceManifest,
   TemplateVars,
 } from './types.js';
@@ -23,6 +26,10 @@ export type {
 // Catalog: discovery + dependency resolution.
 export { loadCatalog, resolveFeatureOrder } from './catalog.js';
 export type { CatalogEntry } from './catalog.js';
+
+// Navigation shell: layout catalog + nav-capable feature helper.
+export { LAYOUTS, isLayoutId, navCapable, composeShell, SHELL_REL } from './shell.js';
+export type { LayoutDescriptor } from './shell.js';
 
 // Composition: the top-level create operation and its I/O shapes.
 export { createWorkspace } from './compose.js';

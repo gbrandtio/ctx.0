@@ -1,0 +1,54 @@
+{
+  "id": "profile",
+  "summary": "Editable user account profile (display name, bio, avatar) with envelope-encrypted fields and per-user RLS isolation.",
+  "sides": ["mobile", "api"],
+  "requires": ["auth"],
+  "nav": {
+    "label": "Profile",
+    "icon": "person",
+    "page": "ProfilePage",
+    "import": "../features/profile/views/profile_page.dart"
+  },
+  "env": [],
+  "userSteps": [
+    "In production apply the schema and RLS with `dotnet ef database update`; in Development the app creates them at startup.",
+    "Avatars: enabling the `media` feature alongside `profile` lets the app upload an avatar and store its media id; on its own, profile falls back to a plain avatar URL."
+  ],
+  "wiring": [
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "usings",
+      "insert": "using CtxApp.Api.Endpoints;"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "services",
+      "insert": "builder.Services.AddSingleton(new CtxApp.Infrastructure.Security.Rls.RlsPolicy(\"user_profiles\", \"UserId\"));"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "endpoints",
+      "insert": "app.MapProfileEndpoints();"
+    },
+    {
+      "file": "api/src/Infrastructure/Persistence/CtxAppDbContext.cs",
+      "anchor": "model-config",
+      "insert": "        modelBuilder.ApplyConfiguration(new CtxApp.Infrastructure.Persistence.Configurations.UserProfileConfiguration());"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import '../features/profile/bloc/profile_cubit.dart';\nimport '../features/profile/data/profile_repository.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import '../features/auth/data/token_store.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "providers",
+      "insert": "    BlocProvider<ProfileCubit>(create: (_) => ProfileCubit(HttpProfileRepository(SecureTokenStore()))),"
+    }
+  ]
+}

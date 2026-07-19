@@ -2,8 +2,13 @@
   "id": "notifications",
   "summary": "Per-user in-app notifications (RLS-isolated, envelope-encrypted) with unread badge and mark-read, plus device push via FCM.",
   "sides": ["mobile", "api"],
-  "providesNavTab": true,
   "requires": ["auth"],
+  "nav": {
+    "label": "Notifications",
+    "icon": "notifications",
+    "page": "NotificationsPage",
+    "import": "../features/notifications/views/notifications_page.dart"
+  },
   "env": [
     "Notifications__Fcm__ProjectId — Firebase project id; unset means pushes are logged, not delivered.",
     "Notifications__Fcm__ServiceAccountJson — service-account key JSON (inline or file path); unset means pushes are logged, not delivered."
@@ -59,16 +64,6 @@
       "file": "app/lib/app/di.dart",
       "anchor": "providers",
       "insert": "    BlocProvider<NotificationsCubit>(create: (_) => NotificationsCubit(HttpNotificationsRepository(SecureTokenStore()))),"
-    },
-    {
-      "file": "app/lib/app/home_page.dart",
-      "anchor": "home-imports",
-      "insert": "import '../features/notifications/views/notifications_page.dart';"
-    },
-    {
-      "file": "app/lib/app/home_page.dart",
-      "anchor": "home-tiles",
-      "insert": "      ListTile(title: const Text('Notifications'), leading: const Icon(Icons.notifications), onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const NotificationsPage()))),"
     }
   ]
 }

@@ -34,6 +34,7 @@ export interface TemplateLayout {
   root: string;
   workspace: string;
   mobileBase: string;
+  mobileShells: string;
   apiBase: string;
   securityMobile: string;
   securityApi: string;
@@ -48,6 +49,7 @@ export function templateLayout(explicitRoot?: string): TemplateLayout {
     root,
     workspace: path.join(root, 'workspace'),
     mobileBase: path.join(root, 'mobile', 'base'),
+    mobileShells: path.join(root, 'mobile', 'shells'),
     apiBase: path.join(root, 'api', 'base'),
     securityMobile: path.join(root, 'security', 'mobile'),
     securityApi: path.join(root, 'security', 'api'),

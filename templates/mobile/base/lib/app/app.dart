@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'di.dart';
-import 'home_page.dart';
+import 'shell.dart';
 // ctx:anchor:app-imports
 
 /// Root widget for CtxApp. Feature Blocs are provided via [ctxAppProviders]
@@ -22,10 +22,10 @@ class CtxAppRoot extends StatelessWidget {
     );
   }
 
-  /// The root screen. Feature overlays may wrap it (e.g. an auth gate) by
-  /// inserting below the `home-wrap` anchor.
+  /// The root screen: the generated navigation shell. Feature overlays may wrap
+  /// it (e.g. an auth gate) by inserting below the `home-wrap` anchor.
   Widget _home() {
-    Widget home = const CtxHomePage();
+    Widget home = const CtxShell();
     // ctx:anchor:home-wrap
     return home;
   }

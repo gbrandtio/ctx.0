@@ -150,8 +150,11 @@ describe('createWorkspace', () => {
   it('records applied layers and vars in the manifest', async () => {
     const { targetDir, vars } = await generate();
     const manifest = await fs.readJson(path.join(targetDir, '.ctx', 'manifest.json'));
-    expect(manifest.schema).toBe(1);
+    expect(manifest.schema).toBe(2);
     expect(manifest.vars).toMatchObject(vars);
+    // Navigation is persisted; ping is nav-capable so it defaults to a tab.
+    expect(manifest.navigation.layout).toBe('bottom_nav');
+    expect(manifest.navigation.tabs).toEqual(['ping']);
     const ids = manifest.features.map((f: { id: string }) => f.id);
     expect(ids).toContain('security_mobile');
     expect(ids).toContain('security_api');
@@ -202,6 +205,59 @@ describe('createWorkspace', () => {
     const ids = manifest.features.map((f: { id: string }) => f.id);
     expect(ids).toContain('notifications:mobile');
     expect(ids).toContain('notifications:api');
+  });
+
+  it('generates a bottom-nav shell with a destination + page per tab', async () => {
+    const { targetDir } = await generate(['ping']);
+    const shell = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'shell.dart'), 'utf8');
+    expect(shell).toContain('NavigationBar');
+    expect(shell).toContain("NavigationDestination(icon: Icon(Icons.lock), label: 'Secure ping')");
+    expect(shell).toContain('PingPage()');
+    expect(shell).toContain("import '../features/ping/views/ping_page.dart';");
+    // The base shell no longer ships a static home page.
+    expect(await fs.pathExists(path.join(targetDir, 'app', 'lib', 'app', 'home_page.dart'))).toBe(false);
+    // app.dart renders the generated shell.
+    const app = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'app.dart'), 'utf8');
+    expect(app).toContain('const CtxShell()');
+  });
+
+  it('honours the chosen layout and tab set', async () => {
+    const vars = resolveVars('Acme', 'com.acme');
+    const targetDir = path.join(tmp, 'drawerws');
+    await createWorkspace({
+      targetDir,
+      vars,
+      features: ['ping', 'auth', 'notifications'],
+      layout: 'drawer',
+      tabs: ['notifications'],
+    });
+    const shell = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'shell.dart'), 'utf8');
+    expect(shell).toContain('NavigationDrawer');
+    expect(shell).toContain('NavigationDrawerDestination');
+    expect(shell).toContain('NotificationsPage()');
+    // ping was enabled but not chosen as a tab: it is not in the shell.
+    expect(shell).not.toContain('PingPage');
+    const manifest = await fs.readJson(path.join(targetDir, '.ctx', 'manifest.json'));
+    expect(manifest.navigation).toEqual({ layout: 'drawer', tabs: ['notifications'] });
+  });
+
+  it('renders a placeholder shell when no tabs are selected', async () => {
+    const vars = resolveVars('Acme', 'com.acme');
+    const targetDir = path.join(tmp, 'emptyws');
+    await createWorkspace({ targetDir, vars, features: [], tabs: [] });
+    const shell = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'shell.dart'), 'utf8');
+    expect(shell).toContain('class CtxShell');
+    expect(shell).toContain('placeholder');
+    expect(shell).not.toContain('NavigationBar');
+    expect(shell).not.toContain('../features/');
+  });
+
+  it('rejects a nav tab that is not an enabled feature', async () => {
+    const vars = resolveVars('Acme', 'com.acme');
+    const targetDir = path.join(tmp, 'badtabs');
+    await expect(
+      createWorkspace({ targetDir, vars, features: ['auth'], tabs: ['ping'] }),
+    ).rejects.toThrow(/not an enabled feature/);
   });
 
   it('refuses a non-empty target directory', async () => {

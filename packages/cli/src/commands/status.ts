@@ -17,10 +17,15 @@ export async function runStatus(): Promise<void> {
         .filter((id) => catalog.has(id)),
     );
     console.log(pc.bold(`\nWorkspace ${pc.cyan(manifest.vars.appName)} — protocol v${manifest.protocolVersion}\n`));
+    const tabs = new Set(manifest.navigation?.tabs ?? []);
     for (const [id, entry] of catalog) {
       const on = enabled.has(id);
       const mark = on ? pc.green('●') : pc.dim('○');
-      console.log(`  ${mark} ${id.padEnd(20)} ${pc.dim(entry.manifest.summary)}`);
+      const tab = tabs.has(id) ? pc.cyan(' [tab]') : '';
+      console.log(`  ${mark} ${id.padEnd(20)} ${pc.dim(entry.manifest.summary)}${tab}`);
+    }
+    if (manifest.navigation) {
+      console.log(pc.dim(`\n  layout: ${manifest.navigation.layout}`));
     }
     console.log();
     return;

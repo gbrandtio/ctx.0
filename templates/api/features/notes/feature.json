@@ -2,7 +2,6 @@
   "id": "notes",
   "summary": "User notes with envelope-encrypted title/body, blind-index search, and per-user RLS isolation.",
   "sides": ["api"],
-  "providesNavTab": false,
   "requires": ["auth"],
   "env": [],
   "userSteps": [

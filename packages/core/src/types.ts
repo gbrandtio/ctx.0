@@ -8,6 +8,25 @@
 
 export type Side = 'mobile' | 'api';
 
+/** The main-navigation layout structure chosen for a workspace's mobile shell. */
+export type LayoutId = 'bottom_nav' | 'nav_rail' | 'drawer' | 'home_list';
+
+/**
+ * Declarative navigation metadata for a feature. A feature that declares `nav`
+ * is *nav-capable*: it can be surfaced as a main-navigation tab in the generated
+ * app shell. The engine turns this into the shell's destinations/pages/imports.
+ */
+export interface FeatureNav {
+  /** Tab / tile label, e.g. "Secure ping". */
+  label: string;
+  /** Material icon name (a `Icons.<name>` identifier), e.g. "lock". */
+  icon: string;
+  /** Entry-screen widget class, e.g. "PingPage". */
+  page: string;
+  /** App-relative import for the page widget, e.g. "../features/ping/views/ping_page.dart". */
+  import: string;
+}
+
 /** A single idempotent edit to a shared/base file (e.g. Program.cs, pubspec.yaml). */
 export interface WiringEdit {
   /** Workspace-relative path of the file to edit, e.g. "api/src/Api/Program.cs". */
@@ -42,8 +61,11 @@ export interface FeatureManifest {
   requires?: string[];
   /** True for always-on parts of the workspace (base, security). Cannot be disabled. */
   core?: boolean;
-  /** Whether the feature contributes a bottom-nav / rail tab in the mobile shell. */
-  providesNavTab?: boolean;
+  /**
+   * Navigation metadata. Present iff the feature can be surfaced as a
+   * main-navigation tab in the generated mobile shell (a *nav-capable* feature).
+   */
+  nav?: FeatureNav;
   /** Dependency additions per side. */
   deps?: FeatureDeps;
   /** Idempotent edits to shared files. */
@@ -63,10 +85,21 @@ export interface AppliedFeature {
   hash: string;
 }
 
+/** The navigation choices persisted for a workspace's mobile shell. */
+export interface WorkspaceNavigation {
+  /** The main-navigation layout structure of the generated shell. */
+  layout: LayoutId;
+  /**
+   * Enabled, nav-capable feature ids surfaced as main-navigation tabs, in tab
+   * order. Empty means the shell renders a minimal placeholder screen.
+   */
+  tabs: string[];
+}
+
 /** The `.ctx/manifest.json` persisted at the root of a generated workspace. */
 export interface WorkspaceManifest {
   /** Schema version of the manifest itself. */
-  schema: 1;
+  schema: 2;
   /** CLI version that generated / last modified the workspace. */
   ctx0Version: string;
   /** Wire-protocol version shared by both sides. */
@@ -75,6 +108,8 @@ export interface WorkspaceManifest {
   vars: TemplateVars;
   /** Enabled features in application order (base + security first). */
   features: AppliedFeature[];
+  /** The chosen mobile-shell layout and its main-navigation tabs. */
+  navigation: WorkspaceNavigation;
 }
 
 /** Substitution variables resolved once per workspace. */

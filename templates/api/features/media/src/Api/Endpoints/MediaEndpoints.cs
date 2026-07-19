@@ -1,0 +1,105 @@
+using CtxApp.Application.Media;
+using CtxApp.Domain.Media;
+using CtxApp.Infrastructure.Media;
+using CtxApp.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
+using CtxApp.Application.Abstractions;
+
+namespace CtxApp.Api.Endpoints;
+
+/// <summary>
+/// User file storage: multipart upload, list, authenticated download, and delete.
+/// Metadata rows are RLS-scoped to the authenticated user and file names are
+/// envelope-encrypted; blob bytes live in the <see cref="IBlobStore"/> encrypted
+/// at rest. Requires authentication.
+/// </summary>
+public static class MediaEndpoints
+{
+    public static IEndpointRouteBuilder MapMediaEndpoints(this IEndpointRouteBuilder app)
+    {
+        var group = app.MapGroup("/v1/media").RequireAuthorization();
+
+        group.MapPost("/", async (HttpRequest request, CtxAppDbContext db, ICurrentUser user, IBlobStore blobs, MediaOptions options, CancellationToken ct) =>
+        {
+            if (!request.HasFormContentType)
+            {
+                return Results.BadRequest(new { error = "Expected multipart/form-data." });
+            }
+
+            var form = await request.ReadFormAsync(ct);
+            var file = form.Files.GetFile("file");
+            if (file is null || file.Length == 0)
+            {
+                return Results.BadRequest(new { error = "A non-empty 'file' part is required." });
+            }
+            if (file.Length > options.MaxBytes)
+            {
+                return Results.Json(new { error = $"File exceeds the {options.MaxBytes}-byte limit." }, statusCode: StatusCodes.Status413PayloadTooLarge);
+            }
+
+            var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
+            if (!options.IsAllowed(contentType))
+            {
+                return Results.Json(new { error = $"Content type '{contentType}' is not allowed." }, statusCode: StatusCodes.Status415UnsupportedMediaType);
+            }
+
+            var key = Guid.NewGuid().ToString("n");
+            await using (var upload = file.OpenReadStream())
+            {
+                await blobs.WriteAsync(key, upload, ct);
+            }
+
+            var media = new MediaObject
+            {
+                UserId = user.UserId!.Value,
+                FileName = string.IsNullOrWhiteSpace(file.FileName) ? "file" : Path.GetFileName(file.FileName),
+                ContentType = contentType,
+                SizeBytes = file.Length,
+                StorageKey = key,
+            };
+            db.Set<MediaObject>().Add(media);
+            await db.SaveChangesAsync(ct);
+
+            return Results.Ok(new { media.Id, media.FileName, media.ContentType, media.SizeBytes, media.CreatedAt });
+        });
+
+        group.MapGet("/", async (CtxAppDbContext db) =>
+        {
+            var items = await db.Set<MediaObject>().OrderByDescending(m => m.CreatedAt).ToListAsync();
+            return Results.Ok(new
+            {
+                items = items.Select(m => new { m.Id, m.FileName, m.ContentType, m.SizeBytes, m.CreatedAt }),
+            });
+        });
+
+        group.MapGet("/{id:guid}", async (Guid id, CtxAppDbContext db, IBlobStore blobs, CancellationToken ct) =>
+        {
+            // RLS scopes the lookup to the caller; another user's id resolves to null.
+            var media = await db.Set<MediaObject>().FirstOrDefaultAsync(m => m.Id == id, ct);
+            if (media is null)
+            {
+                return Results.NotFound();
+            }
+            var stream = await blobs.ReadAsync(media.StorageKey, ct);
+            return Results.File(stream, media.ContentType, media.FileName);
+        });
+
+        group.MapDelete("/{id:guid}", async (Guid id, CtxAppDbContext db, IBlobStore blobs, CancellationToken ct) =>
+        {
+            var media = await db.Set<MediaObject>().FirstOrDefaultAsync(m => m.Id == id, ct);
+            if (media is null)
+            {
+                return Results.NotFound();
+            }
+            db.Set<MediaObject>().Remove(media);
+            await db.SaveChangesAsync(ct);
+            await blobs.DeleteAsync(media.StorageKey, ct);
+            return Results.NoContent();
+        });
+
+        return app;
+    }
+}
