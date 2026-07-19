@@ -1,0 +1,20 @@
+{
+  "name": "ctx0-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "ctx.0 — security-first scaffolder for a Flutter app + .NET API",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm run build -w @ctx0/core && npm run build -w @ctx0/engine-server && npm run build -w ctx0",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run build -w @ctx0/core && npm run lint --workspaces --if-present",
+    "ctx0": "node packages/cli/dist/index.js",
+    "ctx0-engine": "node packages/engine-server/dist/index.js"
+  },
+  "license": "MIT"
+}

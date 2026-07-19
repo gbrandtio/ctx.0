@@ -1,0 +1,68 @@
+{
+  "id": "media",
+  "summary": "User file & media storage: multipart upload with envelope-encrypted blobs at rest, per-user RLS isolation, and authenticated download.",
+  "sides": ["mobile", "api"],
+  "requires": ["auth"],
+  "nav": {
+    "label": "Media",
+    "icon": "photo_library",
+    "page": "MediaPage",
+    "import": "../features/media/views/media_page.dart"
+  },
+  "env": [
+    "Media__Root — filesystem directory for stored blobs (default ./_media); blobs are envelope-encrypted at rest.",
+    "Media__MaxBytes — maximum upload size in bytes (default 10485760 = 10 MiB).",
+    "Media__AllowedContentTypes__0, __1, … — optional content-type allowlist; unset means all types are accepted."
+  ],
+  "userSteps": [
+    "The local blob store keeps envelope-encrypted files under Media__Root on the API host; for multi-instance or production deployments, back it with shared or object storage behind the same IBlobStore.",
+    "In production apply the schema and RLS with `dotnet ef database update`; in Development the app creates them at startup."
+  ],
+  "wiring": [
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "usings",
+      "insert": "using CtxApp.Api.Endpoints;"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "usings",
+      "insert": "using CtxApp.Api.Media;"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "services",
+      "insert": "builder.Services.AddCtxMedia(builder.Configuration);"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "endpoints",
+      "insert": "app.MapMediaEndpoints();"
+    },
+    {
+      "file": "api/src/Infrastructure/Persistence/CtxAppDbContext.cs",
+      "anchor": "model-config",
+      "insert": "        modelBuilder.ApplyConfiguration(new CtxApp.Infrastructure.Persistence.Configurations.MediaObjectConfiguration());"
+    },
+    {
+      "file": "app/pubspec.yaml",
+      "anchor": "pubspec-deps",
+      "insert": "  image_picker: ^1.1.2\n  http_parser: ^4.0.2"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import '../features/media/bloc/media_cubit.dart';\nimport '../features/media/data/media_repository.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import '../features/auth/data/token_store.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "providers",
+      "insert": "    BlocProvider<MediaCubit>(create: (_) => MediaCubit(HttpMediaRepository(SecureTokenStore()))),"
+    }
+  ]
+}

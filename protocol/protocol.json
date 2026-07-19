@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "description": "ctx.0 wire protocol: ALE (AES-256-GCM) + ECDSA P-256 request signing. See wire-protocol.md.",
+  "headers": {
+    "protocol": "X-Ctx-Protocol",
+    "signature": "X-Ctx-Signature",
+    "deviceId": "X-Ctx-Device-Id",
+    "timestamp": "X-Ctx-Timestamp"
+  }
+}

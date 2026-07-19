@@ -1,0 +1,25 @@
+{
+  "protocol": "1.0",
+  "ale": {
+    "serverPrivateB64": "xIEQOVggbBoK/bQwTUp/PK373W0DG6HNIBd/S3SFYZA=",
+    "serverPublicB64": "BLAzrxxze545KPEmPghDJJq84BebMNctDAQv/PPV3X+nPwLF+nDxvwWRrY+IzeKMrLJsoDDxGMa/pWJRM23xWQc=",
+    "ephemeralPrivateB64": "pQX2Nz5LyM6TaeeVTwTgpqCwWZX96Oq9K4xFKo+61K0=",
+    "ephemeralPublicB64": "BP6rRw5FD5yUYlxJU/cC2t4TnUqRMkowYPnlPopY88qLTW6qwjLxDW0cTPANonIi/I0OEzSXIoHlQanPfYF5n9Y=",
+    "ivB64": "htvuHwYcJ92IhLi1",
+    "plaintextUtf8": "hello ctx.0",
+    "derivedKeyB64": "TcH2Rggtu+P23W+/91T8R5P5T2KNVqRW6c5a2wKTGNY=",
+    "ciphertextB64": "9ijWotpZrlXnMT4=",
+    "tagB64": "oYVokLYY21q/6uRWloSqpg=="
+  },
+  "signing": {
+    "devicePrivateB64": "EvHJPsSY2GDENo7uojPla3MJc5sz6LzLSaxalslwtFI=",
+    "devicePublicB64": "BKvLCjQdugus5sx8f0Mpju1KUWye9AcQSDl71kaQXY0HLUd4Luop/zOwAJsEkt9dMECiS35PJXEPMoELpPkm73g=",
+    "method": "POST",
+    "path": "/v1/ping",
+    "timestamp": "1730000000000",
+    "bodyUtf8": "{\"Epk\":\"BP6rRw5FD5yUYlxJU/cC2t4TnUqRMkowYPnlPopY88qLTW6qwjLxDW0cTPANonIi/I0OEzSXIoHlQanPfYF5n9Y=\",\"Iv\":\"htvuHwYcJ92IhLi1\",\"Ct\":\"9ijWotpZrlXnMT4=\",\"Tag\":\"oYVokLYY21q/6uRWloSqpg==\"}",
+    "bodySha256Hex": "4e2053fa8b40d3a437e21ea00a4a05e7eb6affd24e5f58eb5705833aac1b7e78",
+    "canonicalString": "POST\n/v1/ping\n1730000000000\n4e2053fa8b40d3a437e21ea00a4a05e7eb6affd24e5f58eb5705833aac1b7e78",
+    "signatureB64": "9Faqrh+EJdyInCl4hdMJ6eSi0jJWt1FaJkef1XTnfH+hCyTUyZjbLp0JnD30lCd0YyY0K7SrUU3VL9QAXJJWNQ=="
+  }
+}

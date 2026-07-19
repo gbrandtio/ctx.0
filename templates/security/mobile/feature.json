@@ -1,0 +1,10 @@
+{
+  "id": "security_mobile",
+  "summary": "Vendored mobile security plane: RASP, ALE, ECDSA request signing, JWT/refresh, secure storage.",
+  "sides": ["mobile"],
+  "core": true,
+  "env": ["CTX_API_BASE_URL"],
+  "userSteps": [
+    "Provide the API base URL at build time: flutter run --dart-define=CTX_API_BASE_URL=https://localhost:5001"
+  ]
+}

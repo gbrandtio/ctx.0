@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16
+    container_name: ctxapp-db
+    environment:
+      POSTGRES_DB: ctxapp
+      POSTGRES_USER: ctxapp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ctxapp-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ctxapp"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  ctxapp-pgdata:
