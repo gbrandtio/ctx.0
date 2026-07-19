@@ -10,10 +10,11 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "npm run build -w @ctx0/core && npm run build -w ctx0",
+    "build": "npm run build -w @ctx0/core && npm run build -w @ctx0/engine-server && npm run build -w ctx0",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run build -w @ctx0/core && npm run lint --workspaces --if-present",
-    "ctx0": "node packages/cli/dist/index.js"
+    "ctx0": "node packages/cli/dist/index.js",
+    "ctx0-engine": "node packages/engine-server/dist/index.js"
   },
   "license": "MIT"
 }

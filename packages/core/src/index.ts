@@ -48,6 +48,13 @@ export {
   TOKENS,
 } from './substitute.js';
 
+// Deterministic ordering (the comparator every derived list is sorted with).
+export { compareUtf8, sortUtf8 } from './order.js';
+
+// Server secret generation (shared by every frontend so the encodings match).
+export { generateServerSecrets } from './secrets.js';
+export type { ServerSecrets } from './secrets.js';
+
 // Template-tree location + layer/wiring primitives (lower-level, for advanced callers).
 export { templateLayout, templatesRoot } from './paths.js';
 export type { TemplateLayout } from './paths.js';
@@ -56,8 +63,9 @@ export { copyTree, hashTree, applyWiring } from './overlay.js';
 // Platform scaffolding adapter (shells out to `flutter create`; opt-in).
 export { scaffoldFlutterPlatforms, ensureFlutterAvailable } from './flutter.js';
 
-// Engine version (stamped into the manifest when a frontend does not supply its own).
-export { coreVersion } from './version.js';
+// Versions: the engine's own (stamped into the manifest when a frontend does not
+// supply its own) and the wire-protocol version of a generated workspace.
+export { coreVersion, protocolVersion } from './version.js';
 
 // Composed AGENTS.md: derive the workspace context doc from per-feature fragments.
 export {

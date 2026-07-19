@@ -29,9 +29,11 @@ This installs and links both workspaces (`@ctx0/core` and `ctx0`).
 packages/
   core/        @ctx0/core — the CLI-free composition engine (the actual scaffolder)
     src/       catalog, compose, overlay, substitute, manifest, flutter, agents, paths…
-    test/      vitest unit tests (compose, substitute, agents)
-  cli/         ctx0 — the command-line frontend that wraps @ctx0/core
-    src/       index.ts (commander setup) + commands/ (create, status, keygen)
+    test/      vitest unit tests (compose, substitute, agents, shell)
+  engine-server/  @ctx0/engine-server — the engine behind the contract
+    src/       contract.ts (the contract) + tools.ts (engine side) + index.ts (JSON-RPC on stdio)
+  cli/         ctx0 — the command-line frontend, a client of the contract
+    src/       index.ts (commander) + engine.ts (contract client) + commands/
 templates/     the template trees the engine composes from
   workspace/   root workspace files (README, etc.)
   mobile/      Flutter: base/ + features/
@@ -41,8 +43,43 @@ protocol/      wire protocol spec + test vectors (protocol.json, vectors.json)
 ```
 
 The important architectural fact: **all scaffolding logic lives in `@ctx0/core`.**
-The `ctx0` CLI is a thin frontend. Other frontends (an MCP server, a portal) are
-intended to reuse the same core, so keep engine logic out of `packages/cli`.
+The `ctx0` CLI and the engine server are thin; keep engine logic out of both.
+
+## The CLI ↔ core contract
+
+The CLI does **not** import `@ctx0/core`. It spawns `ctx0-engine` and talks to it
+over JSON-RPC 2.0 on stdio (framed as MCP, so any language's MCP client can drive
+the engine, and an agent host can too). Everything the two sides share is
+declared in one file:
+
+**`packages/engine-server/src/contract.ts`** — the calls the engine answers
+(`engine.info`, `catalog.list`, `catalog.resolve`, `layouts.list`, `vars.resolve`,
+`workspace.create`, `workspace.status`, `secrets.generate`), their argument and
+result types, and their JSON Schemas. It holds no logic and imports nothing.
+
+- `tools.ts` implements the contract over `@ctx0/core` and validates incoming
+  arguments against the contract's own schemas.
+- `packages/cli/src/engine.ts` consumes it: `Engine.call('vars.resolve', {…})` is
+  typed by the contract, and an engine failure comes back as a thrown `Error`
+  with its message intact.
+
+Because that is the only coupling, either side can be replaced by an
+implementation in another language that honours the same calls — a Go CLI over
+this engine, or a Rust engine under this CLI. **`CONTRACT_VERSION` is bumped
+whenever a call's arguments or result change shape**, and `engine.info` reports
+it so a mismatched pair can be detected.
+
+Anything the CLI needs to know about features, layouts or workspaces comes from a
+call. When you find yourself wanting to reach into the engine from the CLI, add a
+call instead.
+
+```bash
+npm run build
+node packages/engine-server/dist/index.js   # speaks JSON-RPC on stdin/stdout
+```
+
+Build order matters: `core` → `engine-server` → `cli`, since the CLI compiles
+against the contract's generated types. The root `build` script does this.
 
 ## Build
 
@@ -162,9 +199,9 @@ npm run ctx0 -- status
 
 ## Testing
 
-Tests are [Vitest](https://vitest.dev). The real test suite lives in
-`@ctx0/core`; the CLI currently has no unit tests and passes with
-`--passWithNoTests`.
+Tests are [Vitest](https://vitest.dev). The engine suite lives in `@ctx0/core`
+and the boundary suite in `@ctx0/engine-server`; the CLI has no unit tests and
+passes with `--passWithNoTests`.
 
 ```bash
 npm test                 # repo root: runs tests across all workspaces
@@ -194,9 +231,16 @@ npx vitest run -t "rejects unknown features"
   an **OS temp dir** (`fs.mkdtemp`) and asserts on the generated tree, then cleans
   up in `afterEach`. These tests call `createWorkspace` **without**
   `scaffoldPlatforms`, so they never invoke `flutter` — they run anywhere.
+- `packages/engine-server/test/tools.test.ts` — every call in the contract:
+  that each one is implemented, that required arguments are rejected, and what
+  each returns.
+- `packages/engine-server/test/stdio.test.ts` — spawns the built engine and
+  drives it with a hand-rolled JSON-RPC client (no SDK), which is what proves the
+  contract is usable from another language. That package's `test` script builds
+  first, because this test runs `dist/`.
 
-When you add engine behavior, add a compose-level assertion here; this is the
-highest-value coverage in the repo.
+When you add engine behavior, add a compose-level assertion here; when you change
+the contract, cover the new call in `tools.test.ts`.
 
 ### Manual end-to-end check
 
@@ -249,10 +293,16 @@ generated app — i.e. for template/runtime work, not for engine or CLI work.
   to confirm a new feature is discovered and shows the right sides/summary.
 - Editing a template is often enough to change output — no engine code change and
   no rebuild is needed for `tsx`-based runs, since templates are read at runtime.
+- Anything the engine derives from the filesystem is sorted with `sortUtf8`
+  (`packages/core/src/order.ts`), never a bare `.sort()`: the order determines
+  overlay hashes and the manifest's file lists, so it has to be stable across
+  hosts.
 
 ## Conventions
 
-- Keep all scaffolding logic in `@ctx0/core`; the CLI stays a thin frontend.
+- Keep all scaffolding logic in `@ctx0/core`; the CLI and engine server stay thin.
+- The CLI reaches the engine only through the contract. New CLI capability means
+  a new call in `contract.ts`, not an import of `@ctx0/core`.
 - No TODO markers or "will do later" language in committed code or docs — work is
   either done or not on the branch.
 - Match the surrounding code's style, naming, and comment density.

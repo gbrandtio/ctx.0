@@ -1,0 +1,43 @@
+{
+  "name": "@ctx0/engine-server",
+  "version": "0.1.0",
+  "description": "ctx.0 engine server — the composition engine exposed over MCP (JSON-RPC 2.0 on stdio) so a frontend in any language can drive it",
+  "type": "module",
+  "bin": {
+    "ctx0-engine": "dist/index.js"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./contract": {
+      "types": "./dist/contract.d.ts",
+      "default": "./dist/contract.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/index.ts",
+    "test": "npm run build && vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@ctx0/core": "^0.1.0",
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^22.7.0",
+    "fs-extra": "^11.2.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

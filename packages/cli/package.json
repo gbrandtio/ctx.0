@@ -18,7 +18,8 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ctx0/core": "^0.1.0",
+    "@ctx0/engine-server": "^0.1.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "commander": "^12.1.0",
     "fs-extra": "^11.2.0",
     "picocolors": "^1.1.0",

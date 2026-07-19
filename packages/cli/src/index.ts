@@ -51,8 +51,8 @@ create
 program
   .command('keygen')
   .description('Generate a server ALE key pair (P-256) as environment variables')
-  .action(() => {
-    runKeygen();
+  .action(async () => {
+    await runKeygen();
   });
 
 program

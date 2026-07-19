@@ -2,6 +2,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import fs from 'fs-extra';
 import { isProbablyBinary, substitute } from './substitute.js';
+import { sortUtf8 } from './order.js';
 import type { TemplateVars, WiringEdit } from './types.js';
 
 /** Files that are engine metadata and must never be copied into a workspace. */
@@ -25,7 +26,7 @@ export async function copyTree(
     const absSrc = path.join(srcDir, rel);
     const stat = await fs.stat(absSrc);
     if (stat.isDirectory()) {
-      const entries = (await fs.readdir(absSrc)).sort();
+      const entries = sortUtf8(await fs.readdir(absSrc));
       for (const name of entries) {
         if (rel === '' && OVERLAY_META.has(name)) continue;
         await walk(rel === '' ? name : path.join(rel, name));
@@ -47,7 +48,7 @@ export async function copyTree(
     written.push(wsRel);
   };
   await walk('');
-  return written.sort();
+  return sortUtf8(written);
 }
 
 /**
@@ -60,7 +61,7 @@ export async function hashTree(srcDir: string): Promise<string> {
     const absSrc = path.join(srcDir, rel);
     const stat = await fs.stat(absSrc);
     if (stat.isDirectory()) {
-      for (const name of (await fs.readdir(absSrc)).sort()) {
+      for (const name of sortUtf8(await fs.readdir(absSrc))) {
         await walk(rel === '' ? name : path.join(rel, name));
       }
       return;
@@ -79,6 +80,12 @@ export async function hashTree(srcDir: string): Promise<string> {
  * the first line containing `ctx:anchor:<anchor>`. If an identical insertion is
  * already present (idempotency check on the substituted text), it is skipped, so
  * enable -> disable -> enable is a no-op.
+ *
+ * Line endings are preserved: the file is split on LF, so a CR before the LF
+ * stays attached to its line and is written back untouched. When the anchor line
+ * is CRLF-terminated, the inserted block is CRLF-terminated to match. Both the
+ * idempotency check and the anchor search ignore CR, so a template checked out
+ * with CRLF wires exactly like one checked out with LF.
  */
 export async function applyWiring(
   workspaceRoot: string,
@@ -93,7 +100,8 @@ export async function applyWiring(
     }
     const insertText = substitute(edit.insert, vars);
     const original = await fs.readFile(abs, 'utf8');
-    if (original.includes(insertText.trim()) && insertText.trim().length > 0) {
+    const needle = stripCr(insertText).trim();
+    if (needle.length > 0 && stripCr(original).includes(needle)) {
       continue; // already wired
     }
     const lines = original.split('\n');
@@ -102,9 +110,19 @@ export async function applyWiring(
     if (idx === -1) {
       throw new Error(`Anchor "${edit.anchor}" not found in ${targetFile}.`);
     }
-    lines.splice(idx + 1, 0, insertText);
+    // A CR left on the anchor line means this file uses CRLF; match it so the
+    // inserted block does not introduce mixed endings.
+    const crlf = lines[idx]!.endsWith('\r');
+    // The trailing CR terminates the block's last line: the LF is supplied by
+    // the join below, which is what turns the spliced entry back into lines.
+    const block = crlf ? `${stripCr(insertText).split('\n').join('\r\n')}\r` : insertText;
+    lines.splice(idx + 1, 0, block);
     await fs.writeFile(abs, lines.join('\n'), 'utf8');
   }
+}
+
+function stripCr(s: string): string {
+  return s.split('\r').join('');
 }
 
 function toPosix(p: string): string {

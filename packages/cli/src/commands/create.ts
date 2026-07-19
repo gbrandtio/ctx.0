@@ -2,16 +2,8 @@ import path from 'node:path';
 import fs from 'fs-extra';
 import pc from 'picocolors';
 import prompts from 'prompts';
-import {
-  createWorkspace,
-  resolveVars,
-  loadCatalog,
-  navCapable,
-  isLayoutId,
-  LAYOUTS,
-  type CatalogEntry,
-  type LayoutId,
-} from '@ctx0/core';
+import type { CatalogFeature, LayoutDescriptor, LayoutId } from '@ctx0/engine-server/contract';
+import { withEngine, type Engine } from '../engine.js';
 import { cliVersion } from '../version.js';
 
 export interface CreateArgs {
@@ -37,53 +29,63 @@ interface Setup {
 }
 
 export async function runCreate(args: CreateArgs): Promise<void> {
-  const vars = resolveVars(args.name, args.org);
-  const targetDir = path.resolve(args.dir ?? process.cwd(), vars.appSlug);
+  await withEngine(async (engine) => {
+    const { vars } = await engine.call('vars.resolve', { name: args.name, org: args.org });
+    const targetDir = path.resolve(args.dir ?? process.cwd(), vars.appSlug);
 
-  console.log(pc.bold(`\nCreating ctx.0 workspace ${pc.cyan(vars.appName)}`));
-  console.log(`  location : ${pc.dim(targetDir)}`);
-  console.log(`  bundle   : ${pc.dim(vars.bundleId)}`);
+    console.log(pc.bold(`\nCreating ctx.0 workspace ${pc.cyan(vars.appName)}`));
+    console.log(`  location : ${pc.dim(targetDir)}`);
+    console.log(`  bundle   : ${pc.dim(vars.bundleId)}`);
 
-  const catalog = loadCatalog();
-  const setup = shouldPrompt(args) ? await promptSetup(catalog) : resolveFromFlags(args);
+    const { features: catalog } = await engine.call('catalog.list', {});
+    const { layouts } = await engine.call('layouts.list', {});
+    const setup = shouldPrompt(args)
+      ? await promptSetup(engine, catalog, layouts)
+      : resolveFromFlags(args, layouts);
 
-  const tabsForDisplay = setup.tabs ?? navCapable(catalog, setup.features);
-  console.log(`  features : ${pc.dim(setup.features.join(', ') || '(none)')}`);
-  console.log(`  layout   : ${pc.dim(setup.layout)}`);
-  console.log(`  tabs     : ${pc.dim(tabsForDisplay.join(', ') || '(none)')}\n`);
+    // The engine decides which features can be tabs, so ask it rather than
+    // second-guessing the catalog here.
+    const resolved = await engine.call('catalog.resolve', { features: setup.features });
+    console.log(`  features : ${pc.dim(setup.features.join(', ') || '(none)')}`);
+    console.log(`  layout   : ${pc.dim(setup.layout)}`);
+    console.log(`  tabs     : ${pc.dim((setup.tabs ?? resolved.navCapable).join(', ') || '(none)')}\n`);
 
-  const scaffoldPlatforms = args.platforms !== false;
-  if (scaffoldPlatforms) {
-    console.log(pc.dim('  Running `flutter create` for the app/ platform scaffolding…'));
-  }
+    const scaffoldPlatforms = args.platforms !== false;
+    if (scaffoldPlatforms) {
+      console.log(pc.dim('  Running `flutter create` for the app/ platform scaffolding…'));
+    }
 
-  const result = await createWorkspace({
-    targetDir,
-    vars,
-    features: setup.features,
-    layout: setup.layout,
-    tabs: setup.tabs,
-    scaffoldPlatforms,
-    toolVersion: cliVersion(),
+    const result = await engine.call('workspace.create', {
+      targetDir,
+      name: args.name,
+      org: args.org,
+      features: setup.features,
+      layout: setup.layout,
+      tabs: setup.tabs,
+      scaffoldPlatforms,
+      toolVersion: cliVersion(),
+    });
+
+    console.log(pc.green('✓ Workspace generated.'));
+    console.log(`  app/  Flutter (Bloc)   api/  .NET (Clean Architecture)`);
+    console.log(
+      `  ${result.manifest.features.length} layers, protocol v${result.manifest.protocolVersion}\n`,
+    );
+
+    if (result.env.length) {
+      console.log(pc.bold('Environment variables to set:'));
+      for (const e of result.env) console.log(`  - ${e}`);
+      console.log();
+    }
+    if (result.userSteps.length) {
+      console.log(pc.bold('Next steps:'));
+      for (const s of result.userSteps) console.log(`  - ${s}`);
+      console.log();
+    }
+
+    console.log(pc.dim(`cd ${path.relative(process.cwd(), targetDir)} && cat README.md`));
+    await ensureReadmeHint(targetDir);
   });
-
-  console.log(pc.green('✓ Workspace generated.'));
-  console.log(`  app/  Flutter (Bloc)   api/  .NET (Clean Architecture)`);
-  console.log(`  ${result.manifest.features.length} layers, protocol v${result.manifest.protocolVersion}\n`);
-
-  if (result.env.length) {
-    console.log(pc.bold('Environment variables to set:'));
-    for (const e of result.env) console.log(`  - ${e}`);
-    console.log();
-  }
-  if (result.userSteps.length) {
-    console.log(pc.bold('Next steps:'));
-    for (const s of result.userSteps) console.log(`  - ${s}`);
-    console.log();
-  }
-
-  console.log(pc.dim(`cd ${path.relative(process.cwd(), targetDir)} && cat README.md`));
-  await ensureReadmeHint(targetDir);
 }
 
 /** Prompt only when the user drives no setup flags and we have an interactive TTY. */
@@ -93,7 +95,11 @@ function shouldPrompt(args: CreateArgs): boolean {
 }
 
 /** The three-step guided flow: layout → features → main-nav tabs. */
-async function promptSetup(catalog: Map<string, CatalogEntry>): Promise<Setup> {
+async function promptSetup(
+  engine: Engine,
+  catalog: CatalogFeature[],
+  layouts: LayoutDescriptor[],
+): Promise<Setup> {
   const onCancel = () => {
     throw new Error('Cancelled — no workspace was created.');
   };
@@ -104,7 +110,7 @@ async function promptSetup(catalog: Map<string, CatalogEntry>): Promise<Setup> {
       type: 'select',
       name: 'layout',
       message: 'Choose the app layout structure',
-      choices: LAYOUTS.map((l) => ({ title: l.label, description: l.description, value: l.id })),
+      choices: layouts.map((l) => ({ title: l.label, description: l.description, value: l.id })),
       initial: 0,
     },
     { onCancel },
@@ -116,10 +122,10 @@ async function promptSetup(catalog: Map<string, CatalogEntry>): Promise<Setup> {
       type: 'multiselect',
       name: 'features',
       message: 'Select features to enable (choose any number)',
-      choices: [...catalog.entries()].map(([id, entry]) => ({
-        title: id,
-        description: entry.manifest.summary,
-        value: id,
+      choices: catalog.map((feature) => ({
+        title: feature.id,
+        description: feature.summary,
+        value: feature.id,
         selected: false,
       })),
       hint: 'space to toggle · enter to confirm',
@@ -129,26 +135,27 @@ async function promptSetup(catalog: Map<string, CatalogEntry>): Promise<Setup> {
   );
 
   const selected: string[] = features ?? [];
-  reportAutoDeps(catalog, selected);
-
   const layoutId = layout as LayoutId;
 
-  // Partition the enabled features: those that can be main-navigation tabs
-  // (declare a `nav` block) versus those that integrate another way (e.g. auth,
-  // which wraps the app rather than owning a tab).
-  const navFeatures = navCapable(catalog, selected);
-  const nonNavFeatures = selected.filter((id) => !navFeatures.includes(id));
+  // Ask the engine what this selection actually expands to: the dependencies it
+  // will add, and which of the enabled features can be navigation tabs.
+  const resolved = await engine.call('catalog.resolve', { features: selected });
+  reportAutoDeps(selected, resolved.order);
+
+  const navFeatures = resolved.navCapable;
+  const nonNavFeatures = resolved.order.filter((id) => !navFeatures.includes(id));
 
   // 3. Which nav-capable features appear in the main navigation (all pre-checked).
   let tabs: string[] = navFeatures;
   if (navFeatures.length > 0) {
+    const byId = new Map(catalog.map((feature) => [feature.id, feature]));
     const answer = await prompts(
       {
         type: 'multiselect',
         name: 'tabs',
-        message: `Which features appear in the ${layoutLabel(layoutId)}?`,
+        message: `Which features appear in the ${layoutLabel(layouts, layoutId)}?`,
         choices: navFeatures.map((id) => ({
-          title: catalog.get(id)!.manifest.nav!.label,
+          title: byId.get(id)?.nav?.label ?? id,
           value: id,
           selected: true,
         })),
@@ -171,12 +178,11 @@ async function promptSetup(catalog: Map<string, CatalogEntry>): Promise<Setup> {
  * Custom `prompts` multiselect footer so the space-to-toggle interaction is
  * always visible (the default terse hint made the list feel single-select).
  */
-const MULTISELECT_INSTRUCTIONS =
-  '\n  ↑/↓ move · space toggle · a select all · enter confirm';
+const MULTISELECT_INSTRUCTIONS = '\n  ↑/↓ move · space toggle · a select all · enter confirm';
 
-/** Human-readable label for a layout id, from the shared LAYOUTS descriptors. */
-function layoutLabel(layout: LayoutId): string {
-  return LAYOUTS.find((l) => l.id === layout)?.label ?? 'main navigation';
+/** Human-readable label for a layout id, from the engine's layout descriptors. */
+function layoutLabel(layouts: LayoutDescriptor[], layout: LayoutId): string {
+  return layouts.find((l) => l.id === layout)?.label ?? 'main navigation';
 }
 
 /**
@@ -184,41 +190,37 @@ function layoutLabel(layout: LayoutId): string {
  * with a one-line note on how each integrates. These features have no tab to
  * toggle, so this is informational rather than a picker.
  */
-function reportAlwaysOnFeatures(catalog: Map<string, CatalogEntry>, ids: string[]): void {
+function reportAlwaysOnFeatures(catalog: CatalogFeature[], ids: string[]): void {
   if (ids.length === 0) return;
+  const byId = new Map(catalog.map((feature) => [feature.id, feature]));
   console.log(pc.bold('\nAlways-on features (not navigation tabs):'));
   for (const id of ids) {
-    const summary = catalog.get(id)?.manifest.summary ?? '';
+    const summary = byId.get(id)?.summary ?? '';
     console.log(`  - ${pc.cyan(id)} — ${summary} ${pc.dim('(integrates app-wide, not a tab)')}`);
   }
   console.log();
 }
 
 /** Print a note when selecting a feature auto-enables its dependencies. */
-function reportAutoDeps(catalog: Map<string, CatalogEntry>, selected: string[]): void {
+function reportAutoDeps(selected: string[], resolved: string[]): void {
   const chosen = new Set(selected);
-  const added = new Set<string>();
-  for (const id of selected) {
-    for (const dep of catalog.get(id)?.manifest.requires ?? []) {
-      if (!chosen.has(dep)) added.add(dep);
-    }
-  }
-  if (added.size > 0) {
-    console.log(pc.dim(`  (auto-enabling required dependencies: ${[...added].join(', ')})`));
+  const added = resolved.filter((id) => !chosen.has(id));
+  if (added.length > 0) {
+    console.log(pc.dim(`  (auto-enabling required dependencies: ${added.join(', ')})`));
   }
 }
 
 /** Non-interactive resolution from flags, with sensible defaults. */
-function resolveFromFlags(args: CreateArgs): Setup {
+function resolveFromFlags(args: CreateArgs, layouts: LayoutDescriptor[]): Setup {
   const layout = args.layout ?? 'bottom_nav';
-  if (!isLayoutId(layout)) {
+  if (!layouts.some((l) => l.id === layout)) {
     throw new Error(
-      `Unknown --layout "${layout}". Choose one of: ${LAYOUTS.map((l) => l.id).join(', ')}.`,
+      `Unknown --layout "${layout}". Choose one of: ${layouts.map((l) => l.id).join(', ')}.`,
     );
   }
   return {
     features: args.features ?? [],
-    layout,
+    layout: layout as LayoutId,
     tabs: args.tabs, // undefined → engine defaults to every nav-capable feature
   };
 }

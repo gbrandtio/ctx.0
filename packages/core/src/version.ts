@@ -1,6 +1,23 @@
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'fs-extra';
+import { templateLayout } from './paths.js';
+
+/** The default wire-protocol version, used when `protocol.json` declares none. */
+const DEFAULT_PROTOCOL_VERSION = '1.0';
+
+/**
+ * The wire-protocol version shared by both sides of a generated workspace, read
+ * from `protocol/protocol.json`. Stamped into the workspace manifest.
+ */
+export function protocolVersion(explicitRoot?: string): string {
+  const p = path.join(templateLayout(explicitRoot).protocol, 'protocol.json');
+  if (fs.existsSync(p)) {
+    const j = fs.readJsonSync(p) as { version?: string };
+    if (j.version) return j.version;
+  }
+  return DEFAULT_PROTOCOL_VERSION;
+}
 
 /**
  * The `@ctx0/core` engine version, read from this package's own package.json.

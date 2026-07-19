@@ -6,7 +6,7 @@ import { applyWiring, copyTree, hashTree } from './overlay.js';
 import { composeShell, navCapable } from './shell.js';
 import { scaffoldFlutterPlatforms } from './flutter.js';
 import { writeManifest } from './manifest.js';
-import { coreVersion } from './version.js';
+import { coreVersion, protocolVersion } from './version.js';
 import {
   composeAgentsDoc,
   featureDocPath,
@@ -156,7 +156,7 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   const manifest: WorkspaceManifest = {
     schema: 2,
     ctx0Version: opts.toolVersion ?? coreVersion(),
-    protocolVersion: readProtocolVersion(layout.protocol),
+    protocolVersion: protocolVersion(opts.templatesRoot),
     vars,
     features: applied,
     navigation: { layout: navLayout, tabs },
@@ -255,15 +255,6 @@ async function syncProtocol(workspaceRoot: string, protocolDir: string): Promise
 function readOptionalManifest(dir: string): FeatureManifest | undefined {
   const p = path.join(dir, 'feature.json');
   return fs.existsSync(p) ? (fs.readJsonSync(p) as FeatureManifest) : undefined;
-}
-
-function readProtocolVersion(protocolDir: string): string {
-  const p = path.join(protocolDir, 'protocol.json');
-  if (fs.existsSync(p)) {
-    const j = fs.readJsonSync(p) as { version?: string };
-    if (j.version) return j.version;
-  }
-  return '1.0';
 }
 
 /** Every requested nav tab must be one of the features actually enabled. */

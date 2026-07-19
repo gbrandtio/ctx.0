@@ -1,6 +1,7 @@
 import path from 'node:path';
 import fs from 'fs-extra';
 import { templateLayout } from './paths.js';
+import { sortUtf8 } from './order.js';
 import type { FeatureManifest, Side } from './types.js';
 
 /** A feature discovered in the template tree, with the dirs holding its overlay. */
@@ -15,6 +16,11 @@ export interface CatalogEntry {
  * A feature may appear under one or both sides; its `feature.json` (identical on
  * both sides, or present on either) is the source of truth. The two always-on
  * "features" (base, security) are not part of the toggleable catalog.
+ *
+ * Iteration order is deterministic: the mobile side is scanned first, then the
+ * api side, each in UTF-8 byte order of the feature id, so ids present on both
+ * sides appear in mobile order and api-only ids follow. Frontends rely on this
+ * for stable listings.
  */
 export function loadCatalog(explicitRoot?: string): Map<string, CatalogEntry> {
   const layout = templateLayout(explicitRoot);
@@ -22,7 +28,7 @@ export function loadCatalog(explicitRoot?: string): Map<string, CatalogEntry> {
 
   const scan = (featuresRoot: string, side: Side) => {
     if (!fs.existsSync(featuresRoot)) return;
-    for (const id of fs.readdirSync(featuresRoot)) {
+    for (const id of sortUtf8(fs.readdirSync(featuresRoot))) {
       const dir = path.join(featuresRoot, id);
       if (!fs.statSync(dir).isDirectory()) continue;
       const manifestPath = path.join(dir, 'feature.json');
