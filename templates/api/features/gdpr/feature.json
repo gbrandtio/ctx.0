@@ -1,0 +1,85 @@
+{
+  "id": "gdpr",
+  "summary": "Data-subject rights: versioned consent banner, asynchronous \"download my data\" export, and hard account deletion across every enabled feature.",
+  "sides": ["mobile", "api"],
+  "requires": ["auth"],
+  "nav": {
+    "label": "Privacy",
+    "icon": "privacy_tip",
+    "page": "PrivacyPage",
+    "import": "../features/gdpr/views/privacy_page.dart"
+  },
+  "env": [
+    "Gdpr__ExportRoot — filesystem directory for export archives (default ./_exports); archives are envelope-encrypted at rest.",
+    "Gdpr__ExportTtlHours — how long a completed export stays downloadable (default 168 = 7 days).",
+    "Gdpr__PolicyVersion — the privacy-notice version in force (default 1); the app re-prompts when a user's recorded consent names a different one."
+  ],
+  "userSteps": [
+    "Write your privacy notice and set Gdpr__PolicyVersion; bump it whenever the notice changes so every user is asked again.",
+    "Export and erasure cover the features enabled in this workspace via IPersonalDataContributor — any feature you add yourself must register one to be included.",
+    "The export archives live under Gdpr__ExportRoot on the API host; for multi-instance deployments back it with shared storage and replace the in-process export queue.",
+    "In production apply the schema and RLS with `dotnet ef database update`; in Development the app creates them at startup."
+  ],
+  "wiring": [
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "usings",
+      "insert": "using CtxApp.Api.Endpoints;"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "usings",
+      "insert": "using CtxApp.Api.Gdpr;"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "services",
+      "insert": "builder.Services.AddCtxGdpr(builder.Configuration);"
+    },
+    {
+      "file": "api/src/Api/Program.cs",
+      "anchor": "endpoints",
+      "insert": "app.MapPrivacyEndpoints();"
+    },
+    {
+      "file": "api/src/Infrastructure/Persistence/CtxAppDbContext.cs",
+      "anchor": "model-config",
+      "insert": "        modelBuilder.ApplyConfiguration(new CtxApp.Infrastructure.Persistence.Configurations.ConsentRecordConfiguration());\n        modelBuilder.ApplyConfiguration(new CtxApp.Infrastructure.Persistence.Configurations.DataExportJobConfiguration());"
+    },
+    {
+      "file": "app/pubspec.yaml",
+      "anchor": "pubspec-deps",
+      "insert": "  path_provider: ^2.1.4\n  share_plus: ^10.0.2"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import '../features/gdpr/bloc/consent_cubit.dart';\nimport '../features/gdpr/bloc/privacy_cubit.dart';\nimport '../features/gdpr/data/consent_store.dart';\nimport '../features/gdpr/data/privacy_repository.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import '../features/auth/data/token_store.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "providers",
+      "insert": "    BlocProvider<ConsentCubit>(create: (_) => ConsentCubit(SecureConsentStore(), HttpPrivacyRepository(SecureTokenStore()))..load()),"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "providers",
+      "insert": "    BlocProvider<PrivacyCubit>(create: (_) => PrivacyCubit(HttpPrivacyRepository(SecureTokenStore()))),"
+    },
+    {
+      "file": "app/lib/app/app.dart",
+      "anchor": "app-imports",
+      "insert": "import '../features/gdpr/views/consent_banner.dart';"
+    },
+    {
+      "file": "app/lib/app/app.dart",
+      "anchor": "app-overlay",
+      "insert": "    content = ConsentBanner(child: content);"
+    }
+  ]
+}

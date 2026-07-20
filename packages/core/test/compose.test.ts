@@ -207,6 +207,37 @@ describe('createWorkspace', () => {
     expect(ids).toContain('notifications:api');
   });
 
+  it('scaffolds the gdpr feature and layers its banner above the auth gate', async () => {
+    const { targetDir } = await generate(['auth', 'notes', 'gdpr']);
+
+    expect(await fs.pathExists(
+      path.join(targetDir, 'api', 'src', 'Api', 'Endpoints', 'PrivacyEndpoints.cs'),
+    )).toBe(true);
+    expect(await fs.pathExists(
+      path.join(targetDir, 'app', 'lib', 'features', 'gdpr', 'views', 'consent_banner.dart'),
+    )).toBe(true);
+
+    const program = await fs.readFile(path.join(targetDir, 'api', 'src', 'Api', 'Program.cs'), 'utf8');
+    expect(program.match(/app\.MapPrivacyEndpoints\(\);/g)?.length).toBe(1);
+    expect(program.match(/builder\.Services\.AddCtxGdpr\(builder\.Configuration\);/g)?.length).toBe(1);
+    // Every data-owning feature registers its personal-data contributor.
+    expect(program).toContain('Acme.Infrastructure.Gdpr.AuthPersonalData');
+    expect(program).toContain('Acme.Infrastructure.Gdpr.NotesPersonalData');
+
+    // The banner wraps every route (app-overlay), so it shows before the auth
+    // gate's login screen — which wraps only the home route (home-wrap).
+    const app = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'app.dart'), 'utf8');
+    expect(app).toContain('content = ConsentBanner(child: content);');
+    expect(app).toContain('home = AuthGate(child: home);');
+
+    const dbContext = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Infrastructure', 'Persistence', 'AcmeDbContext.cs'),
+      'utf8',
+    );
+    expect(dbContext).toContain('ConsentRecordConfiguration');
+    expect(dbContext).toContain('DataExportJobConfiguration');
+  });
+
   it('generates a bottom-nav shell with a destination + page per tab', async () => {
     const { targetDir } = await generate(['ping']);
     const shell = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'shell.dart'), 'utf8');
