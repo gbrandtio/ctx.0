@@ -24,10 +24,10 @@ Decisions behind this structure are recorded in [../adr/](../adr/).
 
 ```mermaid
 flowchart LR
-    user([Developer])
-    agent([Agent host / MCP client])
-    cli["`ctx0` CLI<br/>packages/cli"]
-    engine["`ctx0-engine`<br/>packages/engine-server"]
+    user(["Developer"])
+    agent(["Agent host / MCP client"])
+    cli["ctx0 CLI<br/>packages/cli"]
+    engine["ctx0-engine<br/>packages/engine-server"]
     core["@ctx0/core<br/>packages/core"]
     tpl[("templates/")]
     proto[("protocol/")]
@@ -75,8 +75,8 @@ in `package.json` encodes it.
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant C as ctx0 (process 1)
-    participant E as ctx0-engine (process 2)
+    participant C as ctx0 CLI — process 1
+    participant E as ctx0-engine — process 2
     participant F as Filesystem
 
     U->>C: ctx0 create workspace Acme

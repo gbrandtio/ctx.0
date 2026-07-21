@@ -16,14 +16,14 @@ not block a merge.
 
 ```mermaid
 flowchart LR
-    pr([Pull request<br/>opened · synchronize · reopened])
+    pr(["Pull request<br/>opened · synchronize · reopened"])
     subgraph gh["GitHub Actions · ubuntu-latest"]
         chk1["checkout@v4<br/>fetch-depth: 0"]
         chk2["checkout@v4<br/>fetch-depth: 0"]
         a1["commit-health-gate@v1<br/>500 lines · 20 files"]
         a2["agnostic-code-metrics@v1"]
     end
-    out([PR comment · advisory])
+    out(["PR comment · advisory"])
 
     pr --> chk1 --> a1 --> out
     pr --> chk2 --> a2 --> out
