@@ -2,7 +2,12 @@ import path from 'node:path';
 import fs from 'fs-extra';
 import pc from 'picocolors';
 import prompts from 'prompts';
-import type { CatalogFeature, LayoutDescriptor, LayoutId } from '@ctx0/engine-server/contract';
+import type {
+  CatalogFeature,
+  LayoutDescriptor,
+  LayoutId,
+  LocaleDescriptor,
+} from '@ctx0/engine-server/contract';
 import { withEngine, type Engine } from '../engine.js';
 import { cliVersion } from '../version.js';
 
@@ -16,6 +21,8 @@ export interface CreateArgs {
   layout?: string;
   /** Feature ids to surface as main-navigation tabs (non-interactive path). */
   tabs?: string[];
+  /** Language codes to ship (non-interactive path). */
+  locales?: string[];
   /** Generate the Flutter platform scaffolding via `flutter create` (default true). */
   platforms?: boolean;
 }
@@ -26,6 +33,8 @@ interface Setup {
   layout: LayoutId;
   /** Undefined means "let the engine default to every nav-capable feature". */
   tabs: string[] | undefined;
+  /** Undefined means "let the engine ship every offered language". */
+  locales: string[] | undefined;
 }
 
 export async function runCreate(args: CreateArgs): Promise<void> {
@@ -39,8 +48,9 @@ export async function runCreate(args: CreateArgs): Promise<void> {
 
     const { features: catalog } = await engine.call('catalog.list', {});
     const { layouts } = await engine.call('layouts.list', {});
+    const { locales, default: defaultLocale } = await engine.call('locales.list', {});
     const setup = shouldPrompt(args)
-      ? await promptSetup(engine, catalog, layouts)
+      ? await promptSetup(engine, catalog, layouts, locales, defaultLocale)
       : resolveFromFlags(args, layouts);
 
     // The engine decides which features can be tabs, so ask it rather than
@@ -48,6 +58,9 @@ export async function runCreate(args: CreateArgs): Promise<void> {
     const resolved = await engine.call('catalog.resolve', { features: setup.features });
     console.log(`  features : ${pc.dim(setup.features.join(', ') || '(none)')}`);
     console.log(`  layout   : ${pc.dim(setup.layout)}`);
+    console.log(
+      `  languages: ${pc.dim((setup.locales ?? locales.map((l) => l.code)).join(', '))}`,
+    );
     console.log(`  tabs     : ${pc.dim((setup.tabs ?? resolved.navCapable).join(', ') || '(none)')}\n`);
 
     const scaffoldPlatforms = args.platforms !== false;
@@ -62,6 +75,7 @@ export async function runCreate(args: CreateArgs): Promise<void> {
       features: setup.features,
       layout: setup.layout,
       tabs: setup.tabs,
+      locales: setup.locales,
       scaffoldPlatforms,
       toolVersion: cliVersion(),
     });
@@ -90,15 +104,19 @@ export async function runCreate(args: CreateArgs): Promise<void> {
 
 /** Prompt only when the user drives no setup flags and we have an interactive TTY. */
 function shouldPrompt(args: CreateArgs): boolean {
-  const hasFlags = Boolean(args.features?.length || args.layout || args.tabs?.length);
+  const hasFlags = Boolean(
+    args.features?.length || args.layout || args.tabs?.length || args.locales?.length,
+  );
   return !hasFlags && Boolean(process.stdin.isTTY && process.stdout.isTTY);
 }
 
-/** The three-step guided flow: layout → features → main-nav tabs. */
+/** The four-step guided flow: layout → languages → features → main-nav tabs. */
 async function promptSetup(
   engine: Engine,
   catalog: CatalogFeature[],
   layouts: LayoutDescriptor[],
+  locales: LocaleDescriptor[],
+  defaultLocale: string,
 ): Promise<Setup> {
   const onCancel = () => {
     throw new Error('Cancelled — no workspace was created.');
@@ -116,7 +134,28 @@ async function promptSetup(
     { onCancel },
   );
 
-  // 2. Which features to enable (nothing pre-selected — pick any number).
+  // 2. Which languages the app ships. The default language is the fallback for
+  // both sides, so it is always included rather than offered as a choice.
+  const optional = locales.filter((l) => l.code !== defaultLocale);
+  const { extraLocales } = await prompts(
+    {
+      type: 'multiselect',
+      name: 'extraLocales',
+      message: `Select the languages to ship (${languageLabel(locales, defaultLocale)} is always included)`,
+      choices: optional.map((locale) => ({
+        title: `${locale.englishLabel} — ${locale.label}`,
+        description: locale.code,
+        value: locale.code,
+        selected: true,
+      })),
+      hint: 'space to toggle · enter to confirm',
+      instructions: MULTISELECT_INSTRUCTIONS,
+    },
+    { onCancel },
+  );
+  const chosenLocales = [defaultLocale, ...((extraLocales as string[] | undefined) ?? [])];
+
+  // 3. Which features to enable (nothing pre-selected — pick any number).
   const { features } = await prompts(
     {
       type: 'multiselect',
@@ -145,7 +184,7 @@ async function promptSetup(
   const navFeatures = resolved.navCapable;
   const nonNavFeatures = resolved.order.filter((id) => !navFeatures.includes(id));
 
-  // 3. Which nav-capable features appear in the main navigation (all pre-checked).
+  // 4. Which nav-capable features appear in the main navigation (all pre-checked).
   let tabs: string[] = navFeatures;
   if (navFeatures.length > 0) {
     const byId = new Map(catalog.map((feature) => [feature.id, feature]));
@@ -167,11 +206,21 @@ async function promptSetup(
     tabs = answer.tabs ?? [];
   }
 
-  // 4. Always-on features: enabled but not navigation tabs. Surface them so the
+  // 5. Always-on features: enabled but not navigation tabs. Surface them so the
   // user sees where every enabled feature ends up, rather than dropping them.
   reportAlwaysOnFeatures(catalog, nonNavFeatures);
 
-  return { features: selected, layout: layoutId, tabs };
+  return {
+    features: selected,
+    layout: layoutId,
+    tabs,
+    locales: locales.filter((l) => chosenLocales.includes(l.code)).map((l) => l.code),
+  };
+}
+
+/** The English name of a language code, for the picker's message. */
+function languageLabel(locales: LocaleDescriptor[], code: string): string {
+  return locales.find((l) => l.code === code)?.englishLabel ?? code;
 }
 
 /**
@@ -222,6 +271,7 @@ function resolveFromFlags(args: CreateArgs, layouts: LayoutDescriptor[]): Setup 
     features: args.features ?? [],
     layout: layout as LayoutId,
     tabs: args.tabs, // undefined → engine defaults to every nav-capable feature
+    locales: args.locales, // undefined → engine ships every offered language
   };
 }
 

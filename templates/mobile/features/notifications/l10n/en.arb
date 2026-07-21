@@ -1,0 +1,13 @@
+{
+  "@@locale": "en",
+  "notificationsTitle": "Notifications",
+  "notificationsEmpty": "No notifications yet",
+  "notificationsUnread": "{count, plural, =1{1 unread} other{{count} unread}}",
+  "@notificationsUnread": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

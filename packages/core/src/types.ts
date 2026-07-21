@@ -96,10 +96,18 @@ export interface WorkspaceNavigation {
   tabs: string[];
 }
 
+/** The languages a workspace was generated with. */
+export interface WorkspaceLocalization {
+  /** Fallback locale; the ARB template and the API's neutral resources. Always "en". */
+  default: string;
+  /** Enabled locale codes in catalog order, always including the default. */
+  locales: string[];
+}
+
 /** The `.ctx/manifest.json` persisted at the root of a generated workspace. */
 export interface WorkspaceManifest {
   /** Schema version of the manifest itself. */
-  schema: 2;
+  schema: 3;
   /** CLI version that generated / last modified the workspace. */
   ctx0Version: string;
   /** Wire-protocol version shared by both sides. */
@@ -110,6 +118,8 @@ export interface WorkspaceManifest {
   features: AppliedFeature[];
   /** The chosen mobile-shell layout and its main-navigation tabs. */
   navigation: WorkspaceNavigation;
+  /** The languages the workspace ships translations for. */
+  localization: WorkspaceLocalization;
 }
 
 /** Substitution variables resolved once per workspace. */

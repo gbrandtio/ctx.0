@@ -1,0 +1,6 @@
+{
+  "@@locale": "el",
+  "auth.credentialsRequired": "Το email είναι υποχρεωτικό και ο κωδικός πρόσβασης πρέπει να έχει τουλάχιστον 8 χαρακτήρες.",
+  "auth.emailTaken": "Υπάρχει ήδη χρήστης με αυτό το email.",
+  "auth.invalidCredentials": "Μη έγκυρα στοιχεία σύνδεσης."
+}

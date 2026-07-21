@@ -1,0 +1,7 @@
+{
+  "@@locale": "de",
+  "media.expectedMultipart": "multipart/form-data erwartet.",
+  "media.filePartRequired": "Ein nicht leerer Teil 'file' ist erforderlich.",
+  "media.tooLarge": "Die Datei überschreitet das Limit von {0} Byte.",
+  "media.contentTypeNotAllowed": "Der Inhaltstyp '{0}' ist nicht zulässig."
+}

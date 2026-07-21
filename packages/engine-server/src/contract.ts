@@ -13,7 +13,7 @@
  */
 
 /** Bumped when a call's arguments or result change shape. Reported by `engine.info`. */
-export const CONTRACT_VERSION = '1';
+export const CONTRACT_VERSION = '2';
 
 export type Side = 'mobile' | 'api';
 export type LayoutId = 'bottom_nav' | 'nav_rail' | 'drawer' | 'home_list';
@@ -35,6 +35,16 @@ export interface CatalogFeature {
   nav?: { label: string; icon: string; page: string; import: string };
 }
 
+/** A language the workspace can be generated with. */
+export interface LocaleDescriptor {
+  /** BCP-47 language code, e.g. "el". */
+  code: string;
+  /** The language's name in the language itself, e.g. "Ελληνικά". */
+  label: string;
+  /** The language's name in English, e.g. "Greek". */
+  englishLabel: string;
+}
+
 /** A selectable main-navigation layout. */
 export interface LayoutDescriptor {
   id: LayoutId;
@@ -50,6 +60,7 @@ export interface WorkspaceManifest {
   vars: Vars;
   features: { id: string; files: string[]; hash: string }[];
   navigation: { layout: LayoutId; tabs: string[] };
+  localization: { default: string; locales: string[] };
 }
 
 /**
@@ -81,6 +92,10 @@ export interface Calls {
     args: Record<string, never>;
     result: { layouts: LayoutDescriptor[] };
   };
+  'locales.list': {
+    args: Record<string, never>;
+    result: { locales: LocaleDescriptor[]; default: string };
+  };
   'vars.resolve': {
     args: { name: string; org?: string };
     result: { vars: Vars };
@@ -93,6 +108,7 @@ export interface Calls {
       features?: string[];
       layout?: LayoutId;
       tabs?: string[];
+      locales?: string[];
       scaffoldPlatforms?: boolean;
       toolVersion?: string;
       templatesRoot?: string;
@@ -182,6 +198,13 @@ export const CALL_SPECS: CallSpec[] = [
     inputSchema: { type: 'object', properties: {} },
   },
   {
+    name: 'locales.list',
+    title: 'List languages',
+    description:
+      'List the languages a workspace may be generated with, in catalog order, together with the default (fallback) language that is always included.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
     name: 'vars.resolve',
     title: 'Resolve substitution variables',
     description:
@@ -221,6 +244,12 @@ export const CALL_SPECS: CallSpec[] = [
         tabs: featureIds(
           'Nav-capable enabled feature ids to surface as tabs, in tab order. Omit for every enabled nav-capable feature; an empty array yields a placeholder shell.',
         ),
+        locales: {
+          type: 'array',
+          items: { type: 'string' },
+          description:
+            'Language codes to ship translations for. English is always included as the fallback. Omit for every offered language.',
+        },
         scaffoldPlatforms: {
           type: 'boolean',
           description:

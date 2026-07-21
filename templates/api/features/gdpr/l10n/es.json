@@ -1,0 +1,9 @@
+{
+  "@@locale": "es",
+  "gdpr.invalidDownloadToken": "Token de descarga no válido.",
+  "gdpr.exportNotReady": "La exportación está {0}.",
+  "gdpr.exportConsumed": "Esta exportación ya se ha descargado o ha caducado. Solicita otra.",
+  "gdpr.confirmDelete": "Envía confirm: \"DELETE\" para borrar la cuenta.",
+  "gdpr.passwordMismatch": "La contraseña no coincide.",
+  "gdpr.policyVersionRequired": "policyVersion es obligatorio."
+}

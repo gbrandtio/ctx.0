@@ -1,0 +1,8 @@
+{
+  "@@locale": "fr",
+  "pingTitle": "Ping sécurisé",
+  "pingMessageLabel": "Message",
+  "pingSend": "Envoyer un ping sécurisé",
+  "pingSending": "Envoi…",
+  "pingEcho": "Écho : {echo}"
+}

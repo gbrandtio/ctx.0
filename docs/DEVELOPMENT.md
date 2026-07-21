@@ -53,8 +53,8 @@ the engine, and an agent host can too). Everything the two sides share is
 declared in one file:
 
 **`packages/engine-server/src/contract.ts`** — the calls the engine answers
-(`engine.info`, `catalog.list`, `catalog.resolve`, `layouts.list`, `vars.resolve`,
-`workspace.create`, `workspace.status`, `secrets.generate`), their argument and
+(`engine.info`, `catalog.list`, `catalog.resolve`, `layouts.list`, `locales.list`,
+`vars.resolve`, `workspace.create`, `workspace.status`, `secrets.generate`), their argument and
 result types, and their JSON Schemas. It holds no logic and imports nothing.
 
 - `tools.ts` implements the contract over `@ctx0/core` and validates incoming
@@ -293,6 +293,16 @@ generated app — i.e. for template/runtime work, not for engine or CLI work.
   to confirm a new feature is discovered and shows the right sides/summary.
 - Editing a template is often enough to change output — no engine code change and
   no rebuild is needed for `tsx`-based runs, since templates are read at runtime.
+- **Translations are fragments, not files.** A feature that shows text ships
+  `l10n/<code>.arb` (mobile) or `l10n/<code>.json` (api) at its overlay root, one
+  file per offered language, and declares `"requires": ["l10n"]`. Those fragments
+  are engine metadata — `copyTree` skips the whole `l10n/` directory — and
+  `composeLocales` (`packages/core/src/l10n.ts`) merges the enabled features'
+  fragments, in application order, into `app/lib/l10n/app_<code>.arb` and
+  `api/src/Api/Resources/Localization/Messages[.<code>].resx` for the languages
+  chosen at create time. Two features defining the same key is an error, so keep
+  keys namespaced by feature (`profileTitle`, `media.tooLarge`); English is the
+  template locale and must always be complete.
 - Anything the engine derives from the filesystem is sorted with `sortUtf8`
   (`packages/core/src/order.ts`), never a bare `.sort()`: the order determines
   overlay hashes and the manifest's file lists, so it has to be stable across

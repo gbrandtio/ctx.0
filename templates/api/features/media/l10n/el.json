@@ -1,0 +1,7 @@
+{
+  "@@locale": "el",
+  "media.expectedMultipart": "Αναμενόταν multipart/form-data.",
+  "media.filePartRequired": "Απαιτείται μη κενό τμήμα 'file'.",
+  "media.tooLarge": "Το αρχείο υπερβαίνει το όριο των {0} byte.",
+  "media.contentTypeNotAllowed": "Ο τύπος περιεχομένου '{0}' δεν επιτρέπεται."
+}

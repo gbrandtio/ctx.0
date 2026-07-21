@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:ctxapp/l10n/gen/app_l10n.dart';
+
 import '../bloc/consent_cubit.dart';
 import '../bloc/privacy_cubit.dart';
 
@@ -12,8 +14,9 @@ class PrivacyPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Privacy')),
+      appBar: AppBar(title: Text(l.gdprTitle)),
       body: BlocConsumer<PrivacyCubit, PrivacyState>(
         listener: (context, state) {
           if (state.status == PrivacyStatus.failure && state.error != null) {
@@ -21,7 +24,7 @@ class PrivacyPage extends StatelessWidget {
           }
           if (state.status == PrivacyStatus.deleted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Your account and data have been deleted.')),
+              SnackBar(content: Text(l.gdprDeleted)),
             );
           }
         },
@@ -32,41 +35,37 @@ class PrivacyPage extends StatelessWidget {
             children: [
               const _ConsentSection(),
               const Divider(height: 32),
-              Text('Your data', style: Theme.of(context).textTheme.titleMedium),
+              Text(l.gdprYourDataTitle, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              const Text(
-                'Get a copy of everything this account holds. The archive is built '
-                'on the server and can be downloaded once.',
-              ),
+              Text(l.gdprYourDataBody),
               const SizedBox(height: 12),
               FilledButton.icon(
                 onPressed: busy ? null : () => context.read<PrivacyCubit>().downloadMyData(),
                 icon: const Icon(Icons.download),
-                label: Text(state.status == PrivacyStatus.exporting ? 'Preparing…' : 'Download my data'),
+                label: Text(
+                  state.status == PrivacyStatus.exporting ? l.gdprPreparing : l.gdprDownloadMyData,
+                ),
               ),
               if (state.archivePath != null) ...[
                 const SizedBox(height: 12),
-                Text('Saved to ${state.archivePath}', style: Theme.of(context).textTheme.bodySmall),
+                Text(l.gdprSavedTo(state.archivePath!), style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: () => Share.shareXFiles([XFile(state.archivePath!)]),
                   icon: const Icon(Icons.ios_share),
-                  label: const Text('Share archive'),
+                  label: Text(l.gdprShareArchive),
                 ),
               ],
               const Divider(height: 32),
-              Text('Delete account', style: Theme.of(context).textTheme.titleMedium),
+              Text(l.gdprDeleteSectionTitle, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              const Text(
-                'This erases your account and everything stored with it, immediately '
-                'and permanently. Download your data first if you want a copy.',
-              ),
+              Text(l.gdprDeleteSectionBody),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: busy ? null : () => _confirmDelete(context),
                 icon: const Icon(Icons.delete_forever),
                 style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-                label: const Text('Delete my account'),
+                label: Text(l.gdprDeleteMyAccount),
               ),
             ],
           );
@@ -93,23 +92,27 @@ class _ConsentSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context);
     return BlocBuilder<ConsentCubit, ConsentState>(
       builder: (context, state) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Consent', style: Theme.of(context).textTheme.titleMedium),
+            Text(l.gdprConsentSectionTitle, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 4),
             Text(
               state.decision == null
-                  ? 'No decision recorded yet.'
-                  : 'Recorded ${state.decision!.decidedAt.toLocal()} against notice ${state.decision!.policyVersion}.',
+                  ? l.gdprNoDecision
+                  : l.gdprRecordedAt(
+                      state.decision!.decidedAt.toLocal(),
+                      state.decision!.policyVersion,
+                    ),
               style: Theme.of(context).textTheme.bodySmall,
             ),
             for (final purpose in ctxOptionalPurposes)
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text(purpose[0].toUpperCase() + purpose.substring(1)),
+                title: Text(_purposeLabel(context, purpose)),
                 value: state.accepted(purpose),
                 onChanged: (enabled) {
                   final purposes = {
@@ -123,6 +126,22 @@ class _ConsentSection extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+/// The user-facing name of an optional processing purpose. The purposes are
+/// identifiers on the wire (`analytics`, `marketing`); an id added to
+/// [ctxOptionalPurposes] without a matching string falls back to the id itself,
+/// so a new purpose shows up in the UI rather than disappearing from it.
+String _purposeLabel(BuildContext context, String purpose) {
+  final l = AppL10n.of(context);
+  switch (purpose) {
+    case 'analytics':
+      return l.gdprPurposeAnalytics;
+    case 'marketing':
+      return l.gdprPurposeMarketing;
+    default:
+      return purpose;
   }
 }
 
@@ -148,35 +167,36 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context);
     final confirmed = _confirm.text.trim() == 'DELETE';
     return AlertDialog(
-      title: const Text('Delete your account?'),
+      title: Text(l.gdprDeleteDialogTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('This cannot be undone. Type DELETE and enter your password to confirm.'),
+          Text(l.gdprDeleteDialogBody),
           const SizedBox(height: 16),
           TextField(
             controller: _confirm,
-            decoration: const InputDecoration(labelText: 'Type DELETE'),
+            decoration: InputDecoration(labelText: l.gdprTypeDeleteLabel),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _password,
-            decoration: const InputDecoration(labelText: 'Password'),
+            decoration: InputDecoration(labelText: l.authPasswordLabel),
             obscureText: true,
             onChanged: (_) => setState(() {}),
           ),
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l.commonCancel)),
         FilledButton(
           onPressed: confirmed && _password.text.isNotEmpty
               ? () => Navigator.of(context).pop(_password.text)
               : null,
-          child: const Text('Delete'),
+          child: Text(l.commonDelete),
         ),
       ],
     );

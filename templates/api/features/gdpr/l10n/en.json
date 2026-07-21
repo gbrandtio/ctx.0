@@ -1,0 +1,9 @@
+{
+  "@@locale": "en",
+  "gdpr.invalidDownloadToken": "Invalid download token.",
+  "gdpr.exportNotReady": "Export is {0}.",
+  "gdpr.exportConsumed": "This export has already been downloaded or has expired. Request a new one.",
+  "gdpr.confirmDelete": "Send confirm: \"DELETE\" to erase the account.",
+  "gdpr.passwordMismatch": "Password does not match.",
+  "gdpr.policyVersionRequired": "policyVersion is required."
+}

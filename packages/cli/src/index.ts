@@ -23,6 +23,7 @@ create
   .option('-f, --features <ids...>', 'feature ids to enable (skips the interactive picker)')
   .option('-l, --layout <id>', 'app layout: bottom_nav | nav_rail | drawer | home_list')
   .option('-t, --tabs <ids...>', 'feature ids to show as main-navigation tabs')
+  .option('--locales <codes...>', 'languages to ship, e.g. en el de (English is always included)')
   .option('--no-platforms', 'skip `flutter create`; generate the ctx.0 source overlay only')
   .action(
     async (
@@ -33,6 +34,7 @@ create
         features?: string[];
         layout?: string;
         tabs?: string[];
+        locales?: string[];
         platforms?: boolean;
       },
     ) => {
@@ -43,6 +45,7 @@ create
         features: opts.features,
         layout: opts.layout,
         tabs: opts.tabs,
+        locales: opts.locales,
         platforms: opts.platforms,
       });
     },

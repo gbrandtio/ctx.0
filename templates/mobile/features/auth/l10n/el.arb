@@ -1,0 +1,9 @@
+{
+  "@@locale": "el",
+  "authSignInTitle": "Σύνδεση",
+  "authEmailLabel": "Email",
+  "authPasswordLabel": "Κωδικός πρόσβασης",
+  "authSignIn": "Σύνδεση",
+  "authSigningIn": "Γίνεται σύνδεση…",
+  "authCreateAccount": "Δημιουργία λογαριασμού"
+}

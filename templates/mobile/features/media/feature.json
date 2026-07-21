@@ -2,7 +2,7 @@
   "id": "media",
   "summary": "User file & media storage: multipart upload with envelope-encrypted blobs at rest, per-user RLS isolation, and authenticated download.",
   "sides": ["mobile", "api"],
-  "requires": ["auth"],
+  "requires": ["auth", "l10n"],
   "nav": {
     "label": "Media",
     "icon": "photo_library",

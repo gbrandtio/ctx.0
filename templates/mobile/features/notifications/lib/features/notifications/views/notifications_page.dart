@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:ctxapp/l10n/gen/app_l10n.dart';
+
 import '../bloc/notifications_cubit.dart';
 
 /// Lists the signed-in user's notifications with an unread badge; tapping an
@@ -21,16 +23,17 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(l.notificationsTitle),
         actions: [
           BlocBuilder<NotificationsCubit, NotificationsState>(
             builder: (context, state) => state.unreadCount == 0
                 ? const SizedBox.shrink()
                 : Padding(
                     padding: const EdgeInsets.only(right: 16),
-                    child: Center(child: Text('${state.unreadCount} unread')),
+                    child: Center(child: Text(l.notificationsUnread(state.unreadCount))),
                   ),
           ),
         ],
@@ -41,10 +44,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (state.status == NotificationsStatus.failure && state.items.isEmpty) {
-            return Center(child: Text('Error: ${state.error}', style: const TextStyle(color: Colors.red)));
+            return Center(
+              child: Text(l.commonError(state.error ?? ''), style: const TextStyle(color: Colors.red)),
+            );
           }
           if (state.items.isEmpty) {
-            return const Center(child: Text('No notifications yet'));
+            return Center(child: Text(l.notificationsEmpty));
           }
           return RefreshIndicator(
             onRefresh: () => context.read<NotificationsCubit>().refresh(),

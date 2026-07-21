@@ -14,12 +14,26 @@ class CtxAppRoot extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: ctxAppProviders(),
-      child: MaterialApp(
-        title: 'CtxApp',
-        theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
-        builder: _overlay,
-        home: _home(),
-      ),
+      child: const _CtxMaterialApp(),
+    );
+  }
+}
+
+/// The [MaterialApp] itself. It is a separate widget so that its build context
+/// sits *below* [ctxAppProviders], letting feature overlays wired into the
+/// `app-material` anchor read app-wide Blocs — the locale Cubit, for instance —
+/// while configuring the app.
+class _CtxMaterialApp extends StatelessWidget {
+  const _CtxMaterialApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'CtxApp',
+      theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
+      // ctx:anchor:app-material
+      builder: _overlay,
+      home: _home(),
     );
   }
 

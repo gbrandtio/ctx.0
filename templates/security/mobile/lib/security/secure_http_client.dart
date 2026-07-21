@@ -30,6 +30,12 @@ class SecureHttpClient {
         _storage = storage ?? const FlutterSecureStorage();
 
   final String baseUrl;
+
+  /// Language tag sent as `Accept-Language` on every secure request, so the API
+  /// answers in the user's language. The `l10n` feature keeps it in step with
+  /// the selected locale; left null, the API answers in its default language.
+  String? acceptLanguage;
+
   final http.Client _http;
   final FlutterSecureStorage _storage;
   final SecureRandom _random = _seededRandom();
@@ -66,7 +72,14 @@ class SecureHttpClient {
       timestamp: timestamp,
     );
 
-    final response = await _http.post(Uri.parse('$baseUrl$path'), headers: request.headers, body: request.body);
+    final response = await _http.post(
+      Uri.parse('$baseUrl$path'),
+      headers: {
+        ...request.headers,
+        if (acceptLanguage != null) 'Accept-Language': acceptLanguage!,
+      },
+      body: request.body,
+    );
     if (response.statusCode >= 400) {
       throw CtxHttpException(response.statusCode, response.body);
     }

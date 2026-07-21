@@ -35,7 +35,7 @@ describe('calls', () => {
     const info = (await dispatch('engine.info', {})) as Record<string, string>;
 
     expect(info.engine).toBe('@ctx0/core');
-    expect(info.contractVersion).toBe('1');
+    expect(info.contractVersion).toBe('2');
     expect(await fs.pathExists(path.join(info.templatesRoot!, 'workspace'))).toBe(true);
   });
 

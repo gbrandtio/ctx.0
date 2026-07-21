@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:ctxapp/l10n/gen/app_l10n.dart';
+
 import '../bloc/profile_cubit.dart';
 import '../data/profile_repository.dart';
 
@@ -50,8 +52,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(title: Text(l.profileTitle)),
       body: BlocConsumer<ProfileCubit, ProfileState>(
         listener: (context, state) {
           if (state.profile != null) _hydrate(state.profile!);
@@ -77,19 +80,19 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 24),
               TextField(
                 controller: _displayName,
-                decoration: const InputDecoration(labelText: 'Display name'),
+                decoration: InputDecoration(labelText: l.profileDisplayNameLabel),
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _bio,
-                decoration: const InputDecoration(labelText: 'Bio'),
+                decoration: InputDecoration(labelText: l.profileBioLabel),
                 maxLines: 3,
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _avatarUrl,
-                decoration: const InputDecoration(labelText: 'Avatar URL'),
+                decoration: InputDecoration(labelText: l.profileAvatarUrlLabel),
                 keyboardType: TextInputType.url,
                 onChanged: (_) => setState(() {}),
               ),
@@ -98,7 +101,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 onPressed: state.status == ProfileStatus.saving ? null : _save,
                 child: state.status == ProfileStatus.saving
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Save'),
+                    : Text(l.commonSave),
               ),
             ],
           );

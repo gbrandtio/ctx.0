@@ -1,0 +1,8 @@
+{
+  "@@locale": "el",
+  "pingTitle": "Ασφαλές ping",
+  "pingMessageLabel": "Μήνυμα",
+  "pingSend": "Αποστολή ασφαλούς ping",
+  "pingSending": "Αποστολή…",
+  "pingEcho": "Απόκριση: {echo}"
+}

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:ctxapp/l10n/gen/app_l10n.dart';
+
 import '../bloc/media_cubit.dart';
 
 /// Lists the signed-in user's stored files with sizes; a FAB picks an image and
@@ -35,8 +37,9 @@ class _MediaPageState extends State<MediaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Media')),
+      appBar: AppBar(title: Text(l.mediaTitle)),
       floatingActionButton: BlocBuilder<MediaCubit, MediaState>(
         builder: (context, state) => FloatingActionButton(
           onPressed: state.uploading ? null : _pickAndUpload,
@@ -51,10 +54,12 @@ class _MediaPageState extends State<MediaPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (state.status == MediaStatus.failure && state.items.isEmpty) {
-            return Center(child: Text('Error: ${state.error}', style: const TextStyle(color: Colors.red)));
+            return Center(
+              child: Text(l.commonError(state.error ?? ''), style: const TextStyle(color: Colors.red)),
+            );
           }
           if (state.items.isEmpty) {
-            return const Center(child: Text('No files yet — tap + to upload'));
+            return Center(child: Text(l.mediaEmpty));
           }
           return RefreshIndicator(
             onRefresh: () => context.read<MediaCubit>().load(),

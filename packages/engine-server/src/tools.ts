@@ -1,6 +1,8 @@
 import path from 'node:path';
 import {
+  DEFAULT_LOCALE,
   LAYOUTS,
+  LOCALES,
   coreVersion,
   createWorkspace,
   generateServerSecrets,
@@ -56,6 +58,8 @@ export const HANDLERS: Handlers = {
 
   'layouts.list': () => ({ layouts: LAYOUTS }),
 
+  'locales.list': () => ({ locales: LOCALES, default: DEFAULT_LOCALE }),
+
   'vars.resolve': (args) => ({ vars: resolveVars(args.name, args.org) }),
 
   'workspace.create': async (args) => {
@@ -74,6 +78,7 @@ export const HANDLERS: Handlers = {
       features: args.features ?? [],
       layout: args.layout,
       tabs: args.tabs,
+      locales: args.locales,
       scaffoldPlatforms: args.scaffoldPlatforms === true,
       toolVersion: args.toolVersion,
       templatesRoot: args.templatesRoot,

@@ -2,6 +2,7 @@
   "id": "auth",
   "summary": "Email/password auth: JWT + rotating refresh tokens with reuse detection (API), and a login/session UI (mobile).",
   "sides": ["mobile", "api"],
+  "requires": ["l10n"],
   "env": [],
   "userSteps": [
     "In production, apply the schema with `dotnet ef database update`; in Development the app creates it at startup."

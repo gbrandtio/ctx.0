@@ -1,0 +1,12 @@
+# Flutter `gen-l10n` configuration. The ARB files under `arb-dir` are generated
+# by ctx.0 from the languages chosen at create time; `flutter gen-l10n` (run for
+# you on every build, via `generate: true` in pubspec.yaml) turns them into the
+# `AppL10n` class the app reads.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-dir: lib/l10n/gen
+output-localization-file: app_l10n.dart
+output-class: AppL10n
+# `AppL10n.of(context)` is non-null: every route lives under the MaterialApp
+# that installs the delegates, so there is no nullable case worth handling.
+nullable-getter: false

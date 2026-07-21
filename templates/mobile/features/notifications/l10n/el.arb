@@ -1,0 +1,6 @@
+{
+  "@@locale": "el",
+  "notificationsTitle": "Ειδοποιήσεις",
+  "notificationsEmpty": "Δεν υπάρχουν ειδοποιήσεις ακόμη",
+  "notificationsUnread": "{count, plural, =1{1 μη αναγνωσμένη} other{{count} μη αναγνωσμένες}}"
+}

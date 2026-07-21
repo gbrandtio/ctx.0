@@ -1,0 +1,6 @@
+{
+  "@@locale": "es",
+  "auth.credentialsRequired": "El correo electrónico es obligatorio y la contraseña debe tener al menos 8 caracteres.",
+  "auth.emailTaken": "Ya existe un usuario con ese correo electrónico.",
+  "auth.invalidCredentials": "Credenciales no válidas."
+}

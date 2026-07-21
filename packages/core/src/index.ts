@@ -19,6 +19,7 @@ export type {
   FeatureManifest,
   AppliedFeature,
   WorkspaceNavigation,
+  WorkspaceLocalization,
   WorkspaceManifest,
   TemplateVars,
 } from './types.js';
@@ -30,6 +31,22 @@ export type { CatalogEntry } from './catalog.js';
 // Navigation shell: layout catalog + nav-capable feature helper.
 export { LAYOUTS, isLayoutId, navCapable, composeShell, SHELL_REL } from './shell.js';
 export type { LayoutDescriptor } from './shell.js';
+
+// Localization: the offered languages + the per-locale translation composer.
+export {
+  LOCALES,
+  DEFAULT_LOCALE,
+  isLocaleCode,
+  resolveLocales,
+  composeLocales,
+  ARB_DIR_REL,
+  L10N_SUPPORT_REL,
+  L10N_FRAGMENT_DIR,
+  RESOURCES_DIR_REL,
+  LOCALIZATION_DIR_REL,
+  SUPPORTED_CULTURES_REL,
+} from './l10n.js';
+export type { LocaleDescriptor, LocaleSource } from './l10n.js';
 
 // Composition: the top-level create operation and its I/O shapes.
 export { createWorkspace } from './compose.js';

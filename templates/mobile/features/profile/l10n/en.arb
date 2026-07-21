@@ -1,0 +1,7 @@
+{
+  "@@locale": "en",
+  "profileTitle": "Profile",
+  "profileDisplayNameLabel": "Display name",
+  "profileBioLabel": "Bio",
+  "profileAvatarUrlLabel": "Avatar URL"
+}

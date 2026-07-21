@@ -2,7 +2,7 @@
   "id": "notifications",
   "summary": "Per-user in-app notifications (RLS-isolated, envelope-encrypted) with unread badge and mark-read, plus device push via FCM.",
   "sides": ["mobile", "api"],
-  "requires": ["auth"],
+  "requires": ["auth", "l10n"],
   "nav": {
     "label": "Notifications",
     "icon": "notifications",

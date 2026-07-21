@@ -109,7 +109,8 @@ describe('createWorkspace', () => {
     const docsDir = path.join(targetDir, 'docs', 'features');
 
     const docs = (await fs.readdir(docsDir)).sort();
-    expect(docs).toEqual(['AUTH.md', 'NOTES.md', 'NOTIFICATIONS.md', 'PING.md']);
+    // l10n is pulled in as a dependency of every feature that carries strings.
+    expect(docs).toEqual(['AUTH.md', 'L10N.md', 'NOTES.md', 'NOTIFICATIONS.md', 'PING.md']);
 
     // The doc carries the fragment body, incl. auth's merged mobile + api guidance.
     const authDoc = await fs.readFile(path.join(docsDir, 'AUTH.md'), 'utf8');
@@ -126,7 +127,7 @@ describe('createWorkspace', () => {
       features: ['ping', 'auth'],
     });
     const smallerDocs = (await fs.readdir(path.join(smaller, 'docs', 'features'))).sort();
-    expect(smallerDocs).toEqual(['AUTH.md', 'PING.md']);
+    expect(smallerDocs).toEqual(['AUTH.md', 'L10N.md', 'PING.md']);
 
     // Fragment files are engine metadata: never copied into the workspace tree.
     const strays: string[] = [];
@@ -150,11 +151,15 @@ describe('createWorkspace', () => {
   it('records applied layers and vars in the manifest', async () => {
     const { targetDir, vars } = await generate();
     const manifest = await fs.readJson(path.join(targetDir, '.ctx', 'manifest.json'));
-    expect(manifest.schema).toBe(2);
+    expect(manifest.schema).toBe(3);
     expect(manifest.vars).toMatchObject(vars);
-    // Navigation is persisted; ping is nav-capable so it defaults to a tab.
+    // Navigation is persisted; ping and the l10n feature it pulls in are both
+    // nav-capable, so both default to tabs.
     expect(manifest.navigation.layout).toBe('bottom_nav');
-    expect(manifest.navigation.tabs).toEqual(['ping']);
+    expect(manifest.navigation.tabs).toEqual(['l10n', 'ping']);
+    // The languages are persisted too: every offered one, unless narrowed.
+    expect(manifest.localization.default).toBe('en');
+    expect(manifest.localization.locales).toEqual(['en', 'el', 'de', 'fr', 'es']);
     const ids = manifest.features.map((f: { id: string }) => f.id);
     expect(ids).toContain('security_mobile');
     expect(ids).toContain('security_api');

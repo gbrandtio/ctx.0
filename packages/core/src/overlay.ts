@@ -5,8 +5,12 @@ import { isProbablyBinary, substitute } from './substitute.js';
 import { sortUtf8 } from './order.js';
 import type { TemplateVars, WiringEdit } from './types.js';
 
-/** Files that are engine metadata and must never be copied into a workspace. */
-const OVERLAY_META = new Set(['feature.json', 'agents.md']);
+/**
+ * Root entries that are engine metadata and must never be copied into a
+ * workspace: the manifest, the AGENTS.md fragment, and the `l10n/` directory of
+ * translation fragments (merged per selected locale by `composeLocales`).
+ */
+const OVERLAY_META = new Set(['feature.json', 'agents.md', 'l10n']);
 
 /**
  * Copy an overlay/base source tree into the workspace under `destPrefix`,

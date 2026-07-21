@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:ctxapp/l10n/gen/app_l10n.dart';
+
 import '../bloc/auth_cubit.dart';
 
 /// Email/password sign-in and registration screen.
@@ -24,8 +26,9 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppL10n.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign in')),
+      appBar: AppBar(title: Text(l.authSignInTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: BlocBuilder<AuthCubit, AuthState>(
@@ -38,22 +41,22 @@ class _LoginPageState extends State<LoginPage> {
                 TextField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email'),
+                  decoration: InputDecoration(labelText: l.authEmailLabel),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _password,
                   obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
+                  decoration: InputDecoration(labelText: l.authPasswordLabel),
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: busy ? null : () => cubit.login(_email.text, _password.text),
-                  child: Text(busy ? 'Signing in…' : 'Sign in'),
+                  child: Text(busy ? l.authSigningIn : l.authSignIn),
                 ),
                 TextButton(
                   onPressed: busy ? null : () => cubit.register(_email.text, _password.text),
-                  child: const Text('Create an account'),
+                  child: Text(l.authCreateAccount),
                 ),
                 if (state.status == AuthStatus.failure && state.error != null)
                   Padding(

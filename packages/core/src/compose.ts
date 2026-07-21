@@ -4,6 +4,7 @@ import { templateLayout } from './paths.js';
 import { loadCatalog, resolveFeatureOrder, type CatalogEntry } from './catalog.js';
 import { applyWiring, copyTree, hashTree } from './overlay.js';
 import { composeShell, navCapable } from './shell.js';
+import { composeLocales, resolveLocales, DEFAULT_LOCALE, type LocaleSource } from './l10n.js';
 import { scaffoldFlutterPlatforms } from './flutter.js';
 import { writeManifest } from './manifest.js';
 import { coreVersion, protocolVersion } from './version.js';
@@ -41,6 +42,11 @@ export interface CreateOptions {
    * nav-capable feature when omitted. An empty array yields a placeholder shell.
    */
   tabs?: string[];
+  /**
+   * Language codes to ship translations for (see `LOCALES`). English is always
+   * included as the fallback. Defaults to every offered language when omitted.
+   */
+  locales?: string[];
   /**
    * When true, run `flutter create` to generate the app/ platform scaffolding
    * before the mobile overlay is applied. Requires the Flutter SDK on PATH.
@@ -90,6 +96,10 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   const env = new Set<string>();
   const userSteps: string[] = [];
   const agentsFragments: AgentsFragment[] = [];
+  // Overlay dirs whose `l10n/` fragments feed the generated translations, in
+  // application order (the order duplicate-key errors are reported against).
+  const localeSources: LocaleSource[] = [];
+  const locales = resolveLocales(opts.locales);
 
   const collectManifestExtras = (m: FeatureManifest | undefined) => {
     if (!m) return;
@@ -109,14 +119,18 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
 
   applied.push(await applyLayer('app_base', layout.mobileBase, targetDir, 'app', vars));
   applied.push(await applyLayer('api_base', layout.apiBase, targetDir, 'api', vars));
+  localeSources.push({ dir: layout.mobileBase, side: 'mobile' });
+  localeSources.push({ dir: layout.apiBase, side: 'api' });
 
   const secMobile = await applyLayer('security_mobile', layout.securityMobile, targetDir, 'app', vars);
   applied.push(secMobile);
   collectManifestExtras(readOptionalManifest(layout.securityMobile));
+  localeSources.push({ dir: layout.securityMobile, side: 'mobile' });
 
   const secApi = await applyLayer('security_api', layout.securityApi, targetDir, 'api', vars);
   applied.push(secApi);
   collectManifestExtras(readOptionalManifest(layout.securityApi));
+  localeSources.push({ dir: layout.securityApi, side: 'api' });
 
   // 2. Toggleable features, in dependency order, per declared side.
   for (const id of order) {
@@ -125,6 +139,7 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
       const srcDir = entry.dirs[side];
       if (!srcDir) continue;
       applied.push(await applyLayer(`${id}:${side}`, srcDir, targetDir, sidePrefix(side), vars));
+      localeSources.push({ dir: srcDir, side });
     }
     collectManifestExtras(entry.manifest);
     agentsFragments.push({
@@ -133,6 +148,10 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
       body: await readFeatureAgents(entry, vars),
     });
   }
+
+  // 2b. Merge every enabled layer's translation fragments into the workspace's
+  //     ARB files, .NET resources and the generated Dart support library.
+  await composeLocales(targetDir, locales, localeSources, vars);
 
   // 3. Apply wiring now that every base/overlay file exists (anchors present).
   await applyWiring(targetDir, pendingWiring, vars);
@@ -154,12 +173,13 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   await writeFeatureDocs(targetDir, agentsFragments);
 
   const manifest: WorkspaceManifest = {
-    schema: 2,
+    schema: 3,
     ctx0Version: opts.toolVersion ?? coreVersion(),
     protocolVersion: protocolVersion(opts.templatesRoot),
     vars,
     features: applied,
     navigation: { layout: navLayout, tabs },
+    localization: { default: DEFAULT_LOCALE, locales },
   };
   await writeManifest(targetDir, manifest);
 

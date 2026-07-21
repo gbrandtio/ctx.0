@@ -1,3 +1,4 @@
+using CtxApp.Api.Localization;
 using CtxApp.Application.Media;
 using CtxApp.Domain.Media;
 using CtxApp.Infrastructure.Media;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using CtxApp.Application.Abstractions;
+using Microsoft.Extensions.Localization;
 
 namespace CtxApp.Api.Endpoints;
 
@@ -22,28 +24,35 @@ public static class MediaEndpoints
     {
         var group = app.MapGroup("/v1/media").RequireAuthorization();
 
-        group.MapPost("/", async (HttpRequest request, CtxAppDbContext db, ICurrentUser user, IBlobStore blobs, MediaOptions options, CancellationToken ct) =>
+        group.MapPost("/", async (
+            HttpRequest request,
+            CtxAppDbContext db,
+            ICurrentUser user,
+            IBlobStore blobs,
+            MediaOptions options,
+            IStringLocalizer<Messages> loc,
+            CancellationToken ct) =>
         {
             if (!request.HasFormContentType)
             {
-                return Results.BadRequest(new { error = "Expected multipart/form-data." });
+                return Results.BadRequest(new { error = loc["media.expectedMultipart"].Value });
             }
 
             var form = await request.ReadFormAsync(ct);
             var file = form.Files.GetFile("file");
             if (file is null || file.Length == 0)
             {
-                return Results.BadRequest(new { error = "A non-empty 'file' part is required." });
+                return Results.BadRequest(new { error = loc["media.filePartRequired"].Value });
             }
             if (file.Length > options.MaxBytes)
             {
-                return Results.Json(new { error = $"File exceeds the {options.MaxBytes}-byte limit." }, statusCode: StatusCodes.Status413PayloadTooLarge);
+                return Results.Json(new { error = loc["media.tooLarge", options.MaxBytes].Value }, statusCode: StatusCodes.Status413PayloadTooLarge);
             }
 
             var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
             if (!options.IsAllowed(contentType))
             {
-                return Results.Json(new { error = $"Content type '{contentType}' is not allowed." }, statusCode: StatusCodes.Status415UnsupportedMediaType);
+                return Results.Json(new { error = loc["media.contentTypeNotAllowed", contentType].Value }, statusCode: StatusCodes.Status415UnsupportedMediaType);
             }
 
             var key = Guid.NewGuid().ToString("n");

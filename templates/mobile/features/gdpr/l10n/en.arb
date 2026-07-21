@@ -1,0 +1,44 @@
+{
+  "@@locale": "en",
+  "gdprTitle": "Privacy",
+  "gdprConsentBannerTitle": "Your privacy",
+  "gdprConsentBannerBody": "We process what the account needs to work. Optional analytics and marketing only happen if you say yes — you can change your mind at any time under Privacy.",
+  "gdprEssentialOnly": "Essential only",
+  "gdprAcceptAll": "Accept all",
+  "gdprConsentSectionTitle": "Consent",
+  "gdprNoDecision": "No decision recorded yet.",
+  "gdprRecordedAt": "Recorded {date} against notice {version}.",
+  "gdprPurposeAnalytics": "Analytics",
+  "gdprPurposeMarketing": "Marketing",
+  "gdprYourDataTitle": "Your data",
+  "gdprYourDataBody": "Get a copy of everything this account holds. The archive is built on the server and can be downloaded once.",
+  "gdprDownloadMyData": "Download my data",
+  "gdprPreparing": "Preparing…",
+  "gdprSavedTo": "Saved to {path}",
+  "gdprShareArchive": "Share archive",
+  "gdprDeleteSectionTitle": "Delete account",
+  "gdprDeleteSectionBody": "This erases your account and everything stored with it, immediately and permanently. Download your data first if you want a copy.",
+  "gdprDeleteMyAccount": "Delete my account",
+  "gdprDeleteDialogTitle": "Delete your account?",
+  "gdprDeleteDialogBody": "This cannot be undone. Type DELETE and enter your password to confirm.",
+  "gdprTypeDeleteLabel": "Type DELETE",
+  "gdprDeleted": "Your account and data have been deleted.",
+  "@gdprSavedTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@gdprRecordedAt": {
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMd"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  }
+}

@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using CtxApp.Api.Gdpr;
+using CtxApp.Api.Localization;
 using CtxApp.Application.Abstractions;
 using CtxApp.Domain.Auth;
 using CtxApp.Domain.Gdpr;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 
 namespace CtxApp.Api.Endpoints;
 
@@ -37,11 +39,16 @@ public static class PrivacyEndpoints
         });
 
         group.MapPut("/consent", async (
-            ConsentDecisionRequest body, CtxAppDbContext db, ICurrentUser user, GdprOptions options, CancellationToken ct) =>
+            ConsentDecisionRequest body,
+            CtxAppDbContext db,
+            ICurrentUser user,
+            GdprOptions options,
+            IStringLocalizer<Messages> loc,
+            CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(body.PolicyVersion))
             {
-                return Results.BadRequest(new { error = "policyVersion is required." });
+                return Results.BadRequest(new { error = loc["gdpr.policyVersionRequired"].Value });
             }
 
             // Append rather than update: the history of decisions is the evidence
@@ -120,6 +127,7 @@ public static class PrivacyEndpoints
             ExportArchiveStore archives,
             ITokenHasher hasher,
             IClock clock,
+            IStringLocalizer<Messages> loc,
             CancellationToken ct) =>
         {
             var job = await db.Set<DataExportJob>().FirstOrDefaultAsync(j => j.Id == id, ct);
@@ -129,12 +137,12 @@ public static class PrivacyEndpoints
             }
             if (string.IsNullOrEmpty(token) || !FixedTimeEquals(hasher.Hash(token), job.DownloadTokenHash))
             {
-                return Results.Json(new { error = "Invalid download token." }, statusCode: StatusCodes.Status401Unauthorized);
+                return Results.Json(new { error = loc["gdpr.invalidDownloadToken"].Value }, statusCode: StatusCodes.Status401Unauthorized);
             }
             if (job.Status != DataExportStatus.Ready)
             {
                 return Results.Json(
-                    new { error = $"Export is {job.Status.ToString().ToLowerInvariant()}.", job.Error },
+                    new { error = loc["gdpr.exportNotReady", job.Status.ToString().ToLowerInvariant()].Value, job.Error },
                     statusCode: StatusCodes.Status409Conflict);
             }
             if (job.DownloadedAt is not null || job.ExpiresAt <= clock.UtcNow)
@@ -144,7 +152,7 @@ public static class PrivacyEndpoints
                     await ExpireAsync(db, archives, job, ct);
                 }
                 return Results.Json(
-                    new { error = "This export has already been downloaded or has expired. Request a new one." },
+                    new { error = loc["gdpr.exportConsumed"].Value },
                     statusCode: StatusCodes.Status410Gone);
             }
 
@@ -168,18 +176,19 @@ public static class PrivacyEndpoints
             ICurrentUser user,
             IPasswordHasher passwords,
             AccountEraser eraser,
+            IStringLocalizer<Messages> loc,
             CancellationToken ct) =>
         {
             if (!string.Equals(body.Confirm, "DELETE", StringComparison.Ordinal))
             {
-                return Results.BadRequest(new { error = "Send confirm: \"DELETE\" to erase the account." });
+                return Results.BadRequest(new { error = loc["gdpr.confirmDelete"].Value });
             }
 
             var userId = user.UserId!.Value;
             var credential = await db.Set<UserCredential>().AsNoTracking().FirstOrDefaultAsync(c => c.UserId == userId, ct);
             if (credential is null || !passwords.Verify(body.Password, credential.PasswordHash))
             {
-                return Results.Json(new { error = "Password does not match." }, statusCode: StatusCodes.Status401Unauthorized);
+                return Results.Json(new { error = loc["gdpr.passwordMismatch"].Value }, statusCode: StatusCodes.Status401Unauthorized);
             }
 
             await eraser.EraseAsync(userId, ct);

@@ -1,0 +1,9 @@
+{
+  "@@locale": "de",
+  "authSignInTitle": "Anmelden",
+  "authEmailLabel": "E-Mail",
+  "authPasswordLabel": "Passwort",
+  "authSignIn": "Anmelden",
+  "authSigningIn": "Anmeldung läuft…",
+  "authCreateAccount": "Konto erstellen"
+}

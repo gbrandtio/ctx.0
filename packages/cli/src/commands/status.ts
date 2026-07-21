@@ -23,7 +23,8 @@ export async function runStatus(): Promise<void> {
         const tab = feature.tab ? pc.cyan(' [tab]') : '';
         console.log(`  ${mark} ${feature.id.padEnd(20)} ${pc.dim(feature.summary)}${tab}`);
       }
-      console.log(pc.dim(`\n  layout: ${manifest.navigation.layout}`));
+      console.log(pc.dim(`\n  layout   : ${manifest.navigation.layout}`));
+      console.log(pc.dim(`  languages: ${manifest.localization.locales.join(', ')}`));
       console.log();
       return;
     }

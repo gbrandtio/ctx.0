@@ -2,6 +2,7 @@
   "id": "ping",
   "summary": "Secure echo endpoint: proves the signed + ALE-encrypted round trip end to end.",
   "sides": ["mobile", "api"],
+  "requires": ["l10n"],
   "nav": {
     "label": "Secure ping",
     "icon": "lock",

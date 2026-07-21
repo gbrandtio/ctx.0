@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:ctxapp/l10n/gen/app_l10n.dart';
+
 import '../bloc/consent_cubit.dart';
 
 /// Overlays the app with the privacy notice until the user has answered it for
@@ -34,6 +36,7 @@ class _ConsentSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l = AppL10n.of(context);
     return SafeArea(
       child: Card(
         margin: const EdgeInsets.all(12),
@@ -44,26 +47,21 @@ class _ConsentSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Your privacy', style: theme.textTheme.titleMedium),
+              Text(l.gdprConsentBannerTitle, style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
-              Text(
-                'We process what the account needs to work. Optional analytics and '
-                'marketing only happen if you say yes — you can change your mind '
-                'at any time under Privacy.',
-                style: theme.textTheme.bodyMedium,
-              ),
+              Text(l.gdprConsentBannerBody, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
                     onPressed: () => context.read<ConsentCubit>().essentialOnly(),
-                    child: const Text('Essential only'),
+                    child: Text(l.gdprEssentialOnly),
                   ),
                   const SizedBox(width: 8),
                   FilledButton(
                     onPressed: () => context.read<ConsentCubit>().acceptAll(),
-                    child: const Text('Accept all'),
+                    child: Text(l.gdprAcceptAll),
                   ),
                 ],
               ),

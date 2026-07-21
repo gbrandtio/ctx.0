@@ -1,0 +1,15 @@
+{
+  "@@locale": "en",
+  "pingTitle": "Secure ping",
+  "pingMessageLabel": "Message",
+  "pingSend": "Send secure ping",
+  "pingSending": "Sending…",
+  "pingEcho": "Echo: {echo}",
+  "@pingEcho": {
+    "placeholders": {
+      "echo": {
+        "type": "String"
+      }
+    }
+  }
+}

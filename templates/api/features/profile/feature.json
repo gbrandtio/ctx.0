@@ -2,7 +2,7 @@
   "id": "profile",
   "summary": "Editable user account profile (display name, bio, avatar) with envelope-encrypted fields and per-user RLS isolation.",
   "sides": ["mobile", "api"],
-  "requires": ["auth"],
+  "requires": ["auth", "l10n"],
   "nav": {
     "label": "Profile",
     "icon": "person",

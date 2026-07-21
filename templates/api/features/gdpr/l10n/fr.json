@@ -1,0 +1,9 @@
+{
+  "@@locale": "fr",
+  "gdpr.invalidDownloadToken": "Jeton de téléchargement invalide.",
+  "gdpr.exportNotReady": "L'export est {0}.",
+  "gdpr.exportConsumed": "Cet export a déjà été téléchargé ou a expiré. Demandez-en un nouveau.",
+  "gdpr.confirmDelete": "Envoyez confirm: \"DELETE\" pour effacer le compte.",
+  "gdpr.passwordMismatch": "Le mot de passe ne correspond pas.",
+  "gdpr.policyVersionRequired": "policyVersion est obligatoire."
+}

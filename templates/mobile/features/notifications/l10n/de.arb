@@ -1,0 +1,6 @@
+{
+  "@@locale": "de",
+  "notificationsTitle": "Benachrichtigungen",
+  "notificationsEmpty": "Noch keine Benachrichtigungen",
+  "notificationsUnread": "{count, plural, =1{1 ungelesen} other{{count} ungelesen}}"
+}

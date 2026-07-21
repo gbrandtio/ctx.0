@@ -1,0 +1,7 @@
+{
+  "@@locale": "el",
+  "profileTitle": "Προφίλ",
+  "profileDisplayNameLabel": "Εμφανιζόμενο όνομα",
+  "profileBioLabel": "Βιογραφικό",
+  "profileAvatarUrlLabel": "URL εικόνας προφίλ"
+}

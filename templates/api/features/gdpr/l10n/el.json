@@ -1,0 +1,9 @@
+{
+  "@@locale": "el",
+  "gdpr.invalidDownloadToken": "Μη έγκυρο διακριτικό λήψης.",
+  "gdpr.exportNotReady": "Η εξαγωγή είναι {0}.",
+  "gdpr.exportConsumed": "Αυτή η εξαγωγή έχει ήδη ληφθεί ή έχει λήξει. Ζητήστε νέα.",
+  "gdpr.confirmDelete": "Στείλτε confirm: \"DELETE\" για να διαγραφεί ο λογαριασμός.",
+  "gdpr.passwordMismatch": "Ο κωδικός πρόσβασης δεν ταιριάζει.",
+  "gdpr.policyVersionRequired": "Το policyVersion είναι υποχρεωτικό."
+}

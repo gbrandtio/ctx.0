@@ -2,7 +2,7 @@
   "id": "gdpr",
   "summary": "Data-subject rights: versioned consent banner, asynchronous \"download my data\" export, and hard account deletion across every enabled feature.",
   "sides": ["mobile", "api"],
-  "requires": ["auth"],
+  "requires": ["auth", "l10n"],
   "nav": {
     "label": "Privacy",
     "icon": "privacy_tip",
