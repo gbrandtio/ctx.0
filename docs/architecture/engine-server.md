@@ -37,13 +37,13 @@ own tests.
 
 ```mermaid
 flowchart LR
-    client([MCP client]) -->|stdio JSON-RPC| index[index.ts<br/>MCP Server]
-    index --> dispatch[tools.ts<br/>dispatch + HANDLERS]
+    client(["MCP client"]) -->|stdio JSON-RPC| index["index.ts<br/>MCP Server"]
+    index --> dispatch["tools.ts<br/>dispatch + HANDLERS"]
     dispatch --> core[["@ctx0/core"]]
-    contract[contract.ts<br/>types + schemas]
+    contract["contract.ts<br/>types + schemas"]
     index -.->|CALL_SPECS| contract
     dispatch -.->|types + schemas| contract
-    cli([ctx0 CLI]) -.->|type-only import| contract
+    cli(["ctx0 CLI"]) -.->|type-only import| contract
 ```
 
 ## The contract
@@ -148,9 +148,9 @@ declares the `tools` capability, and connects a `StdioServerTransport`.
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant S as index.ts (MCP Server)
+    participant S as index.ts — MCP server
     participant D as dispatch
-    participant E as "@ctx0/core"
+    participant E as ctx0-core
 
     C->>S: tools/call {name, arguments}
     S->>D: dispatch(name, args)
