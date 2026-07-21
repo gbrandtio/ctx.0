@@ -1,8 +1,13 @@
 # Developing ctx.0
 
 This guide is for people working **on** ctx.0 itself — the composition engine and
-the CLI — not for people using a generated workspace. It covers how the monorepo
-is laid out, how to run the tooling in development mode, and how to test changes.
+the CLI — not for people using a generated workspace. It covers how to run the
+tooling in development mode, how to build and install it, and how to test changes.
+
+For **how the system is structured and why**, read
+[architecture/README.md](architecture/README.md) and the per-subsystem documents it
+links; the decisions behind that structure are in [adr/](adr/). This guide assumes
+that context rather than repeating it.
 
 ## Prerequisites
 
@@ -23,63 +28,33 @@ npm install
 
 This installs and links both workspaces (`@ctx0/core` and `ctx0`).
 
-## Repository layout
+## Where things are
 
-```
-packages/
-  core/        @ctx0/core — the CLI-free composition engine (the actual scaffolder)
-    src/       catalog, compose, overlay, substitute, manifest, flutter, agents, paths…
-    test/      vitest unit tests (compose, substitute, agents, shell)
-  engine-server/  @ctx0/engine-server — the engine behind the contract
-    src/       contract.ts (the contract) + tools.ts (engine side) + index.ts (JSON-RPC on stdio)
-  cli/         ctx0 — the command-line frontend, a client of the contract
-    src/       index.ts (commander) + engine.ts (contract client) + commands/
-templates/     the template trees the engine composes from
-  workspace/   root workspace files (README, etc.)
-  mobile/      Flutter: base/ + features/
-  api/         .NET:    base/ + features/
-  security/    vendored security overlays (mobile/ + api/)
-protocol/      wire protocol spec + test vectors (protocol.json, vectors.json)
-```
+| Path | What it is | Document |
+|---|---|---|
+| `packages/core` | `@ctx0/core` — the CLI-free composition engine | [architecture/core.md](architecture/core.md) |
+| `packages/engine-server` | `@ctx0/engine-server` — the contract + JSON-RPC/MCP stdio server | [architecture/engine-server.md](architecture/engine-server.md) |
+| `packages/cli` | `ctx0` — the command-line frontend | [architecture/cli.md](architecture/cli.md) |
+| `templates/` | the trees the engine composes from | [architecture/templates.md](architecture/templates.md) |
+| `protocol/` | wire-protocol spec + golden vectors | [architecture/protocol.md](architecture/protocol.md) |
 
-The important architectural fact: **all scaffolding logic lives in `@ctx0/core`.**
-The `ctx0` CLI and the engine server are thin; keep engine logic out of both.
+Two facts govern almost every change:
 
-## The CLI ↔ core contract
+- **All scaffolding logic lives in `@ctx0/core`.** The CLI and the engine server
+  are thin. The CLI does not import the engine — it spawns `ctx0-engine` and
+  talks to it over the contract in
+  `packages/engine-server/src/contract.ts`. New CLI capability means a new call,
+  not an import. ([ADR-0001](adr/0001-cli-never-imports-core.md),
+  [ADR-0002](adr/0002-engine-over-jsonrpc-mcp-stdio.md))
+- **Build order is `core` → `engine-server` → `cli`**, since the CLI compiles
+  against the contract's generated types. The root `build` script does this.
 
-The CLI does **not** import `@ctx0/core`. It spawns `ctx0-engine` and talks to it
-over JSON-RPC 2.0 on stdio (framed as MCP, so any language's MCP client can drive
-the engine, and an agent host can too). Everything the two sides share is
-declared in one file:
-
-**`packages/engine-server/src/contract.ts`** — the calls the engine answers
-(`engine.info`, `catalog.list`, `catalog.resolve`, `layouts.list`, `locales.list`,
-`vars.resolve`, `workspace.create`, `workspace.status`, `secrets.generate`), their argument and
-result types, and their JSON Schemas. It holds no logic and imports nothing.
-
-- `tools.ts` implements the contract over `@ctx0/core` and validates incoming
-  arguments against the contract's own schemas.
-- `packages/cli/src/engine.ts` consumes it: `Engine.call('vars.resolve', {…})` is
-  typed by the contract, and an engine failure comes back as a thrown `Error`
-  with its message intact.
-
-Because that is the only coupling, either side can be replaced by an
-implementation in another language that honours the same calls — a Go CLI over
-this engine, or a Rust engine under this CLI. **`CONTRACT_VERSION` is bumped
-whenever a call's arguments or result change shape**, and `engine.info` reports
-it so a mismatched pair can be detected.
-
-Anything the CLI needs to know about features, layouts or workspaces comes from a
-call. When you find yourself wanting to reach into the engine from the CLI, add a
-call instead.
+To exercise the engine on its own:
 
 ```bash
 npm run build
 node packages/engine-server/dist/index.js   # speaks JSON-RPC on stdin/stdout
 ```
-
-Build order matters: `core` → `engine-server` → `cli`, since the CLI compiles
-against the contract's generated types. The root `build` script does this.
 
 ## Build
 
@@ -282,31 +257,27 @@ things make this possible:
 You only need the Flutter and .NET toolchains when you want to *build and run* a
 generated app — i.e. for template/runtime work, not for engine or CLI work.
 
-## Templates and the composition engine
+## Working on templates
 
-- **Template roots** are resolved by `packages/core/src/paths.ts`. In the monorepo
-  they are found at the repo-root `templates/` (and `protocol/`) relative to
-  `packages/core/`. A published package instead ships `templates/` next to `dist/`.
-  If you move directories, keep both layouts working.
-- The **feature catalog** is discovered from `templates/mobile/features/` and
-  `templates/api/features/` via their manifests. `ctx0 status` is the quickest way
-  to confirm a new feature is discovered and shows the right sides/summary.
-- Editing a template is often enough to change output — no engine code change and
-  no rebuild is needed for `tsx`-based runs, since templates are read at runtime.
-- **Translations are fragments, not files.** A feature that shows text ships
-  `l10n/<code>.arb` (mobile) or `l10n/<code>.json` (api) at its overlay root, one
-  file per offered language, and declares `"requires": ["l10n"]`. Those fragments
-  are engine metadata — `copyTree` skips the whole `l10n/` directory — and
-  `composeLocales` (`packages/core/src/l10n.ts`) merges the enabled features'
-  fragments, in application order, into `app/lib/l10n/app_<code>.arb` and
-  `api/src/Api/Resources/Localization/Messages[.<code>].resx` for the languages
-  chosen at create time. Two features defining the same key is an error, so keep
-  keys namespaced by feature (`profileTitle`, `media.tooLarge`); English is the
-  template locale and must always be complete.
-- Anything the engine derives from the filesystem is sorted with `sortUtf8`
-  (`packages/core/src/order.ts`), never a bare `.sort()`: the order determines
-  overlay hashes and the manifest's file lists, so it has to be stable across
-  hosts.
+Templates are read at runtime, so **editing one is often enough to change the
+output** — no engine change and, for `tsx`-based runs, no rebuild. `ctx0 status`
+is the quickest way to confirm a new feature is discovered with the right sides
+and summary.
+
+How overlays, manifests, wiring anchors and translation fragments work is in
+[architecture/templates.md](architecture/templates.md), with the merge and
+composition rules in [architecture/core.md](architecture/core.md). Three things
+bite most often while editing:
+
+- **Keep both template layouts resolvable.** `packages/core/src/paths.ts` locates
+  the trees at the repo root (monorepo) or next to `dist/` (published package). If
+  you move directories, keep both working.
+- **Translation keys are namespaced by feature** (`profileTitle`,
+  `media.tooLarge`) — two layers defining the same key is a hard error — and
+  English must always be complete.
+- **Sort with `sortUtf8`** (`packages/core/src/order.ts`), never a bare `.sort()`.
+  The order determines overlay hashes and the manifest's file lists.
+  ([ADR-0006](adr/0006-deterministic-composition-ordering.md))
 
 ## Conventions
 
