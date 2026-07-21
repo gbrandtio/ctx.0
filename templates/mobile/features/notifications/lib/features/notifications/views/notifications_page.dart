@@ -45,7 +45,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           }
           if (state.status == NotificationsStatus.failure && state.items.isEmpty) {
             return Center(
-              child: Text(l.commonError(state.error ?? ''), style: const TextStyle(color: Colors.red)),
+              child: Text(l.commonError(state.error ?? ''), style: TextStyle(color: Theme.of(context).colorScheme.error)),
             );
           }
           if (state.items.isEmpty) {

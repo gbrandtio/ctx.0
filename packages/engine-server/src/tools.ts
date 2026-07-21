@@ -1,6 +1,9 @@
 import path from 'node:path';
 import {
+  COLOR_SCHEMES,
   DEFAULT_LOCALE,
+  DEFAULT_SCHEME,
+  FONTS,
   LAYOUTS,
   LOCALES,
   coreVersion,
@@ -60,6 +63,8 @@ export const HANDLERS: Handlers = {
 
   'locales.list': () => ({ locales: LOCALES, default: DEFAULT_LOCALE }),
 
+  'theme.list': () => ({ schemes: COLOR_SCHEMES, fonts: FONTS, defaultScheme: DEFAULT_SCHEME }),
+
   'vars.resolve': (args) => ({ vars: resolveVars(args.name, args.org) }),
 
   'workspace.create': async (args) => {
@@ -79,6 +84,8 @@ export const HANDLERS: Handlers = {
       layout: args.layout,
       tabs: args.tabs,
       locales: args.locales,
+      scheme: args.scheme,
+      font: args.font,
       scaffoldPlatforms: args.scaffoldPlatforms === true,
       toolVersion: args.toolVersion,
       templatesRoot: args.templatesRoot,

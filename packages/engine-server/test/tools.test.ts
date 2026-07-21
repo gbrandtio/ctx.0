@@ -35,8 +35,22 @@ describe('calls', () => {
     const info = (await dispatch('engine.info', {})) as Record<string, string>;
 
     expect(info.engine).toBe('@ctx0/core');
-    expect(info.contractVersion).toBe('2');
+    expect(info.contractVersion).toBe('3');
     expect(await fs.pathExists(path.join(info.templatesRoot!, 'workspace'))).toBe(true);
+  });
+
+  it('theme.list reports the schemes and fonts, with a default that exists', async () => {
+    const theme = (await dispatch('theme.list', {})) as {
+      schemes: { id: string; seed: string }[];
+      fonts: { id: string; locales: string[] }[];
+      defaultScheme: string;
+    };
+
+    expect(theme.schemes.length).toBeGreaterThan(0);
+    expect(theme.schemes.some((s) => s.id === theme.defaultScheme)).toBe(true);
+    // Coverage is per family, and at least one family falls short of the offered
+    // languages — that is the case a frontend has to warn about.
+    expect(theme.fonts.some((f) => !f.locales.includes('el'))).toBe(true);
   });
 
   it('catalog.list reports features with their navigation metadata', async () => {

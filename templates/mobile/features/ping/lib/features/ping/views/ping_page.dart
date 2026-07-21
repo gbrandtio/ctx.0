@@ -51,7 +51,7 @@ class _PingPageState extends State<PingPage> {
                     const SizedBox(height: 16),
                     if (state.status == PingStatus.success) Text(l.pingEcho(state.echo ?? '')),
                     if (state.status == PingStatus.failure)
-                      Text(l.commonError(state.error ?? ''), style: const TextStyle(color: Colors.red)),
+                      Text(l.commonError(state.error ?? ''), style: TextStyle(color: Theme.of(context).colorScheme.error)),
                   ],
                 );
               },

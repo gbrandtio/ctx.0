@@ -4,6 +4,8 @@ import pc from 'picocolors';
 import prompts from 'prompts';
 import type {
   CatalogFeature,
+  ColorSchemeDescriptor,
+  FontDescriptor,
   LayoutDescriptor,
   LayoutId,
   LocaleDescriptor,
@@ -23,6 +25,10 @@ export interface CreateArgs {
   tabs?: string[];
   /** Language codes to ship (non-interactive path). */
   locales?: string[];
+  /** Colour-scheme id to theme the app with (non-interactive path). */
+  scheme?: string;
+  /** Google Fonts family id to use (non-interactive path). */
+  font?: string;
   /** Generate the Flutter platform scaffolding via `flutter create` (default true). */
   platforms?: boolean;
 }
@@ -35,6 +41,10 @@ interface Setup {
   tabs: string[] | undefined;
   /** Undefined means "let the engine ship every offered language". */
   locales: string[] | undefined;
+  /** Undefined means "let the engine use its default colour scheme". */
+  scheme: string | undefined;
+  /** Undefined means the platform font, with no font package added. */
+  font: string | undefined;
 }
 
 export async function runCreate(args: CreateArgs): Promise<void> {
@@ -49,9 +59,10 @@ export async function runCreate(args: CreateArgs): Promise<void> {
     const { features: catalog } = await engine.call('catalog.list', {});
     const { layouts } = await engine.call('layouts.list', {});
     const { locales, default: defaultLocale } = await engine.call('locales.list', {});
+    const theme = await engine.call('theme.list', {});
     const setup = shouldPrompt(args)
-      ? await promptSetup(engine, catalog, layouts, locales, defaultLocale)
-      : resolveFromFlags(args, layouts);
+      ? await promptSetup(engine, catalog, layouts, locales, defaultLocale, theme)
+      : resolveFromFlags(args, layouts, theme);
 
     // The engine decides which features can be tabs, so ask it rather than
     // second-guessing the catalog here.
@@ -61,7 +72,18 @@ export async function runCreate(args: CreateArgs): Promise<void> {
     console.log(
       `  languages: ${pc.dim((setup.locales ?? locales.map((l) => l.code)).join(', '))}`,
     );
-    console.log(`  tabs     : ${pc.dim((setup.tabs ?? resolved.navCapable).join(', ') || '(none)')}\n`);
+    console.log(`  tabs     : ${pc.dim((setup.tabs ?? resolved.navCapable).join(', ') || '(none)')}`);
+    console.log(`  scheme   : ${pc.dim(setup.scheme ?? theme.defaultScheme)}`);
+    console.log(`  font     : ${pc.dim(fontLabel(theme.fonts, setup.font))}`);
+
+    // Said once, for either path: the picker annotates coverage while choosing,
+    // but a font can also arrive by flag, and either way it is worth repeating
+    // next to the languages it does not cover.
+    const chosenFont = setup.font ? theme.fonts.find((f) => f.id === setup.font) : undefined;
+    if (chosenFont) {
+      warnCoverage(chosenFont, setup.locales ?? locales.map((l) => l.code), locales);
+    }
+    console.log();
 
     const scaffoldPlatforms = args.platforms !== false;
     if (scaffoldPlatforms) {
@@ -76,6 +98,8 @@ export async function runCreate(args: CreateArgs): Promise<void> {
       layout: setup.layout,
       tabs: setup.tabs,
       locales: setup.locales,
+      scheme: setup.scheme,
+      font: setup.font,
       scaffoldPlatforms,
       toolVersion: cliVersion(),
     });
@@ -105,18 +129,35 @@ export async function runCreate(args: CreateArgs): Promise<void> {
 /** Prompt only when the user drives no setup flags and we have an interactive TTY. */
 function shouldPrompt(args: CreateArgs): boolean {
   const hasFlags = Boolean(
-    args.features?.length || args.layout || args.tabs?.length || args.locales?.length,
+    args.features?.length ||
+      args.layout ||
+      args.tabs?.length ||
+      args.locales?.length ||
+      args.scheme ||
+      args.font,
   );
   return !hasFlags && Boolean(process.stdin.isTTY && process.stdout.isTTY);
 }
 
-/** The four-step guided flow: layout → languages → features → main-nav tabs. */
+/** The colour schemes and fonts the engine offers, as `theme.list` reports them. */
+interface ThemeCatalog {
+  schemes: ColorSchemeDescriptor[];
+  fonts: FontDescriptor[];
+  defaultScheme: string;
+}
+
+/**
+ * The guided flow: layout → languages → colour scheme → font → features →
+ * main-nav tabs. The theme steps sit after the languages so the font step knows
+ * which languages the app ships and can say which of them a family cannot draw.
+ */
 async function promptSetup(
   engine: Engine,
   catalog: CatalogFeature[],
   layouts: LayoutDescriptor[],
   locales: LocaleDescriptor[],
   defaultLocale: string,
+  theme: ThemeCatalog,
 ): Promise<Setup> {
   const onCancel = () => {
     throw new Error('Cancelled — no workspace was created.');
@@ -155,7 +196,30 @@ async function promptSetup(
   );
   const chosenLocales = [defaultLocale, ...((extraLocales as string[] | undefined) ?? [])];
 
-  // 3. Which features to enable (nothing pre-selected — pick any number).
+  // 3. The colour scheme. Its seed is the colour every other colour in the app
+  // is derived from, so this is the whole of the app's palette.
+  const { scheme } = await prompts(
+    {
+      type: 'select',
+      name: 'scheme',
+      message: 'Choose a colour scheme (optional; enter keeps the default)',
+      choices: theme.schemes.map((s) => ({
+        title: s.label,
+        description: s.description,
+        value: s.id,
+      })),
+      initial: Math.max(
+        0,
+        theme.schemes.findIndex((s) => s.id === theme.defaultScheme),
+      ),
+    },
+    { onCancel },
+  );
+
+  // 4. The font, annotated with the languages each family cannot draw.
+  const font = await promptFont(theme.fonts, chosenLocales, locales, onCancel);
+
+  // 5. Which features to enable (nothing pre-selected — pick any number).
   const { features } = await prompts(
     {
       type: 'multiselect',
@@ -184,7 +248,7 @@ async function promptSetup(
   const navFeatures = resolved.navCapable;
   const nonNavFeatures = resolved.order.filter((id) => !navFeatures.includes(id));
 
-  // 4. Which nav-capable features appear in the main navigation (all pre-checked).
+  // 6. Which nav-capable features appear in the main navigation (all pre-checked).
   let tabs: string[] = navFeatures;
   if (navFeatures.length > 0) {
     const byId = new Map(catalog.map((feature) => [feature.id, feature]));
@@ -206,7 +270,7 @@ async function promptSetup(
     tabs = answer.tabs ?? [];
   }
 
-  // 5. Always-on features: enabled but not navigation tabs. Surface them so the
+  // 7. Always-on features: enabled but not navigation tabs. Surface them so the
   // user sees where every enabled feature ends up, rather than dropping them.
   reportAlwaysOnFeatures(catalog, nonNavFeatures);
 
@@ -215,7 +279,89 @@ async function promptSetup(
     layout: layoutId,
     tabs,
     locales: locales.filter((l) => chosenLocales.includes(l.code)).map((l) => l.code),
+    scheme: scheme as string,
+    font,
   };
+}
+
+/**
+ * The font step. The platform font comes first as the do-nothing choice, then
+ * the families that cover every selected language, then the ones that do not,
+ * each of those saying which languages fall back to the platform font. A
+ * partially covering family is still selectable: Flutter falls back per glyph,
+ * so the app works, it just renders those languages in a different face.
+ */
+async function promptFont(
+  fonts: FontDescriptor[],
+  chosen: string[],
+  locales: LocaleDescriptor[],
+  onCancel: () => never,
+): Promise<string | undefined> {
+  const covering = fonts.filter((f) => uncovered(f, chosen).length === 0);
+  const partial = fonts.filter((f) => uncovered(f, chosen).length > 0);
+
+  const { font } = await prompts(
+    {
+      type: 'select',
+      name: 'font',
+      message: 'Choose a font (optional; enter keeps the platform font)',
+      choices: [
+        {
+          title: 'Platform default',
+          description: 'The system font. Adds no package and covers every language.',
+          value: '',
+        },
+        ...covering.map((f) => ({
+          title: f.label,
+          description: `${f.category === 'serif' ? 'Serif' : 'Sans-serif'} · covers every selected language`,
+          value: f.id,
+        })),
+        ...partial.map((f) => ({
+          title: f.label,
+          description:
+            `${f.category === 'serif' ? 'Serif' : 'Sans-serif'} · no glyphs for ` +
+            `${languageList(locales, uncovered(f, chosen))}, which fall back to the platform font`,
+          value: f.id,
+        })),
+      ],
+      initial: 0,
+    },
+    { onCancel },
+  );
+
+  return (font as string | undefined) || undefined;
+}
+
+/** The selected languages a font has no glyphs for, in selection order. */
+function uncovered(font: FontDescriptor, chosen: string[]): string[] {
+  return chosen.filter((code) => !font.locales.includes(code));
+}
+
+/** Warn once about the languages a chosen font cannot draw. */
+function warnCoverage(
+  font: FontDescriptor,
+  chosen: string[],
+  locales: LocaleDescriptor[],
+): void {
+  const missing = uncovered(font, chosen);
+  if (missing.length === 0) return;
+  console.log(
+    pc.yellow(
+      `  ${font.label} has no glyphs for ${languageList(locales, missing)}; ` +
+        'that text renders in the platform font.',
+    ),
+  );
+}
+
+/** English names for a set of language codes, comma-joined. */
+function languageList(locales: LocaleDescriptor[], codes: string[]): string {
+  return codes.map((code) => languageLabel(locales, code)).join(', ');
+}
+
+/** How the summary block names the chosen font. */
+function fontLabel(fonts: FontDescriptor[], id: string | undefined): string {
+  if (!id) return 'platform default';
+  return fonts.find((f) => f.id === id)?.label ?? id;
 }
 
 /** The English name of a language code, for the picker's message. */
@@ -260,11 +406,22 @@ function reportAutoDeps(selected: string[], resolved: string[]): void {
 }
 
 /** Non-interactive resolution from flags, with sensible defaults. */
-function resolveFromFlags(args: CreateArgs, layouts: LayoutDescriptor[]): Setup {
+function resolveFromFlags(args: CreateArgs, layouts: LayoutDescriptor[], theme: ThemeCatalog): Setup {
   const layout = args.layout ?? 'bottom_nav';
   if (!layouts.some((l) => l.id === layout)) {
     throw new Error(
       `Unknown --layout "${layout}". Choose one of: ${layouts.map((l) => l.id).join(', ')}.`,
+    );
+  }
+  if (args.scheme && !theme.schemes.some((s) => s.id === args.scheme)) {
+    throw new Error(
+      `Unknown --scheme "${args.scheme}". Choose one of: ${theme.schemes.map((s) => s.id).join(', ')}.`,
+    );
+  }
+  const font = args.font ? theme.fonts.find((f) => f.id === args.font) : undefined;
+  if (args.font && !font) {
+    throw new Error(
+      `Unknown --font "${args.font}". Choose one of: ${theme.fonts.map((f) => f.id).join(', ')}.`,
     );
   }
   return {
@@ -272,6 +429,8 @@ function resolveFromFlags(args: CreateArgs, layouts: LayoutDescriptor[]): Setup 
     layout: layout as LayoutId,
     tabs: args.tabs, // undefined → engine defaults to every nav-capable feature
     locales: args.locales, // undefined → engine ships every offered language
+    scheme: args.scheme, // undefined → engine uses its default scheme
+    font: args.font, // undefined → platform font, no font package
   };
 }
 

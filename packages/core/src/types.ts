@@ -104,10 +104,18 @@ export interface WorkspaceLocalization {
   locales: string[];
 }
 
+/** The colour scheme and typography a workspace was generated with. */
+export interface WorkspaceTheme {
+  /** Colour-scheme id; its seed is the colour every other colour derives from. */
+  scheme: string;
+  /** Google Fonts family id, absent when the app uses the platform font. */
+  font?: string;
+}
+
 /** The `.ctx/manifest.json` persisted at the root of a generated workspace. */
 export interface WorkspaceManifest {
   /** Schema version of the manifest itself. */
-  schema: 3;
+  schema: 4;
   /** CLI version that generated / last modified the workspace. */
   ctx0Version: string;
   /** Wire-protocol version shared by both sides. */
@@ -120,6 +128,8 @@ export interface WorkspaceManifest {
   navigation: WorkspaceNavigation;
   /** The languages the workspace ships translations for. */
   localization: WorkspaceLocalization;
+  /** The colour scheme and font chosen for the generated theme. */
+  theme: WorkspaceTheme;
 }
 
 /** Substitution variables resolved once per workspace. */

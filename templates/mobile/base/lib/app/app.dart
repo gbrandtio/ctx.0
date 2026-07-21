@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'di.dart';
 import 'shell.dart';
+import 'theme.dart';
 // ctx:anchor:app-imports
 
 /// Root widget for CtxApp. Feature Blocs are provided via [ctxAppProviders]
@@ -30,7 +31,8 @@ class _CtxMaterialApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'CtxApp',
-      theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       // ctx:anchor:app-material
       builder: _overlay,
       home: _home(),

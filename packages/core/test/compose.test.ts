@@ -148,10 +148,47 @@ describe('createWorkspace', () => {
     expect(await fs.pathExists(path.join(targetDir, '.ctx', 'wire-protocol.md'))).toBe(true);
   });
 
+  it('generates the theme the base app imports, without a font by default', async () => {
+    const { targetDir } = await generate();
+
+    const theme = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'theme.dart'), 'utf8');
+    expect(theme).toContain('static const Color seed = Color(0xFF3F51B5);');
+    expect(theme).not.toContain('google_fonts');
+
+    const app = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'app.dart'), 'utf8');
+    expect(app).toContain('theme: AppTheme.light()');
+    expect(app).toContain('darkTheme: AppTheme.dark()');
+
+    // No font chosen, so the app gains no font package.
+    const pubspec = await fs.readFile(path.join(targetDir, 'app', 'pubspec.yaml'), 'utf8');
+    expect(pubspec).not.toContain('google_fonts');
+  });
+
+  it('adds google_fonts only when a font is chosen', async () => {
+    const vars = resolveVars('Acme', 'com.acme');
+    const targetDir = path.join(tmp, 'themed');
+    const result = await createWorkspace({
+      targetDir,
+      vars,
+      features: ['ping'],
+      scheme: 'teal',
+      font: 'inter',
+    });
+
+    const pubspec = await fs.readFile(path.join(targetDir, 'app', 'pubspec.yaml'), 'utf8');
+    expect(pubspec).toContain('google_fonts:');
+
+    const theme = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'theme.dart'), 'utf8');
+    expect(theme).toContain('static const Color seed = Color(0xFF009688);');
+    expect(theme).toContain('GoogleFonts.interTextTheme(base.textTheme)');
+
+    expect(result.manifest.theme).toEqual({ scheme: 'teal', font: 'inter' });
+  });
+
   it('records applied layers and vars in the manifest', async () => {
     const { targetDir, vars } = await generate();
     const manifest = await fs.readJson(path.join(targetDir, '.ctx', 'manifest.json'));
-    expect(manifest.schema).toBe(3);
+    expect(manifest.schema).toBe(4);
     expect(manifest.vars).toMatchObject(vars);
     // Navigation is persisted; ping and the l10n feature it pulls in are both
     // nav-capable, so both default to tabs.
@@ -160,6 +197,10 @@ describe('createWorkspace', () => {
     // The languages are persisted too: every offered one, unless narrowed.
     expect(manifest.localization.default).toBe('en');
     expect(manifest.localization.locales).toEqual(['en', 'el', 'de', 'fr', 'es']);
+    // The theme is persisted as what was asked for: the default scheme, and no
+    // font at all rather than a name standing in for the platform font.
+    expect(manifest.theme.scheme).toBe('indigo');
+    expect(manifest.theme.font).toBeUndefined();
     const ids = manifest.features.map((f: { id: string }) => f.id);
     expect(ids).toContain('security_mobile');
     expect(ids).toContain('security_api');

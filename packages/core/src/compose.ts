@@ -5,6 +5,7 @@ import { loadCatalog, resolveFeatureOrder, type CatalogEntry } from './catalog.j
 import { applyWiring, copyTree, hashTree } from './overlay.js';
 import { composeShell, navCapable } from './shell.js';
 import { composeLocales, resolveLocales, DEFAULT_LOCALE, type LocaleSource } from './l10n.js';
+import { composeTheme, resolveTheme, GOOGLE_FONTS_DEPENDENCY } from './theme.js';
 import { scaffoldFlutterPlatforms } from './flutter.js';
 import { writeManifest } from './manifest.js';
 import { coreVersion, protocolVersion } from './version.js';
@@ -47,6 +48,16 @@ export interface CreateOptions {
    * included as the fallback. Defaults to every offered language when omitted.
    */
   locales?: string[];
+  /**
+   * Colour-scheme id for the generated theme (see `COLOR_SCHEMES`). Every colour
+   * in the app derives from its seed. Defaults to `DEFAULT_SCHEME` when omitted.
+   */
+  scheme?: string;
+  /**
+   * Google Fonts family id for the generated theme (see `FONTS`). Omitted means
+   * the platform font, and the `google_fonts` dependency is not added.
+   */
+  font?: string;
   /**
    * When true, run `flutter create` to generate the app/ platform scaffolding
    * before the mobile overlay is applied. Requires the Flutter SDK on PATH.
@@ -100,6 +111,17 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   // application order (the order duplicate-key errors are reported against).
   const localeSources: LocaleSource[] = [];
   const locales = resolveLocales(opts.locales);
+  const theme = resolveTheme(opts.scheme, opts.font);
+
+  // A chosen font is the only thing that pulls `google_fonts` into the app, so
+  // the dependency is wired in rather than shipped in the base pubspec.
+  if (theme.font) {
+    pendingWiring.push({
+      file: path.posix.join('app', 'pubspec.yaml'),
+      anchor: 'pubspec-deps',
+      insert: GOOGLE_FONTS_DEPENDENCY,
+    });
+  }
 
   const collectManifestExtras = (m: FeatureManifest | undefined) => {
     if (!m) return;
@@ -162,6 +184,10 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   assertTabsEnabled(tabs, order);
   await composeShell(targetDir, navLayout, tabs, catalog, vars, opts.templatesRoot);
 
+  // 3c. Generate the theme the base app imports: the chosen seed colour in both
+  //     brightnesses, and the chosen font's text theme when there is one.
+  await composeTheme(targetDir, theme, vars);
+
   // 4. Sync the shared wire-protocol spec + golden vectors into the workspace.
   await syncProtocol(targetDir, layout.protocol);
 
@@ -173,13 +199,14 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   await writeFeatureDocs(targetDir, agentsFragments);
 
   const manifest: WorkspaceManifest = {
-    schema: 3,
+    schema: 4,
     ctx0Version: opts.toolVersion ?? coreVersion(),
     protocolVersion: protocolVersion(opts.templatesRoot),
     vars,
     features: applied,
     navigation: { layout: navLayout, tabs },
     localization: { default: DEFAULT_LOCALE, locales },
+    theme,
   };
   await writeManifest(targetDir, manifest);
 

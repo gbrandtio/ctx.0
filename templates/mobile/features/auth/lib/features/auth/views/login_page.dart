@@ -61,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
                 if (state.status == AuthStatus.failure && state.error != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text(state.error!, style: const TextStyle(color: Colors.red)),
+                    child: Text(state.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
                   ),
               ],
             );

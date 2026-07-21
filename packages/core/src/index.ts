@@ -20,6 +20,7 @@ export type {
   AppliedFeature,
   WorkspaceNavigation,
   WorkspaceLocalization,
+  WorkspaceTheme,
   WorkspaceManifest,
   TemplateVars,
 } from './types.js';
@@ -47,6 +48,24 @@ export {
   SUPPORTED_CULTURES_REL,
 } from './l10n.js';
 export type { LocaleDescriptor, LocaleSource } from './l10n.js';
+
+// Theme: the offered colour schemes and fonts + the generated theme library.
+export {
+  COLOR_SCHEMES,
+  DEFAULT_SCHEME,
+  FONTS,
+  GOOGLE_FONTS_DEPENDENCY,
+  isSchemeId,
+  isFontId,
+  findScheme,
+  findFont,
+  resolveTheme,
+  uncoveredLocales,
+  googleFontsMethod,
+  composeTheme,
+  THEME_REL,
+} from './theme.js';
+export type { ColorSchemeDescriptor, FontDescriptor, ThemeChoice } from './theme.js';
 
 // Composition: the top-level create operation and its I/O shapes.
 export { createWorkspace } from './compose.js';

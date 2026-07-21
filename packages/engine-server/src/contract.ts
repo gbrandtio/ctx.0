@@ -13,7 +13,7 @@
  */
 
 /** Bumped when a call's arguments or result change shape. Reported by `engine.info`. */
-export const CONTRACT_VERSION = '2';
+export const CONTRACT_VERSION = '3';
 
 export type Side = 'mobile' | 'api';
 export type LayoutId = 'bottom_nav' | 'nav_rail' | 'drawer' | 'home_list';
@@ -45,6 +45,43 @@ export interface LocaleDescriptor {
   englishLabel: string;
 }
 
+/** A colour scheme a workspace can be generated with: one Material 3 seed. */
+export interface ColorSchemeDescriptor {
+  /** Stable id, e.g. "teal". */
+  id: string;
+  /** Human-readable title. */
+  label: string;
+  /** One-line description of the resulting palette. */
+  description: string;
+  /** The seed as a Dart ARGB literal body, e.g. "0xFF009688". */
+  seed: string;
+}
+
+/** A font a workspace can be generated with: one Google Fonts family. */
+export interface FontDescriptor {
+  /** Stable id, e.g. "open_sans". */
+  id: string;
+  /** The Google Fonts family name, e.g. "Open Sans". */
+  family: string;
+  /** Human-readable title. */
+  label: string;
+  /** Typeface classification. */
+  category: 'sans' | 'serif';
+  /**
+   * The language codes this family has glyph coverage for. A language missing
+   * from this list renders in the platform font instead, so a frontend should
+   * say so before the choice is made.
+   */
+  locales: string[];
+}
+
+/** The colour scheme and typography a workspace was generated with. */
+export interface WorkspaceTheme {
+  scheme: string;
+  /** Absent when the app uses the platform font. */
+  font?: string;
+}
+
 /** A selectable main-navigation layout. */
 export interface LayoutDescriptor {
   id: LayoutId;
@@ -61,6 +98,7 @@ export interface WorkspaceManifest {
   features: { id: string; files: string[]; hash: string }[];
   navigation: { layout: LayoutId; tabs: string[] };
   localization: { default: string; locales: string[] };
+  theme: WorkspaceTheme;
 }
 
 /**
@@ -96,6 +134,14 @@ export interface Calls {
     args: Record<string, never>;
     result: { locales: LocaleDescriptor[]; default: string };
   };
+  'theme.list': {
+    args: Record<string, never>;
+    result: {
+      schemes: ColorSchemeDescriptor[];
+      fonts: FontDescriptor[];
+      defaultScheme: string;
+    };
+  };
   'vars.resolve': {
     args: { name: string; org?: string };
     result: { vars: Vars };
@@ -109,6 +155,8 @@ export interface Calls {
       layout?: LayoutId;
       tabs?: string[];
       locales?: string[];
+      scheme?: string;
+      font?: string;
       scaffoldPlatforms?: boolean;
       toolVersion?: string;
       templatesRoot?: string;
@@ -205,6 +253,13 @@ export const CALL_SPECS: CallSpec[] = [
     inputSchema: { type: 'object', properties: {} },
   },
   {
+    name: 'theme.list',
+    title: 'List colour schemes and fonts',
+    description:
+      'List the colour schemes and fonts a workspace may be generated with, in display order, together with the scheme used when none is chosen. Both choices are optional: a scheme is a single Material 3 seed colour, and a font is a Google Fonts family whose `locales` name the languages it has glyph coverage for; a language outside that list renders in the platform font. Omitting the font leaves the app on the platform font with no font package added.',
+    inputSchema: { type: 'object', properties: {} },
+  },
+  {
     name: 'vars.resolve',
     title: 'Resolve substitution variables',
     description:
@@ -249,6 +304,16 @@ export const CALL_SPECS: CallSpec[] = [
           items: { type: 'string' },
           description:
             'Language codes to ship translations for. English is always included as the fallback. Omit for every offered language.',
+        },
+        scheme: {
+          type: 'string',
+          description:
+            'Colour-scheme id from theme.list; every colour in the app derives from its seed. Omit for the default scheme.',
+        },
+        font: {
+          type: 'string',
+          description:
+            'Font id from theme.list. Omit for the platform font, which adds no font package to the generated app.',
         },
         scaffoldPlatforms: {
           type: 'boolean',

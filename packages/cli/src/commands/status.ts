@@ -25,6 +25,11 @@ export async function runStatus(): Promise<void> {
       }
       console.log(pc.dim(`\n  layout   : ${manifest.navigation.layout}`));
       console.log(pc.dim(`  languages: ${manifest.localization.locales.join(', ')}`));
+      // A workspace generated before the theme was recorded has no `theme` key.
+      if (manifest.theme) {
+        console.log(pc.dim(`  scheme   : ${manifest.theme.scheme}`));
+        console.log(pc.dim(`  font     : ${manifest.theme.font ?? 'platform default'}`));
+      }
       console.log();
       return;
     }

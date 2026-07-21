@@ -55,7 +55,7 @@ class _MediaPageState extends State<MediaPage> {
           }
           if (state.status == MediaStatus.failure && state.items.isEmpty) {
             return Center(
-              child: Text(l.commonError(state.error ?? ''), style: const TextStyle(color: Colors.red)),
+              child: Text(l.commonError(state.error ?? ''), style: TextStyle(color: Theme.of(context).colorScheme.error)),
             );
           }
           if (state.items.isEmpty) {
