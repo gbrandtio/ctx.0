@@ -15,7 +15,7 @@ public static class CtxRls
     /// the current <c>app.user_id</c>. Idempotent; the table must already exist.
     /// Table/column names are fixed by the schema, not user input.
     /// </summary>
-    public static Task EnableAsync(DatabaseFacade database, string table, string userColumn, CancellationToken ct = default)
+    public static Task EnableAsync(DatabaseFacade database, string table, string userColumn, CancellationToken cancellationToken = default)
     {
         var predicate = $"\"{userColumn}\" = NULLIF(current_setting('app.user_id', true), '')::uuid";
         var sql = $"""
@@ -24,6 +24,6 @@ public static class CtxRls
         DROP POLICY IF EXISTS {table}_isolation ON "{table}";
         CREATE POLICY {table}_isolation ON "{table}" USING ({predicate}) WITH CHECK ({predicate});
         """;
-        return database.ExecuteSqlRawAsync(sql, ct);
+        return database.ExecuteSqlRawAsync(sql, cancellationToken);
     }
 }

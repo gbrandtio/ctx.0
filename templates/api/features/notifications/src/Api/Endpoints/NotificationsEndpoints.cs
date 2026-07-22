@@ -23,27 +23,27 @@ public static class NotificationsEndpoints
     {
         var group = app.MapGroup("/v1/notifications").RequireAuthorization();
 
-        group.MapGet("/", async (INotificationsService notificationsService, CancellationToken ct) =>
+        group.MapGet("/", async (INotificationsService notificationsService, CancellationToken cancellationToken) =>
         {
-            var items = await notificationsService.GetAllAsync(ct);
+            var items = await notificationsService.GetAllAsync(cancellationToken);
             return Results.Ok(new { items });
         });
 
-        group.MapGet("/unread-count", async (INotificationsService notificationsService, CancellationToken ct) =>
+        group.MapGet("/unread-count", async (INotificationsService notificationsService, CancellationToken cancellationToken) =>
         {
-            var count = await notificationsService.CountUnreadAsync(ct);
+            var count = await notificationsService.CountUnreadAsync(cancellationToken);
             return Results.Ok(new { count });
         });
 
-        group.MapPost("/", async (CreateNotificationRequest body, INotificationsService notificationsService, ICurrentUser user, CancellationToken ct) =>
+        group.MapPost("/", async (CreateNotificationRequest body, INotificationsService notificationsService, ICurrentUser user, CancellationToken cancellationToken) =>
         {
-            var id = await notificationsService.CreateNotificationAsync(user.UserId!.Value, body.Title, body.Body, ct);
+            var id = await notificationsService.CreateNotificationAsync(user.UserId!.Value, body.Title, body.Body, cancellationToken);
             return Results.Ok(new { Id = id });
         });
 
-        group.MapPost("/{id:guid}/read", async (Guid id, INotificationsService notificationsService, CancellationToken ct) =>
+        group.MapPost("/{id:guid}/read", async (Guid id, INotificationsService notificationsService, CancellationToken cancellationToken) =>
         {
-            var notification = await notificationsService.MarkAsReadAsync(id, ct);
+            var notification = await notificationsService.MarkAsReadAsync(id, cancellationToken);
             if (notification is null)
             {
                 return Results.NotFound();
@@ -51,15 +51,15 @@ public static class NotificationsEndpoints
             return Results.Ok(new { notification.Id, notification.ReadAt });
         });
 
-        group.MapPost("/devices", async (RegisterDeviceRequest body, INotificationsService notificationsService, ICurrentUser user, CancellationToken ct) =>
+        group.MapPost("/devices", async (RegisterDeviceRequest body, INotificationsService notificationsService, ICurrentUser user, CancellationToken cancellationToken) =>
         {
-            await notificationsService.RegisterDeviceAsync(user.UserId!.Value, body.Platform, body.Token, ct);
+            await notificationsService.RegisterDeviceAsync(user.UserId!.Value, body.Platform, body.Token, cancellationToken);
             return Results.NoContent();
         });
 
-        group.MapDelete("/devices", async ([FromBody] UnregisterDeviceRequest body, INotificationsService notificationsService, CancellationToken ct) =>
+        group.MapDelete("/devices", async ([FromBody] UnregisterDeviceRequest body, INotificationsService notificationsService, CancellationToken cancellationToken) =>
         {
-            await notificationsService.UnregisterDeviceAsync(body.Token, ct);
+            await notificationsService.UnregisterDeviceAsync(body.Token, cancellationToken);
             return Results.NoContent();
         });
 

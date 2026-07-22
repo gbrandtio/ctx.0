@@ -26,75 +26,75 @@ public static class MediaEndpoints
             HttpRequest request,
             IMediaService mediaService,
             ICurrentUser user,
-            IBlobStore blobs,
+            IBlobStore blobStore,
             MediaOptions options,
-            IStringLocalizer<Messages> loc,
-            CancellationToken ct) =>
+            IStringLocalizer<Messages> stringLocalizer,
+            CancellationToken cancellationToken) =>
         {
             if (!request.HasFormContentType)
             {
-                return Results.BadRequest(new { error = loc["media.expectedMultipart"].Value });
+                return Results.BadRequest(new { error = stringLocalizer["media.expectedMultipart"].Value });
             }
 
-            var form = await request.ReadFormAsync(ct);
+            var form = await request.ReadFormAsync(cancellationToken);
             var file = form.Files.GetFile("file");
             if (file is null || file.Length == 0)
             {
-                return Results.BadRequest(new { error = loc["media.filePartRequired"].Value });
+                return Results.BadRequest(new { error = stringLocalizer["media.filePartRequired"].Value });
             }
             if (file.Length > options.MaxBytes)
             {
-                return Results.Json(new { error = loc["media.tooLarge", options.MaxBytes].Value }, statusCode: StatusCodes.Status413PayloadTooLarge);
+                return Results.Json(new { error = stringLocalizer["media.tooLarge", options.MaxBytes].Value }, statusCode: StatusCodes.Status413PayloadTooLarge);
             }
 
             var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
             if (!options.IsAllowed(contentType))
             {
-                return Results.Json(new { error = loc["media.contentTypeNotAllowed", contentType].Value }, statusCode: StatusCodes.Status415UnsupportedMediaType);
+                return Results.Json(new { error = stringLocalizer["media.contentTypeNotAllowed", contentType].Value }, statusCode: StatusCodes.Status415UnsupportedMediaType);
             }
 
             var key = Guid.NewGuid().ToString("n");
             await using (var upload = file.OpenReadStream())
             {
-                await blobs.WriteAsync(key, upload, ct);
+                await blobStore.WriteAsync(key, upload, cancellationToken);
             }
 
             var fileName = string.IsNullOrWhiteSpace(file.FileName) ? "file" : Path.GetFileName(file.FileName);
-            var mediaDto = await mediaService.CreateMediaAsync(user.UserId!.Value, fileName, contentType, file.Length, key, ct);
+            var mediaDto = await mediaService.CreateMediaAsync(user.UserId!.Value, fileName, contentType, file.Length, key, cancellationToken);
 
             return Results.Ok(new { mediaDto.Id, mediaDto.FileName, mediaDto.ContentType, mediaDto.SizeBytes, mediaDto.CreatedAt });
         });
 
-        group.MapGet("/", async (IMediaService mediaService, CancellationToken ct) =>
+        group.MapGet("/", async (IMediaService mediaService, CancellationToken cancellationToken) =>
         {
-            var items = await mediaService.GetAllAsync(ct);
+            var items = await mediaService.GetAllAsync(cancellationToken);
             return Results.Ok(new
             {
                 items = items.Select(m => new { m.Id, m.FileName, m.ContentType, m.SizeBytes, m.CreatedAt }),
             });
         });
 
-        group.MapGet("/{id:guid}", async (Guid id, IMediaService mediaService, IBlobStore blobs, CancellationToken ct) =>
+        group.MapGet("/{id:guid}", async (Guid id, IMediaService mediaService, IBlobStore blobStore, CancellationToken cancellationToken) =>
         {
             // RLS scopes the lookup to the caller; another user's id resolves to null.
-            var media = await mediaService.GetMediaObjectAsync(id, ct);
+            var media = await mediaService.GetMediaObjectAsync(id, cancellationToken);
             if (media is null)
             {
                 return Results.NotFound();
             }
-            var stream = await blobs.ReadAsync(media.StorageKey, ct);
+            var stream = await blobStore.ReadAsync(media.StorageKey, cancellationToken);
             return Results.File(stream, media.ContentType, media.FileName);
         });
 
-        group.MapDelete("/{id:guid}", async (Guid id, IMediaService mediaService, IBlobStore blobs, CancellationToken ct) =>
+        group.MapDelete("/{id:guid}", async (Guid id, IMediaService mediaService, IBlobStore blobStore, CancellationToken cancellationToken) =>
         {
-            var media = await mediaService.GetMediaObjectAsync(id, ct);
+            var media = await mediaService.GetMediaObjectAsync(id, cancellationToken);
             if (media is null)
             {
                 return Results.NotFound();
             }
-            await mediaService.DeleteMediaAsync(media, ct);
-            await blobs.DeleteAsync(media.StorageKey, ct);
+            await mediaService.DeleteMediaAsync(media, cancellationToken);
+            await blobStore.DeleteAsync(media.StorageKey, cancellationToken);
             return Results.NoContent();
         });
 

@@ -13,9 +13,9 @@ public sealed class ExportJobQueue : IExportJobQueue
 {
     private readonly Channel<ExportTicket> _channel = Channel.CreateUnbounded<ExportTicket>();
 
-    public ValueTask EnqueueAsync(ExportTicket ticket, CancellationToken ct = default)
-        => _channel.Writer.WriteAsync(ticket, ct);
+    public ValueTask EnqueueAsync(ExportTicket ticket, CancellationToken cancellationToken = default)
+        => _channel.Writer.WriteAsync(ticket, cancellationToken);
 
-    public IAsyncEnumerable<ExportTicket> ReadAllAsync(CancellationToken ct)
-        => _channel.Reader.ReadAllAsync(ct);
+    public IAsyncEnumerable<ExportTicket> ReadAllAsync(CancellationToken cancellationToken)
+        => _channel.Reader.ReadAllAsync(cancellationToken);
 }

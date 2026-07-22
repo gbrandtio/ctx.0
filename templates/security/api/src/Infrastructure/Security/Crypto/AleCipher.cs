@@ -41,19 +41,19 @@ public static class AleCipher
     /// <summary>Seal <paramref name="plaintext"/> under a derived key using the supplied IV.</summary>
     public static (byte[] Ct, byte[] Tag) Encrypt(byte[] key, byte[] iv, byte[] plaintext)
     {
-        var ct = new byte[plaintext.Length];
+        var ciphertext = new byte[plaintext.Length];
         var tag = new byte[TagLength];
-        using var gcm = new AesGcm(key, TagLength);
-        gcm.Encrypt(iv, plaintext, ct, tag, EmptyAad);
-        return (ct, tag);
+        using var aesGcm = new AesGcm(key, TagLength);
+        aesGcm.Encrypt(iv, plaintext, ciphertext, tag, EmptyAad);
+        return (ciphertext, tag);
     }
 
     /// <summary>Open a sealed payload; throws <see cref="CryptographicException"/> on tamper.</summary>
-    public static byte[] Decrypt(byte[] key, byte[] iv, byte[] ct, byte[] tag)
+    public static byte[] Decrypt(byte[] key, byte[] iv, byte[] ciphertext, byte[] tag)
     {
-        var plaintext = new byte[ct.Length];
-        using var gcm = new AesGcm(key, TagLength);
-        gcm.Decrypt(iv, ct, tag, plaintext, EmptyAad);
+        var plaintext = new byte[ciphertext.Length];
+        using var aesGcm = new AesGcm(key, TagLength);
+        aesGcm.Decrypt(iv, ciphertext, tag, plaintext, EmptyAad);
         return plaintext;
     }
 
@@ -76,11 +76,11 @@ public static class AleCipher
     public static AleEnvelope SealResponse(byte[] key, byte[] plaintext)
     {
         var iv = RandomNumberGenerator.GetBytes(IvLength);
-        var (ct, tag) = Encrypt(key, iv, plaintext);
+        var (ciphertext, tag) = Encrypt(key, iv, plaintext);
         return new AleEnvelope(
             Epk: null,
             Iv: Convert.ToBase64String(iv),
-            Ct: Convert.ToBase64String(ct),
+            Ct: Convert.ToBase64String(ciphertext),
             Tag: Convert.ToBase64String(tag));
     }
 }

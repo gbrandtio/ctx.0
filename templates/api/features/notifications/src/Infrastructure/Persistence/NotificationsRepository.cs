@@ -4,26 +4,26 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CtxApp.Infrastructure.Persistence;
 
-public sealed class NotificationsRepository(CtxAppDbContext db) : INotificationsRepository
+public sealed class NotificationsRepository(CtxAppDbContext dbContext) : INotificationsRepository
 {
-    public Task<List<Notification>> GetAllAsync(CancellationToken ct = default) =>
-        db.Set<Notification>().OrderByDescending(n => n.CreatedAt).ToListAsync(ct);
+    public Task<List<Notification>> GetAllAsync(CancellationToken cancellationToken = default) =>
+        dbContext.Set<Notification>().OrderByDescending(n => n.CreatedAt).ToListAsync(cancellationToken);
 
-    public Task<int> CountUnreadAsync(CancellationToken ct = default) =>
-        db.Set<Notification>().CountAsync(n => n.ReadAt == null, ct);
+    public Task<int> CountUnreadAsync(CancellationToken cancellationToken = default) =>
+        dbContext.Set<Notification>().CountAsync(n => n.ReadAt == null, cancellationToken);
 
-    public Task<Notification?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
-        db.Set<Notification>().FirstOrDefaultAsync(n => n.Id == id, ct);
+    public Task<Notification?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+        dbContext.Set<Notification>().FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
 
-    public void Add(Notification notification) => db.Set<Notification>().Add(notification);
+    public void Add(Notification notification) => dbContext.Set<Notification>().Add(notification);
 
-    public Task<DeviceToken?> GetDeviceTokenAsync(string tokenBlindIndex, CancellationToken ct = default) =>
-        db.Set<DeviceToken>().FirstOrDefaultAsync(d => d.TokenBlindIndex == tokenBlindIndex, ct);
+    public Task<DeviceToken?> GetDeviceTokenAsync(string tokenBlindIndex, CancellationToken cancellationToken = default) =>
+        dbContext.Set<DeviceToken>().FirstOrDefaultAsync(d => d.TokenBlindIndex == tokenBlindIndex, cancellationToken);
 
-    public Task<List<string>> GetAllDeviceTokensAsync(CancellationToken ct = default) =>
-        db.Set<DeviceToken>().Select(d => d.Token).ToListAsync(ct);
+    public Task<List<string>> GetAllDeviceTokensAsync(CancellationToken cancellationToken = default) =>
+        dbContext.Set<DeviceToken>().Select(d => d.Token).ToListAsync(cancellationToken);
 
-    public void AddDeviceToken(DeviceToken deviceToken) => db.Set<DeviceToken>().Add(deviceToken);
+    public void AddDeviceToken(DeviceToken deviceToken) => dbContext.Set<DeviceToken>().Add(deviceToken);
 
-    public void RemoveDeviceToken(DeviceToken deviceToken) => db.Set<DeviceToken>().Remove(deviceToken);
+    public void RemoveDeviceToken(DeviceToken deviceToken) => dbContext.Set<DeviceToken>().Remove(deviceToken);
 }

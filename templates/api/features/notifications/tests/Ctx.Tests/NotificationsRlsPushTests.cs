@@ -90,8 +90,8 @@ public class NotificationsRlsPushTests : IAsyncLifetime
         // At rest (read as superuser to bypass RLS): titles/bodies are ciphertext.
         await using var admin = new NpgsqlConnection(_adminConnectionString);
         await admin.OpenAsync();
-        await using var cmd = new NpgsqlCommand("SELECT \"Title\", \"Body\" FROM notifications", admin);
-        await using var reader = await cmd.ExecuteReaderAsync();
+        await using var command = new NpgsqlCommand("SELECT \"Title\", \"Body\" FROM notifications", admin);
+        await using var reader = await command.ExecuteReaderAsync();
         var rows = 0;
         while (await reader.ReadAsync())
         {
@@ -138,8 +138,8 @@ public class NotificationsRlsPushTests : IAsyncLifetime
         // Token is encrypted at rest.
         await using var admin = new NpgsqlConnection(_adminConnectionString);
         await admin.OpenAsync();
-        await using var cmd = new NpgsqlCommand("SELECT \"Token\" FROM device_tokens", admin);
-        var stored = (string)(await cmd.ExecuteScalarAsync())!;
+        await using var command = new NpgsqlCommand("SELECT \"Token\" FROM device_tokens", admin);
+        var stored = (string)(await command.ExecuteScalarAsync())!;
         Assert.DoesNotContain("fcm-token-abc", stored);
     }
 

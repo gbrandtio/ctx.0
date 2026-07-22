@@ -32,19 +32,19 @@ public sealed class RlsInitializer(
         }
 
         using var scope = services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<CtxAppDbContext>();
-        if (!db.Database.IsNpgsql())
+        var dbContext = scope.ServiceProvider.GetRequiredService<CtxAppDbContext>();
+        if (!dbContext.Database.IsNpgsql())
         {
             return;
         }
 
         if (isDevelopment)
         {
-            await db.Database.EnsureCreatedAsync(cancellationToken);
+            await dbContext.Database.EnsureCreatedAsync(cancellationToken);
         }
         foreach (var policy in declared)
         {
-            await CtxRls.EnableAsync(db.Database, policy.Table, policy.UserColumn, cancellationToken);
+            await CtxRls.EnableAsync(dbContext.Database, policy.Table, policy.UserColumn, cancellationToken);
         }
     }
 

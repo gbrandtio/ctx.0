@@ -91,8 +91,8 @@ public class ProfileRlsTests : IAsyncLifetime
         // filter on that shape rather than on the (encrypted) value.
         await using var admin = new NpgsqlConnection(_adminConnectionString);
         await admin.OpenAsync();
-        await using var cmd = new NpgsqlCommand("SELECT \"DisplayName\" FROM user_profiles", admin);
-        await using var reader = await cmd.ExecuteReaderAsync();
+        await using var command = new NpgsqlCommand("SELECT \"DisplayName\" FROM user_profiles", admin);
+        await using var reader = await command.ExecuteReaderAsync();
         var rows = 0;
         while (await reader.ReadAsync())
         {

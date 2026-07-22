@@ -9,12 +9,12 @@ public sealed record ExportJobCreatedDto(Guid JobId, string Status, string Downl
 
 public interface IPrivacyService
 {
-    Task<ConsentDto?> GetLatestConsentAsync(Guid userId, CancellationToken ct = default);
-    Task<ConsentDto> RecordConsentAsync(Guid userId, string policyVersion, string[] purposes, string? source, CancellationToken ct = default);
+    Task<ConsentDto?> GetLatestConsentAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<ConsentDto> RecordConsentAsync(Guid userId, string policyVersion, string[] purposes, string? source, CancellationToken cancellationToken = default);
     
-    Task<ExportJobCreatedDto> RequestExportAsync(Guid userId, CancellationToken ct = default);
-    Task<ExportJobDto?> GetExportJobAsync(Guid id, CancellationToken ct = default);
-    Task<(byte[] Bundle, string ContentType, string FileName)?> DownloadExportAsync(Guid id, string token, CancellationToken ct = default);
+    Task<ExportJobCreatedDto> RequestExportAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<ExportJobDto?> GetExportJobAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<(byte[] Bundle, string ContentType, string FileName)?> DownloadExportAsync(Guid id, string token, CancellationToken cancellationToken = default);
 
-    Task<bool> VerifyPasswordAsync(Guid userId, string password, CancellationToken ct = default);
+    Task<bool> VerifyPasswordAsync(Guid userId, string password, CancellationToken cancellationToken = default);
 }

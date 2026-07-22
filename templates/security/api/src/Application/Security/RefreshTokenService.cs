@@ -19,14 +19,14 @@ public sealed class RefreshTokenService(
     RefreshTokenTtl ttl)
 {
     /// <summary>Start a new token family for a freshly authenticated user.</summary>
-    public Task<AuthTokens> IssueAsync(Guid userId, CancellationToken ct = default)
-        => IssueInFamilyAsync(userId, Guid.NewGuid(), ct);
+    public Task<AuthTokens> IssueAsync(Guid userId, CancellationToken cancellationToken = default)
+        => IssueInFamilyAsync(userId, Guid.NewGuid(), cancellationToken);
 
     /// <summary>Rotate a presented refresh token, detecting reuse.</summary>
-    public async Task<AuthTokens> RotateAsync(string presentedRefreshToken, CancellationToken ct = default)
+    public async Task<AuthTokens> RotateAsync(string presentedRefreshToken, CancellationToken cancellationToken = default)
     {
         var now = clock.UtcNow;
-        var existing = await store.FindByHashAsync(hasher.Hash(presentedRefreshToken), ct);
+        var existing = await store.FindByHashAsync(hasher.Hash(presentedRefreshToken), cancellationToken);
 
         if (existing is null)
         {
@@ -35,8 +35,8 @@ public sealed class RefreshTokenService(
         if (existing.RevokedAt is not null)
         {
             // The token was already rotated: this is a replay of a stolen token.
-            await store.RevokeFamilyAsync(existing.FamilyId, now, ct);
-            await store.SaveChangesAsync(ct);
+            await store.RevokeFamilyAsync(existing.FamilyId, now, cancellationToken);
+            await store.SaveChangesAsync(cancellationToken);
             throw new AuthException("Refresh token reuse detected; session revoked.");
         }
         if (!existing.IsActive(now))
@@ -47,27 +47,27 @@ public sealed class RefreshTokenService(
         var (tokens, replacement) = BuildTokens(existing.UserId, existing.FamilyId, now);
         existing.RevokedAt = now;
         existing.ReplacedByTokenId = replacement.Id;
-        await store.AddAsync(replacement, ct);
-        await store.SaveChangesAsync(ct);
+        await store.AddAsync(replacement, cancellationToken);
+        await store.SaveChangesAsync(cancellationToken);
         return tokens;
     }
 
     /// <summary>Revoke the whole family a token belongs to (logout).</summary>
-    public async Task RevokeAsync(string presentedRefreshToken, CancellationToken ct = default)
+    public async Task RevokeAsync(string presentedRefreshToken, CancellationToken cancellationToken = default)
     {
-        var existing = await store.FindByHashAsync(hasher.Hash(presentedRefreshToken), ct);
+        var existing = await store.FindByHashAsync(hasher.Hash(presentedRefreshToken), cancellationToken);
         if (existing is not null)
         {
-            await store.RevokeFamilyAsync(existing.FamilyId, clock.UtcNow, ct);
-            await store.SaveChangesAsync(ct);
+            await store.RevokeFamilyAsync(existing.FamilyId, clock.UtcNow, cancellationToken);
+            await store.SaveChangesAsync(cancellationToken);
         }
     }
 
-    private async Task<AuthTokens> IssueInFamilyAsync(Guid userId, Guid familyId, CancellationToken ct)
+    private async Task<AuthTokens> IssueInFamilyAsync(Guid userId, Guid familyId, CancellationToken cancellationToken)
     {
         var (tokens, token) = BuildTokens(userId, familyId, clock.UtcNow);
-        await store.AddAsync(token, ct);
-        await store.SaveChangesAsync(ct);
+        await store.AddAsync(token, cancellationToken);
+        await store.SaveChangesAsync(cancellationToken);
         return tokens;
     }
 

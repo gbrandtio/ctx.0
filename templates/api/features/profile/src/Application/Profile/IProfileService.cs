@@ -4,6 +4,6 @@ public sealed record ProfileDto(string DisplayName, string? Bio, string? AvatarU
 
 public interface IProfileService
 {
-    Task<ProfileDto> GetOrCreateProfileAsync(Guid userId, CancellationToken ct = default);
-    Task<ProfileDto> UpdateProfileAsync(Guid userId, string? displayName, string? bio, string? avatarUrl, Guid? avatarMediaId, CancellationToken ct = default);
+    Task<ProfileDto> GetOrCreateProfileAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<ProfileDto> UpdateProfileAsync(Guid userId, string? displayName, string? bio, string? avatarUrl, Guid? avatarMediaId, CancellationToken cancellationToken = default);
 }

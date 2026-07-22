@@ -9,27 +9,27 @@ namespace CtxApp.Infrastructure.Gdpr;
 /// The profile feature's personal data. Display name and bio come back decrypted
 /// (the envelope converters run on read), and the single row is dropped on erasure.
 /// </summary>
-public sealed class ProfilePersonalData(CtxAppDbContext db) : IPersonalDataContributor
+public sealed class ProfilePersonalData(CtxAppDbContext dbContext) : IPersonalDataContributor
 {
     public string Section => "profile";
 
-    public async Task<object?> ExportAsync(Guid userId, CancellationToken ct = default)
+    public async Task<object?> ExportAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var profile = await db.Set<UserProfile>()
+        var profile = await dbContext.Set<UserProfile>()
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.UserId == userId, ct);
+            .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
 
         return profile is null
             ? null
             : new { profile.DisplayName, profile.Bio, profile.AvatarUrl, profile.AvatarMediaId, profile.UpdatedAt };
     }
 
-    public async Task EraseAsync(Guid userId, CancellationToken ct = default)
+    public async Task EraseAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var profile = await db.Set<UserProfile>().FirstOrDefaultAsync(p => p.UserId == userId, ct);
+        var profile = await dbContext.Set<UserProfile>().FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
         if (profile is not null)
         {
-            db.Set<UserProfile>().Remove(profile);
+            dbContext.Set<UserProfile>().Remove(profile);
         }
     }
 }

@@ -20,21 +20,21 @@ public static class NotesEndpoints
     {
         var group = app.MapGroup("/v1/notes").RequireAuthorization();
 
-        group.MapPost("/", async (CreateNoteRequest body, INotesService notesService, ICurrentUser user, CancellationToken ct) =>
+        group.MapPost("/", async (CreateNoteRequest body, INotesService notesService, ICurrentUser user, CancellationToken cancellationToken) =>
         {
-            var id = await notesService.CreateNoteAsync(user.UserId!.Value, body.Title, body.Body, ct);
+            var id = await notesService.CreateNoteAsync(user.UserId!.Value, body.Title, body.Body, cancellationToken);
             return Results.Ok(new { Id = id });
         });
 
-        group.MapGet("/", async (INotesService notesService, CancellationToken ct) =>
+        group.MapGet("/", async (INotesService notesService, CancellationToken cancellationToken) =>
         {
-            var notes = await notesService.GetNotesAsync(ct);
+            var notes = await notesService.GetNotesAsync(cancellationToken);
             return Results.Ok(notes);
         });
 
-        group.MapGet("/search", async (string title, INotesService notesService, CancellationToken ct) =>
+        group.MapGet("/search", async (string title, INotesService notesService, CancellationToken cancellationToken) =>
         {
-            var notes = await notesService.SearchNotesAsync(title, ct);
+            var notes = await notesService.SearchNotesAsync(title, cancellationToken);
             return Results.Ok(notes);
         });
 

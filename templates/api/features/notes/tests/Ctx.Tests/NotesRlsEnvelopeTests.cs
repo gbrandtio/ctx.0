@@ -87,8 +87,8 @@ public class NotesRlsEnvelopeTests : IAsyncLifetime
         // At rest (read as superuser to bypass RLS): titles/bodies are ciphertext.
         await using var admin = new NpgsqlConnection(_adminConnectionString);
         await admin.OpenAsync();
-        await using var cmd = new NpgsqlCommand("SELECT \"Title\", \"Body\" FROM notes", admin);
-        await using var reader = await cmd.ExecuteReaderAsync();
+        await using var command = new NpgsqlCommand("SELECT \"Title\", \"Body\" FROM notes", admin);
+        await using var reader = await command.ExecuteReaderAsync();
         var rows = 0;
         while (await reader.ReadAsync())
         {

@@ -2,5 +2,5 @@ namespace CtxApp.Application.Abstractions;
 
 public interface IUnitOfWork
 {
-    Task<int> SaveChangesAsync(CancellationToken ct = default);
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

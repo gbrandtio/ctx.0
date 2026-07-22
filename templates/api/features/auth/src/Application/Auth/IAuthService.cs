@@ -12,7 +12,7 @@ public sealed record UserDto(Guid Id, string Email);
 
 public interface IAuthService
 {
-    Task<RegisterResult> RegisterAsync(string email, string password, CancellationToken ct = default);
-    Task<LoginResult> LoginAsync(string email, string password, CancellationToken ct = default);
-    Task<UserDto?> GetUserAsync(Guid id, CancellationToken ct = default);
+    Task<RegisterResult> RegisterAsync(string email, string password, CancellationToken cancellationToken = default);
+    Task<LoginResult> LoginAsync(string email, string password, CancellationToken cancellationToken = default);
+    Task<UserDto?> GetUserAsync(Guid id, CancellationToken cancellationToken = default);
 }

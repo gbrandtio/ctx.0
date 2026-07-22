@@ -1,13 +1,10 @@
 using CtxApp.Api.Localization;
 using CtxApp.Application.Abstractions;
+using CtxApp.Application.Auth;
 using CtxApp.Application.Security;
-using CtxApp.Domain.Auth;
-using CtxApp.Domain.Entities;
-using CtxApp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace CtxApp.Api.Endpoints;
@@ -29,42 +26,33 @@ public static class AuthEndpoints
 
         group.MapPost("/register", async (
             RegisterRequest body,
-            CtxAppDbContext db,
-            IPasswordHasher hasher,
-            RefreshTokenService tokens,
-            IStringLocalizer<Messages> loc) =>
+            IAuthService authService,
+            IStringLocalizer<Messages> stringLocalizer,
+            CancellationToken cancellationToken) =>
         {
-            if (string.IsNullOrWhiteSpace(body.Email) || body.Password.Length < 8)
+            var result = await authService.RegisterAsync(body.Email, body.Password, cancellationToken);
+            if (!result.Success)
             {
-                return Results.BadRequest(new { error = loc["auth.credentialsRequired"].Value });
+                var message = stringLocalizer[$"auth.{result.Error}"].Value;
+                return result.Error == "emailTaken"
+                    ? Results.Conflict(new { error = message })
+                    : Results.BadRequest(new { error = message });
             }
-            if (await db.Users.AnyAsync(u => u.Email == body.Email))
-            {
-                return Results.Conflict(new { error = loc["auth.emailTaken"].Value });
-            }
-
-            var user = new User { Email = body.Email };
-            db.Users.Add(user);
-            db.Set<UserCredential>().Add(new UserCredential { UserId = user.Id, PasswordHash = hasher.Hash(body.Password) });
-            await db.SaveChangesAsync();
-
-            return Results.Ok(await tokens.IssueAsync(user.Id));
+            return Results.Ok(result.Tokens);
         });
 
         group.MapPost("/login", async (
             LoginRequest body,
-            CtxAppDbContext db,
-            IPasswordHasher hasher,
-            RefreshTokenService tokens,
-            IStringLocalizer<Messages> loc) =>
+            IAuthService authService,
+            IStringLocalizer<Messages> stringLocalizer,
+            CancellationToken cancellationToken) =>
         {
-            var user = await db.Users.FirstOrDefaultAsync(u => u.Email == body.Email);
-            var credential = user is null ? null : await db.Set<UserCredential>().FindAsync(user.Id);
-            if (user is null || credential is null || !hasher.Verify(body.Password, credential.PasswordHash))
+            var result = await authService.LoginAsync(body.Email, body.Password, cancellationToken);
+            if (!result.Success)
             {
-                return Results.Json(new { error = loc["auth.invalidCredentials"].Value }, statusCode: StatusCodes.Status401Unauthorized);
+                return Results.Json(new { error = stringLocalizer[$"auth.{result.Error}"].Value }, statusCode: StatusCodes.Status401Unauthorized);
             }
-            return Results.Ok(await tokens.IssueAsync(user.Id));
+            return Results.Ok(result.Tokens);
         });
 
         group.MapPost("/refresh", async (RefreshRequest body, RefreshTokenService tokens) =>
@@ -85,9 +73,9 @@ public static class AuthEndpoints
             return Results.NoContent();
         });
 
-        app.MapGet("/v1/me", async (ICurrentUser currentUser, CtxAppDbContext db) =>
+        app.MapGet("/v1/me", async (ICurrentUser currentUser, IAuthService auth, CancellationToken cancellationToken) =>
             {
-                var user = currentUser.UserId is { } id ? await db.Users.FindAsync(id) : null;
+                var user = currentUser.UserId is { } id ? await authService.GetUserAsync(id, cancellationToken) : null;
                 return user is null
                     ? Results.Unauthorized()
                     : Results.Ok(new { id = user.Id, email = user.Email });

@@ -7,9 +7,10 @@ Three documents, covering the generator and the two applications it produces.
   workspace that are assembled rather than copied, and the packages and their contract.
 
 - [**Generated mobile app**](mobile-app.md). The Flutter application in `app/`: startup and
-  the app-level anchors, Bloc state and repositories, the composition root, the generated
-  navigation shell and theme, the two paths it uses to reach the API, and a worked example
-  of a workspace generated with `auth`, `l10n` and `profile`.
+  the app-level anchors, the always-on session layer that owns credentials, sign-in status
+  and locale, Bloc state and repositories, the composition root, the generated navigation
+  shell and theme, the two paths it uses to reach the API, and a worked example of a
+  workspace generated with `profile`.
 
 - [**Generated API**](api.md). The .NET application in `api/`: the four projects and their
   dependency direction, composition through `Program.cs` anchors, minimal API endpoint

@@ -30,12 +30,12 @@ public class CryptoVectorsTests
     public void Encrypt_reproduces_golden_ciphertext_and_tag()
     {
         var ale = Vectors.GetProperty("ale");
-        var (ct, tag) = AleCipher.Encrypt(
+        var (ciphertext, tag) = AleCipher.Encrypt(
             ale.B64("derivedKeyB64"),
             ale.B64("ivB64"),
             Encoding.UTF8.GetBytes(ale.Str("plaintextUtf8")));
 
-        Assert.Equal(ale.Str("ciphertextB64"), Convert.ToBase64String(ct));
+        Assert.Equal(ale.Str("ciphertextB64"), Convert.ToBase64String(ciphertext));
         Assert.Equal(ale.Str("tagB64"), Convert.ToBase64String(tag));
     }
 

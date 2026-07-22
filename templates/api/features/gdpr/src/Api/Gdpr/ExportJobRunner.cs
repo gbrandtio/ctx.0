@@ -18,7 +18,7 @@ namespace CtxApp.Api.Gdpr;
 /// thrown, so one bad export never stops the queue.
 /// </summary>
 public sealed class ExportJobRunner(
-    ExportJobQueue queue,
+    IExportJobQueue queue,
     IServiceProvider services,
     ILogger<ExportJobRunner> logger) : BackgroundService
 {
@@ -37,13 +37,13 @@ public sealed class ExportJobRunner(
         }
     }
 
-    private async Task RunAsync(ExportTicket ticket, CancellationToken ct)
+    private async Task RunAsync(ExportTicket ticket, CancellationToken cancellationToken)
     {
         using var scope = services.CreateScope();
         using var subject = PersonalDataSubject.Enter(ticket.UserId);
 
-        var db = scope.ServiceProvider.GetRequiredService<CtxAppDbContext>();
-        var job = await db.Set<DataExportJob>().FirstOrDefaultAsync(j => j.Id == ticket.JobId, ct);
+        var dbContext = scope.ServiceProvider.GetRequiredService<CtxAppDbContext>();
+        var job = await dbContext.Set<DataExportJob>().FirstOrDefaultAsync(j => j.Id == ticket.JobId, cancellationToken);
         if (job is null)
         {
             return;
@@ -52,12 +52,12 @@ public sealed class ExportJobRunner(
         try
         {
             var exporter = scope.ServiceProvider.GetRequiredService<PersonalDataExporter>();
-            var archives = scope.ServiceProvider.GetRequiredService<ExportArchiveStore>();
+            var archives = scope.ServiceProvider.GetRequiredService<IExportArchiveStore>();
             var options = scope.ServiceProvider.GetRequiredService<GdprOptions>();
             var clock = scope.ServiceProvider.GetRequiredService<IClock>();
 
-            var bundle = await exporter.BuildArchiveAsync(ticket.UserId, ct);
-            await archives.WriteAsync(job.StorageKey, bundle, ct);
+            var bundle = await exporter.BuildArchiveAsync(ticket.UserId, cancellationToken);
+            await archives.WriteAsync(job.StorageKey, bundle, cancellationToken);
 
             job.SizeBytes = bundle.LongLength;
             job.CompletedAt = clock.UtcNow;
@@ -71,6 +71,6 @@ public sealed class ExportJobRunner(
             job.Error = ex.Message;
         }
 
-        await db.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

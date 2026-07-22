@@ -14,15 +14,15 @@ public class RefreshTokenServiceTests
     private sealed class FakeStore : IRefreshTokenStore
     {
         public readonly List<RefreshToken> Tokens = [];
-        public Task AddAsync(RefreshToken token, CancellationToken ct = default) { Tokens.Add(token); return Task.CompletedTask; }
-        public Task<RefreshToken?> FindByHashAsync(string tokenHash, CancellationToken ct = default)
+        public Task AddAsync(RefreshToken token, CancellationToken cancellationToken = default) { Tokens.Add(token); return Task.CompletedTask; }
+        public Task<RefreshToken?> FindByHashAsync(string tokenHash, CancellationToken cancellationToken = default)
             => Task.FromResult(Tokens.FirstOrDefault(t => t.TokenHash == tokenHash));
-        public Task RevokeFamilyAsync(Guid familyId, DateTimeOffset revokedAt, CancellationToken ct = default)
+        public Task RevokeFamilyAsync(Guid familyId, DateTimeOffset revokedAt, CancellationToken cancellationToken = default)
         {
             foreach (var t in Tokens.Where(t => t.FamilyId == familyId && t.RevokedAt == null)) t.RevokedAt = revokedAt;
             return Task.CompletedTask;
         }
-        public Task SaveChangesAsync(CancellationToken ct = default) => Task.CompletedTask;
+        public Task SaveChangesAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
 
     private sealed class FakeJwt : IJwtIssuer

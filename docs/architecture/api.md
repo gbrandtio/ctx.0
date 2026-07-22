@@ -24,30 +24,39 @@ flowchart RL
 ```
 
 `Domain` holds entities and references nothing. `Application` declares the interfaces the
-outer layers implement, such as `ICurrentUser`, `IFieldCipher`, `IBlindIndex` and
-`IPersonalDataContributor`. `Infrastructure` implements them over EF Core, PostgreSQL and
-the crypto primitives. `Api` hosts the endpoints and is the only project that composes the
-others.
+outer layers implement, the cross-cutting ones such as `ICurrentUser`, `IFieldCipher`,
+`IBlindIndex`, `IUnitOfWork` and `IPersonalDataContributor`, and each feature's own service
+and repository interfaces, and it holds the services that carry the feature's logic.
+`Infrastructure` implements those over EF Core, PostgreSQL and the crypto primitives. `Api`
+hosts the endpoints and is the only project that composes the others.
 
 A feature's files land in whichever projects it needs. `notes` writes
-`Domain/Notes/Note.cs`, `Api/Endpoints/NotesEndpoints.cs`,
+`Domain/Notes/Note.cs`, `Application/Notes/INotesService.cs`,
+`Application/Notes/NotesService.cs`, `Application/Notes/INotesRepository.cs`,
+`Api/Endpoints/NotesEndpoints.cs`, `Infrastructure/Persistence/NotesRepository.cs`,
 `Infrastructure/Persistence/Configurations/NoteConfiguration.cs` and
 `Infrastructure/Gdpr/NotesPersonalData.cs`, and its tests into `tests/Ctx.Tests/`.
 
 ## Composition
 
 `Program.cs` is short, and stays short because features extend it through anchors rather
-than editing it. It does five things: register the security plane, register the
-`DbContext` against PostgreSQL with the container's interceptors attached, build the app,
-map the health check and the always-on security endpoints, and run. Two anchors sit in the
-middle of that, one among the service registrations and one among the endpoint mappings,
-with a third among the imports.
+than editing it. It does six things: register the security plane, register localisation,
+register the `DbContext` against PostgreSQL with the container's interceptors attached,
+build the app, map the health check and the always-on security endpoints, and run. Two
+anchors sit in the middle of that, one among the service registrations and one among the
+endpoint mappings, with a third among the imports.
 
 `AddCtxSecurity` registers the whole security plane: password hashing, JWT issuing and
 validation, refresh tokens, device key registry, ALE key provider, envelope cipher, blind
 index, the RLS interceptor and rate limiting. Registering interceptors through the
 container is what lets the RLS interceptor be scoped per request while the `DbContext`
 configuration stays generic.
+
+`AddCtxLocalization` and `UseCtxLocalization` are always on, in the base rather than a
+feature. They resolve the request culture from the `Accept-Language` header before any
+handler renders text, so the API answers in the caller's language whether or not the `l10n`
+feature is enabled. The mobile side matches this: its localisation plumbing is always on too,
+in the session layer.
 
 Each feature adds three kinds of line at the anchors: a `using`, its service registrations,
 and its `Map…Endpoints()` call. `profile`, for instance, registers an `RlsPolicy` for its
@@ -58,8 +67,12 @@ table and an `IPersonalDataContributor`, then maps its endpoints.
 Minimal APIs grouped per feature, one static class with one `Map…Endpoints` extension
 method. The method opens a route group under the feature's path prefix, requires
 authorization on it where the feature needs a signed-in user, and maps its handlers.
-Handlers take their dependencies as parameters, the `DbContext`, `ICurrentUser`,
-`IBlindIndex` and so on, and hold no state. The route groups in a fully featured workspace:
+Handlers take their dependencies as parameters and hold no state. They take the feature's
+application service, `INotesService` for instance, and the request context such as
+`ICurrentUser`, and leave the data work to the layer below. `auth`'s refresh and logout
+handlers additionally take the security layer's `RefreshTokenService`, since rotating and
+revoking refresh tokens is that layer's concern rather than feature data. The route groups
+in a fully featured workspace:
 
 | Group | Source | Authentication |
 |---|---|---|
@@ -69,6 +82,39 @@ Handlers take their dependencies as parameters, the `DbContext`, `ICurrentUser`,
 | `/v1/notes` | `notes` | JWT |
 | `/v1/profile` | `profile` | JWT |
 | `/v1/privacy/consent`, `/export`, `/account/delete` | `gdpr` | JWT |
+
+### Services and repositories
+
+Behind most endpoints sits a small stack that keeps EF Core out of the handler and out of
+the feature's logic.
+
+```mermaid
+flowchart LR
+    ep["Endpoint handler<br/>Api"]
+    svc["Feature service<br/>Application"]
+    repo["Repository<br/>Infrastructure"]
+    uow["IUnitOfWork<br/>base"]
+    ef["CtxAppDbContext"]
+
+    ep --> svc
+    svc --> repo --> ef
+    svc --> uow --> ef
+```
+
+An endpoint calls a service in `Application` (`INotesService`). The service holds the
+feature's logic, works against a repository interface also in `Application`
+(`INotesRepository`) whose implementation lives in `Infrastructure` (`NotesRepository`, over
+the `DbContext`), and commits through `IUnitOfWork`. The service names no EF Core type, which
+is what lets it be tested with a fake repository, and writing a row becomes one service call
+rather than handler code touching the context.
+
+`IUnitOfWork` is registered once in the base over the shared `DbContext`, and its
+`SaveChangesAsync` is the single point a change is committed, so a service decides when a
+unit of work closes rather than each repository saving on its own. Every feature follows
+this shape, `auth` included: its endpoints call `IAuthService`, which works through
+`IAuthRepository`. The refresh and logout endpoints are the one thing outside it, reaching
+the security layer's `RefreshTokenService` directly, because refresh tokens are owned by
+that always-on layer and not by a feature repository.
 
 ## Request path
 
@@ -170,9 +216,9 @@ owning the context.
 
 **Encryption at rest.** A property marked with the `Encrypted` attribute is
 envelope-encrypted through a value converter installed by the encryption conventions, so
-handlers read and write plaintext and the column holds ciphertext. In `notes`, the title
-and body are marked; the user id, the created timestamp and the title's blind index are
-not.
+services and repositories read and write plaintext and the column holds ciphertext. In
+`notes`, the title and body are marked; the user id, the created timestamp and the title's
+blind index are not.
 
 Ciphertext is not searchable, so a field that has to be looked up carries an HMAC blind
 index beside it. `IBlindIndex.Compute` produces the same value for the same input, which

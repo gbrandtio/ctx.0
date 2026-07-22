@@ -22,22 +22,22 @@ public sealed class LocalBlobStore : IBlobStore
         Directory.CreateDirectory(_root);
     }
 
-    public async Task WriteAsync(string key, Stream content, CancellationToken ct = default)
+    public async Task WriteAsync(string key, Stream content, CancellationToken cancellationToken = default)
     {
         using var buffer = new MemoryStream();
-        await content.CopyToAsync(buffer, ct);
+        await content.CopyToAsync(buffer, cancellationToken);
         var envelope = _cipher.Encrypt(Convert.ToBase64String(buffer.ToArray()));
-        await File.WriteAllTextAsync(PathFor(key), envelope, ct);
+        await File.WriteAllTextAsync(PathFor(key), envelope, cancellationToken);
     }
 
-    public async Task<Stream> ReadAsync(string key, CancellationToken ct = default)
+    public async Task<Stream> ReadAsync(string key, CancellationToken cancellationToken = default)
     {
-        var envelope = await File.ReadAllTextAsync(PathFor(key), ct);
+        var envelope = await File.ReadAllTextAsync(PathFor(key), cancellationToken);
         var bytes = Convert.FromBase64String(_cipher.Decrypt(envelope));
         return new MemoryStream(bytes);
     }
 
-    public Task DeleteAsync(string key, CancellationToken ct = default)
+    public Task DeleteAsync(string key, CancellationToken cancellationToken = default)
     {
         var path = PathFor(key);
         if (File.Exists(path))

@@ -80,6 +80,7 @@ flowchart LR
         w["workspace/"]
         base["mobile/base/<br/>api/base/"]
         sec["security/mobile/<br/>security/api/"]
+        sess["mobile/session/"]
         feat["features/&lt;id&gt;/"]
         sh["mobile/shells/&lt;layout&gt;/"]
     end
@@ -96,6 +97,7 @@ flowchart LR
     base --> api
     sec --> app
     sec --> api
+    sess --> app
     feat --> app
     feat --> api
     sh --> app
@@ -105,8 +107,9 @@ flowchart LR
 1. Workspace root: README, `docker-compose.yml`, agent context files.
 2. The two base projects, a runnable but empty Flutter app and .NET API.
 3. The security layer on both sides, always applied and impossible to disable. It provides encryption, request signing, JWTs and per-user row isolation.
-4. Selected features, each after the features it requires. Asking for `notes` also applies `auth`.
-5. Wiring, once every anchored file exists.
+4. The session layer on the app side, always applied and impossible to disable. It provides the credentials store, the sign-in status and the locale that features plug into.
+5. Selected features, each after the features it requires. Asking for `notes` also applies `auth`.
+6. Wiring, once every anchored file exists.
 
 Determinism rests on one rule applied throughout: every list read from the filesystem is
 sorted into UTF-8 byte order (`packages/core/src/order.ts`) rather than used in the order
@@ -117,8 +120,9 @@ the operating system returned it.
 Four parts of a workspace depend on choices or on several features at once, so ctx.0
 writes them instead of copying them.
 
-**Translations.** Each feature ships its phrases per language in an `l10n/` folder. ctx.0
-merges the fragments from enabled features into the files Flutter and .NET expect,
+**Translations.** Each feature ships its phrases per language in an `l10n/` folder, and so
+do the always-on layers that carry their own strings, including the app's session layer.
+ctx.0 merges the fragments from every enabled layer into the files Flutter and .NET expect,
 covering the selected languages. (`packages/core/src/l10n.ts`)
 
 **Navigation.** A feature that can appear as a screen declares a label, an icon and an

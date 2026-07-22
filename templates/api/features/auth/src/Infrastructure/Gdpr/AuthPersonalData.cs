@@ -12,44 +12,44 @@ namespace CtxApp.Infrastructure.Gdpr;
 /// The password hash is never exported — it is a credential, not user content —
 /// and erasure drops the credential row along with every refresh-token family.
 /// </summary>
-public sealed class AuthPersonalData(CtxAppDbContext db) : IPersonalDataContributor
+public sealed class AuthPersonalData(CtxAppDbContext dbContext) : IPersonalDataContributor
 {
     public string Section => "account";
 
-    public async Task<object?> ExportAsync(Guid userId, CancellationToken ct = default)
+    public async Task<object?> ExportAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, ct);
+        var user = await dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
         if (user is null)
         {
             return null;
         }
 
-        var sessions = await db.Set<RefreshToken>()
+        var sessions = await dbContext.Set<RefreshToken>()
             .AsNoTracking()
             .Where(t => t.UserId == userId)
             .OrderBy(t => t.CreatedAt)
             .Select(t => new { t.CreatedAt, t.ExpiresAt, t.RevokedAt })
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
         return new
         {
             user.Id,
             user.Email,
             user.CreatedAt,
-            HasPassword = await db.Set<UserCredential>().AnyAsync(c => c.UserId == userId, ct),
+            HasPassword = await dbContext.Set<UserCredential>().AnyAsync(c => c.UserId == userId, cancellationToken),
             Sessions = sessions,
         };
     }
 
-    public async Task EraseAsync(Guid userId, CancellationToken ct = default)
+    public async Task EraseAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var tokens = await db.Set<RefreshToken>().Where(t => t.UserId == userId).ToListAsync(ct);
-        db.Set<RefreshToken>().RemoveRange(tokens);
+        var tokens = await dbContext.Set<RefreshToken>().Where(t => t.UserId == userId).ToListAsync(cancellationToken);
+        dbContext.Set<RefreshToken>().RemoveRange(tokens);
 
-        var credential = await db.Set<UserCredential>().FirstOrDefaultAsync(c => c.UserId == userId, ct);
+        var credential = await dbContext.Set<UserCredential>().FirstOrDefaultAsync(c => c.UserId == userId, cancellationToken);
         if (credential is not null)
         {
-            db.Set<UserCredential>().Remove(credential);
+            dbContext.Set<UserCredential>().Remove(credential);
         }
     }
 }

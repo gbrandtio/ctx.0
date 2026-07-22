@@ -61,11 +61,11 @@ public class PingRoundTripTests : IClassFixture<WebApplicationFactory<Program>>
         var iv = RandomNumberGenerator.GetBytes(12);
         var plaintext = Encoding.UTF8.GetBytes("{\"message\":\"marco\"}");
         var key = AleCipher.DeriveKey(P256.PrivateParams(ep.D!, ephPublic), serverAlePublic);
-        var (ct, tag) = AleCipher.Encrypt(key, iv, plaintext);
+        var (cancellationToken, tag) = AleCipher.Encrypt(key, iv, plaintext);
         var envelope = new AleEnvelope(
             Convert.ToBase64String(ephPublic),
             Convert.ToBase64String(iv),
-            Convert.ToBase64String(ct),
+            Convert.ToBase64String(cancellationToken),
             Convert.ToBase64String(tag));
         var body = JsonSerializer.SerializeToUtf8Bytes(envelope);
 

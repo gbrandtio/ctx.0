@@ -1,10 +1,11 @@
 # Generated mobile app architecture
 
 This describes the Flutter application ctx.0 writes into `app/` of a generated workspace.
-It is assembled from `templates/mobile`: a base app, the vendored security layer, one
-navigation shell, and one folder per enabled feature. What follows is the shape those
-layers add up to, using a workspace generated with `auth`, `l10n` and `profile` as the
-running example.
+It is assembled from `templates/mobile`: a base app, the vendored security layer, the
+always-on session layer, one navigation shell, and one folder per enabled feature. What
+follows is the shape those layers add up to. The running example is a workspace generated
+with `profile`, which resolves its dependencies to `auth`, `l10n`, `settings` and `gdpr`,
+so a single request produces a five-feature app on top of the session layer.
 
 ## Layout
 
@@ -22,6 +23,11 @@ app/
       ctx_security.dart
       secure_http_client.dart
       crypto/
+    session/            always present, the app-layer session
+      session_cubit.dart
+      token_store.dart
+      locale_cubit.dart
+      locale_store.dart
     l10n/gen/           AppL10n, generated from the merged .arb files
     features/
       auth/
@@ -30,13 +36,16 @@ app/
         bloc/profile_cubit.dart
         views/profile_page.dart
   test/
+    session/              SessionCubit, the token store, LocaleCubit
     features/<id>/         one folder per feature
 ```
 
 Every feature occupies `lib/features/<id>/` and splits three ways: `data` talks to the
 API, `bloc` holds state, `views` renders. A feature's tests ship beside it under
 `test/features/<id>/`. Nothing outside `lib/features/<id>/` belongs to a feature except
-the lines it inserts at anchors, which keeps any combination of features valid.
+the lines it inserts at anchors, which keeps any combination of features valid. Two things
+sit outside that scheme and are always present: `security/`, the vendored crypto, and
+`session/`, the subject of its own section below.
 
 ## Startup
 
@@ -57,9 +66,10 @@ flowchart TB
 device is refused before app state exists. `CtxAppRoot` then provides the app-wide Blocs
 and builds the `MaterialApp`.
 
-`MaterialApp` is a separate widget below the providers, which lets a feature configuring
-the app read those Blocs. That is what the `l10n` feature relies on: it inserts a
-`BlocBuilder` over the locale Cubit at the `app-material` anchor to drive `locale`.
+`MaterialApp` is a separate widget below the providers, which lets a widget configuring the
+app read those Blocs. That is what the `app-material` anchor is for: the session layer
+inserts a `BlocBuilder` over `LocaleCubit` there to drive `locale`, alongside the
+localisation delegates and `supportedLocales`.
 
 Four anchors carry the app-level extension points:
 
@@ -70,23 +80,69 @@ Four anchors carry the app-level extension points:
 | `app-overlay` | widgets drawn above every route, such as a consent banner |
 | `home-wrap` | wrappers around the shell, such as the auth gate |
 
-`auth` uses `home-wrap` to put `AuthGate` in front of `CtxShell`, so an unauthenticated
-launch shows the login page and never reaches navigation.
+The session layer wires the `app-material` anchor, so the app is localised whatever
+features are enabled. `auth` uses `home-wrap` to put `AuthGate` in front of `CtxShell`, so
+an unauthenticated launch shows the login page and never reaches navigation.
+
+## The session layer
+
+`session/` is a mandatory layer, not a feature. The engine applies it after the mobile
+security layer and before any feature, and it cannot be disabled. It owns the three things
+every app needs and no feature should have to own: the credentials, whether anyone is
+signed in, and the language the app speaks. Features plug into it; they do not reimplement
+it.
+
+**Credentials: `ctxSession`.** `token_store.dart` declares the `TokenStore` interface and
+two implementations. `SecureTokenStore` is a stateless facade over three platform keystore
+entries, the access token, the refresh token, and the access token's expiry.
+`RefreshingTokenStore` wraps it: a read returns the stored access token while it has life
+left, and once the token is within thirty seconds of expiry it spends the refresh token on
+`/v1/auth/refresh` and stores the rotated pair before answering. The app shares one
+instance, `ctxSession = RefreshingTokenStore(SecureTokenStore())`, which is what keeps
+rotation single-flight. Every repository that sends a bearer token reads through this one
+object, and it exposes `sessionLost`, fired when the API rejects a refresh.
+
+**Sign-in status: `SessionCubit`.** `SessionCubit` is the single source of truth for
+`SessionStatus`, one of `unknown`, `anonymous` or `authenticated`. It holds no credentials
+of its own. `restore()` runs at launch and reads `ctxSession.readAccessToken()` to decide
+the initial status, and the cubit listens to `sessionLost` so a refresh the API rejects
+drops it to `anonymous` without the user asking. A provider that authenticates does not
+touch this state directly; it stores the tokens and then the handshake below moves the
+status.
+
+**Locale: `LocaleCubit`.** `LocaleCubit`'s state is a nullable `Locale`, which is exactly
+what `MaterialApp.locale` wants: `null` means no override, follow the device language.
+`load()` restores the saved choice, `select()` and `useDeviceLanguage()` change it, and
+each writes through `SecureLocaleStore`. The cubit reports the language in force to a
+callback the composition root hands it, which sets `ctxSecureClient.acceptLanguage`, so the
+API answers in the language the UI is showing. Because the delegates, `supportedLocales`,
+`l10n.yaml` and `generate: true` all ship from this layer, an app is localised whether or
+not the `l10n` feature is enabled.
+
+**The plug-in contract.** A feature that authenticates stores its tokens in `ctxSession`
+and then hands the session its new status: `LoginPage`, seeing `AuthStatus.success`, calls
+`context.read<SessionCubit>().signedIn()`, and `ProfilePage`, after logout completes, calls
+`signedOut()`. That handshake is the whole coupling; providers keep no session state. A
+feature that only reads passes `ctxSession` to its repository for the bearer token, or
+watches `SessionCubit` when its UI varies by sign-in. The `l10n` feature is the language
+picker and drives `LocaleCubit`. When no authenticating provider is enabled the session
+simply stays `anonymous`.
 
 ## State
 
-There is no single app state object. State is partitioned by feature, one Cubit each, and
-the partitions are disjoint by construction: a Cubit is declared in its feature's folder,
+There is no single app state object. State is partitioned, one Cubit per feature, and the
+partitions are disjoint by construction: a feature's Cubit is declared in its folder,
 provided once in `di.dart`, and named in no other feature's code. Composability forces
 this. Any two features can be enabled together or apart, so no feature may assume another's
-state exists.
+state exists. The always-on session layer adds two app-wide Cubits of its own,
+`SessionCubit` and `LocaleCubit`, which are not features and which every feature may read.
 
 That leaves four distinct places a value can live, and which one it belongs in is decided
 by how long it has to survive.
 
 | Where | Lifetime | What lives there |
 |---|---|---|
-| Feature Cubit | app process | server data being shown, request status, error messages |
+| Feature or session Cubit | app process | server data being shown, request status, sign-in status, locale |
 | Widget `State` | the route | text controllers, scroll positions, form input before submit |
 | Platform secure storage | reinstall | session tokens, locale override |
 | The API | permanent | everything else |
@@ -113,17 +169,19 @@ an exception, which is why no screen needs an error boundary and why the error c
 rendered where it belongs, next to the control that caused it.
 
 **State flows one way.** Views call methods on a Cubit and rebuild from what it emits. A
-view never writes to another view's state, and Cubits do not call each other. Where two
-features genuinely share something, they share the store beneath it rather than the state
-above it: `auth` and `profile` both read through the one shared `ctxTokens`, beneath either
-Cubit's state, rather than either holding a reference to the other.
+view never writes to another view's state, and feature Cubits do not call each other. Where
+two features genuinely share something, they share the store beneath it rather than the
+state above it: `auth` and `profile` both read through the one shared `ctxSession` in the
+session layer, beneath either Cubit's state, rather than either holding a reference to the
+other.
 
 ## Composition root
 
-`lib/app/di.dart` is the one place features are wired in. It returns the app-wide provider
-list, and each feature inserts one entry at the providers anchor: its Cubit, constructed
-with the HTTP implementation of its repository and whatever that needs, such as the token
-store.
+`lib/app/di.dart` is the one place providers are wired in. It returns the app-wide provider
+list. The session layer inserts the first entries, `SessionCubit(ctxSession)..restore()`
+and `LocaleCubit` built with `SecureLocaleStore` and the `acceptLanguage` callback. Each
+feature then inserts one entry: its Cubit, constructed with the HTTP implementation of its
+repository and whatever that needs, such as `ctxSession` for the token.
 
 Construction happens here rather than inside widgets, so a feature's screens hold no
 knowledge of how their dependencies were built. There is no service locator and no code
@@ -140,8 +198,13 @@ to show, and the file to import it from.
 The four layouts, bottom navigation bar, navigation rail, drawer and plain list, are the
 same widget contract with different chrome: each shell template exposes `ctx:gen:imports`,
 `ctx:gen:pages` and `ctx:gen:destinations`, which the generator fills with the enabled
-features in a fixed order. Changing layout is regeneration of this one file. A feature
-without a `nav` block, such as `gdpr`, contributes behaviour and no tab.
+features in a fixed order. Changing layout is regeneration of this one file.
+
+A feature need not be a tab. A feature that declares a `settingsEntry` instead of a `nav`
+block contributes a row to the generated `SettingsPage`, the hub opened from the profile
+page's app bar: `l10n` adds the language picker there and `gdpr` its privacy controls. A
+feature that declares neither, contributing only behaviour, adds no visible entry point of
+its own.
 
 ## Talking to the API
 
@@ -154,7 +217,7 @@ ECDSA signature over each request. It proves the request came from an enrolled i
 Its base URL comes from `CTX_API_BASE_URL` at compile time.
 
 **Authenticated JSON.** Endpoints that act on behalf of a signed-in user take the access
-token minted by `auth`, read from the shared `ctxTokens`, which renews it when it is spent.
+token minted by `auth`, read from the shared `ctxSession`, which renews it when it is spent.
 `HttpProfileRepository` uses this path, since the device identity the secure client proves
 carries no user identity.
 
@@ -163,7 +226,7 @@ flowchart LR
     cubit["Feature Cubit"]
     repo["Feature repository"]
     sec["SecureHttpClient<br/>device key, ALE, signature"]
-    tok["ctxTokens<br/>access and refresh token"]
+    tok["ctxSession<br/>access and refresh token"]
     api[("API")]
 
     cubit --> repo
@@ -171,15 +234,21 @@ flowchart LR
     repo -->|user-authenticated| tok --> api
 ```
 
-The `l10n` feature sets `acceptLanguage` on the secure client when the locale changes, so
-the API answers in the language the app is showing.
+The session's `LocaleCubit` sets `acceptLanguage` on the secure client when the locale
+changes, so the API answers in the language the app is showing.
 
 ## Localisation
 
-Each feature ships one `.arb` file per language under its own `l10n/`. The generator
-merges the fragments from enabled features into `lib/l10n/` for the selected languages,
-and Flutter's `gen-l10n` produces `AppL10n`. Views read every user-visible string from it.
-Because merging is per generation, disabling a feature removes its phrases.
+The localisation plumbing is always on and ships from the session layer: the `MaterialApp`
+delegates, `supportedLocales`, `l10n.yaml` and `generate: true`. That is why an app speaks
+the user's language whether or not the `l10n` feature is enabled; enabling `l10n` only adds
+the in-app picker that lets the user override the device language.
+
+Each feature ships one `.arb` file per language under its own `l10n/`, and so does the
+session layer. The generator merges the fragments from enabled layers into `lib/l10n/` for
+the selected languages, and Flutter's `gen-l10n` produces `AppL10n`. Views read every
+user-visible string from it. Because merging is per generation, disabling a feature removes
+its phrases.
 
 ## Theme
 
@@ -190,10 +259,12 @@ take colours and text styles from `Theme.of(context)` and define no palette of t
 which is what lets the seed be changed once and rebrand the app. The full standard is in
 [the UI/UX guidelines](../ui/README.md).
 
-## A worked example: auth, l10n and profile
+## A worked example: the profile app
 
-Everything above meets in one workspace. Generating with `profile` pulls in `auth`, which
-pulls in `l10n`, so a three-feature app is what the shortest useful selection produces.
+Everything above meets in one workspace. Generating with `profile` resolves the dependency
+chain to `auth`, `l10n`, `settings` and `gdpr`, so the shortest request that reaches a
+user-data screen produces a five-feature app. All of them sit on the always-on session
+layer.
 
 ### What the app is made of
 
@@ -202,96 +273,96 @@ flowchart TB
     subgraph shell["app.dart"]
         gate["AuthGate<br/>home-wrap anchor"]
         loc["BlocBuilder over LocaleCubit<br/>app-material anchor"]
-        nav["CtxShell<br/>Profile and Language tabs"]
+        nav["CtxShell<br/>Profile tab"]
     end
-    subgraph di["di.dart providers"]
-        ac["AuthCubit"]
+    subgraph session["session layer"]
+        sc["SessionCubit"]
         lc["LocaleCubit"]
-        pc["ProfileCubit"]
-    end
-    subgraph data["data"]
-        ar["HttpAuthRepository"]
-        ls["SecureLocaleStore"]
-        pr["HttpProfileRepository"]
-        tok["ctxTokens<br/>RefreshingTokenStore"]
+        cs["ctxSession<br/>RefreshingTokenStore"]
         sts["SecureTokenStore"]
+        sls["SecureLocaleStore"]
+    end
+    subgraph authf["auth"]
+        acb["AuthCubit"]
+        lp["LoginPage"]
+        ar["HttpAuthRepository"]
+    end
+    subgraph prof["profile"]
+        pc["ProfileCubit"]
+        pp["ProfilePage"]
+        pr["HttpProfileRepository"]
+    end
+    subgraph set["settings"]
+        sp["SettingsPage"]
+        lang["LanguagePage (l10n)"]
+        priv["Privacy (gdpr)"]
     end
     ks[("Platform secure storage")]
     api[("API")]
 
     loc --> gate --> nav
-    gate -.reads.-> ac
+    gate -.reads.-> sc
     loc -.reads.-> lc
-    nav -.reads.-> pc
-    ac --> ar --> tok
-    lc --> ls
-    pc --> pr --> tok
-    tok --> sts --> ks
-    ls --> ks
+    nav --> pp
+    lp -.signedIn.-> sc
+    pp -.signedOut.-> sc
+    pp --> sp --> lang
+    sp --> priv
+    lang -.drives.-> lc
+    sc -.restore, sessionLost.-> cs
+    acb --> ar --> cs
+    pc --> pr --> cs
+    cs --> sts --> ks
+    lc --> sls --> ks
+    lc -->|acceptLanguage| api
     ar -->|/v1/auth| api
-    tok -->|/v1/auth/refresh| api
+    cs -->|/v1/auth/refresh| api
     pr -->|/v1/profile| api
 ```
 
-Three Cubits, three repositories, and one token store between them. `auth` and `profile`
-both read through `ctxTokens`, and neither holds a reference to the other. That is the
-shape cross-feature sharing takes here: features meet at the token store, never at each
-other's objects, because either of them may be absent.
+The session layer holds the credentials, the sign-in status and the locale. `auth` and
+`profile` both read through the one `ctxSession` and neither holds a reference to the other:
+features meet at the token store, never at each other's objects, because either of them may
+be absent. `AuthGate` renders from `SessionCubit`, so `auth` owns the login form while the
+session owns whether anyone is signed in. The Settings hub is where `l10n` and `gdpr` hang
+their rows, and the language row drives the session's `LocaleCubit`.
 
-The sharing is not a convenience. `SecureTokenStore` underneath is stateless, a facade over
-three keystore entries, and any number of those could coexist without disagreeing. What
-cannot be duplicated is the renewal: rotating a refresh token revokes it server-side, so
-two features renewing at the same moment would replay a dead token and lose the session.
-`ctxTokens` is one object so that renewal is single-flight.
+### Two state machines
 
-`AuthGate` sits between the `MaterialApp` and the shell, so nothing behind it is built
-until there is a session. `profile` reaches `auth` only through the token store, and
-`l10n` reaches the rest only through the generated `AppL10n` and one callback.
-
-### What the wiring produced
-
-Between them the three features touch three files, and no others. Each adds its provider to
-`di.dart`. `auth` alone adds a line at the `home-wrap` anchor in `app.dart` to put the gate
-around the shell, and `l10n` reaches `app.dart` too, at the `app-material` anchor, plus
-`pubspec.yaml` for its localisation dependencies.
-
-Two of those providers start work as they are constructed. `AuthCubit` is told to restore,
-which is what begins the stored-session check at launch, and `LocaleCubit` is told to load
-its saved language. `LocaleCubit` is also handed the callback that writes the language onto
-the secure client's `Accept-Language`, and that callback is the only point at which `l10n`
-and the security layer meet.
-
-### Session state
-
-`AuthState` is the one state in the app that gates the rest of it. Its status takes one of
-five values, and the session moves between them like this:
+Sign-in and the login form are separate concerns with separate state, which is the point of
+the session layer. `SessionStatus` gates the app and is owned by the session:
 
 ```mermaid
 stateDiagram-v2
     [*] --> unknown
-    unknown --> authenticated: restore finds or renews a token
-    unknown --> unauthenticated: restore finds none
-    unauthenticated --> authenticating: login or register
-    failure --> authenticating: retry
-    authenticating --> authenticated: tokens stored
-    authenticating --> failure: rejected
-    authenticated --> unauthenticated: logout
-    authenticated --> unauthenticated: renewal rejected
+    unknown --> authenticated: restore reads a stored token
+    unknown --> anonymous: restore finds none
+    anonymous --> authenticated: a provider calls signedIn
+    authenticated --> anonymous: signedOut, or a refresh the API rejects
 ```
 
 `AuthGate` switches on exactly this: `authenticated` renders the shell, `unknown` renders a
-spinner while the stored token is read and, if it has expired, renewed, and the remaining
-three render the login page, which shows the error when there is one. The gate holds no
-state of its own, so the launch path, a failed login, a logout and a session that expires
-under the user all resolve through one switch.
+spinner while the stored token is read and, if it has expired, renewed, and `anonymous`
+renders the login page. The gate holds no state of its own, so the launch path, a sign-in,
+a logout and a session that expires under the user all resolve through one switch. `unknown`
+exists because reading the keystore is asynchronous; without it a returning user would see
+the login screen flash before their session was found.
 
-`unknown` exists because reading the keystore is asynchronous. Without it the first frame
-would have to guess, and a returning user would see the login screen flash before their
-session was found.
+`AuthStatus` is the login form's own state, owned by `auth` and read by no one else:
 
-`LocaleCubit` shows the opposite end of the range: its state is a nullable `Locale` with no
-wrapper class, because that is already the whole state. `null` means no override, which is
-what `MaterialApp.locale` wants in order to follow the device language.
+```mermaid
+stateDiagram-v2
+    [*] --> idle
+    idle --> submitting: login or register
+    submitting --> success: credentials accepted and stored
+    submitting --> failure: rejected
+    failure --> submitting: retry
+    success --> [*]: LoginPage hands off to SessionCubit.signedIn
+```
+
+`AuthCubit` performs the credential exchange and reports the outcome; it does not decide
+whether the app is signed in. On `success` the view stores nothing new of its own, it just
+tells the session, and the gate does the rest.
 
 ### The session, end to end
 
@@ -304,64 +375,66 @@ detection included, are in [the API document](api.md#session-and-token-lifecycle
 ```mermaid
 sequenceDiagram
     participant U as User
+    participant S as SessionCubit
     participant C as AuthCubit
     participant R as HttpAuthRepository
-    participant T as ctxTokens
+    participant T as ctxSession
     participant A as API
 
-    Note over C: launch
-    C->>R: hasSession
-    R->>T: readAccessToken
-    Note right of T: only when the stored token is spent
+    Note over S: launch
+    S->>T: readAccessToken
+    Note right of T: refreshes first when the stored token is spent
     T->>A: POST /v1/auth/refresh
     A-->>T: rotated pair
-    T-->>R: token or nothing
-    R-->>C: has session or not
-    C->>C: emit authenticated or unauthenticated
+    T-->>S: token or nothing
+    S->>S: emit authenticated or anonymous
 
     U->>C: login with email and password
-    C->>C: emit authenticating
+    C->>C: emit submitting
     C->>R: login
     R->>A: POST /v1/auth/login
     A-->>R: access token, its expiry, refresh token
     R->>T: save all three
     R-->>C: done
-    C->>C: emit authenticated
+    C->>C: emit success
+    Note over C: LoginPage sees success and calls SessionCubit.signedIn
+    S->>S: emit authenticated
 
-    Note over T: refresh rejected
+    Note over T: a refresh the API rejects
     T->>T: clear stored tokens
-    T-->>R: session lost
-    R-->>C: session lost
-    C->>C: emit unauthenticated
+    T-->>S: sessionLost
+    S->>S: emit anonymous
 
     U->>C: logout
     C->>R: logout
-    R->>T: readRefreshToken
     R->>A: POST /v1/auth/logout
     R->>T: clear
     R-->>C: done
-    C->>C: emit unauthenticated
+    Note over C: ProfilePage awaited logout and calls SessionCubit.signedOut
+    S->>S: emit anonymous
 ```
 
 Three properties of this are worth stating plainly, because they decide what a workspace
 owner can rely on.
 
-**A stored session outlives the access token.** `hasSession` reads through `ctxTokens`,
-which renews a token that is spent or within thirty seconds of expiry before answering. A
-user returning after the fifteen-minute access token has died lands on the shell, not the
-login screen, and the renewal is the same one any feature's first request would trigger.
+**A stored session outlives the access token.** `SessionCubit.restore` reads through
+`ctxSession`, which renews a token that is spent or within thirty seconds of expiry before
+answering. A user returning after the fifteen-minute access token has died lands on the
+shell, not the login screen, and the renewal is the same one any feature's first request
+would trigger.
 
 **Renewal is single-flight, because rotation is destructive.** Each refresh revokes the
 token it was given, and the API reads a replay as theft and revokes the entire family. The
-app therefore shares one `ctxTokens`, and concurrent readers wait on the one request in
+app therefore shares one `ctxSession`, and concurrent readers wait on the one request in
 flight rather than issuing their own.
 
 **Only a 401 ends the session.** A 401 from the refresh endpoint clears storage and reports
-on `sessionLost`, which `AuthCubit` renders as the login screen. Any other failure, an
-unreachable API, a timeout, or a non-401 error response, returns no token and leaves the
-stored session untouched, so a transient outage does not sign the user out and the next read
-tries again. Logout revokes the family server-side first, so a refresh token captured
-beforehand is dead rather than good for the rest of its fourteen days.
+on `sessionLost`, which `SessionCubit` turns into `anonymous`, and the gate renders the
+login screen. Any other failure, an unreachable API, a timeout, or a non-401 error
+response, returns no token and leaves the stored session untouched, so a transient outage
+does not sign the user out and the next read tries again. Logout revokes the family
+server-side first, so a refresh token captured beforehand is dead rather than good for the
+rest of its fourteen days.
 
 ### A feature request end to end
 
@@ -370,7 +443,7 @@ sequenceDiagram
     participant V as ProfilePage
     participant C as ProfileCubit
     participant R as HttpProfileRepository
-    participant T as ctxTokens
+    participant T as ctxSession
     participant A as API
 
     V->>C: load
@@ -391,11 +464,13 @@ reference and performs no I/O, which is what makes a feature's behaviour reachab
 test through its Cubit alone, with a fake repository and no widget tree.
 
 The chain is the same for every feature, and the token read is the only step `profile`
-shares with `auth`. A feature that needs no user identity, `ping` for instance, drops that
-step and sends through the secure client instead.
+shares with `auth`, through `ctxSession`. A feature that needs no user identity, `ping` for
+instance, drops that step and sends through the secure client instead.
 
 ## Tests
 
 Feature tests are unit tests over Cubits and repositories using `bloc_test` and fakes. The
-security layer adds `test/security/`, which runs the shared `vectors.json` through the
-app's own crypto so the app and the API stay in agreement about the protocol.
+session layer adds `test/session/`, which covers `SessionCubit`, the refreshing token store
+and `LocaleCubit` against in-memory fakes. The security layer adds `test/security/`, which
+runs the shared `vectors.json` through the app's own crypto so the app and the API stay in
+agreement about the protocol.

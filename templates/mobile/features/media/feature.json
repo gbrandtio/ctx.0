@@ -32,7 +32,7 @@
     {
       "file": "api/src/Api/Program.cs",
       "anchor": "services",
-      "insert": "builder.Services.AddCtxMedia(builder.Configuration);"
+      "insert": "builder.Services.AddCtxMedia(builder.Configuration);\nbuilder.Services.AddScoped<CtxApp.Application.Media.IMediaRepository, CtxApp.Infrastructure.Persistence.MediaRepository>();\nbuilder.Services.AddScoped<CtxApp.Application.Media.IMediaService, CtxApp.Application.Media.MediaService>();"
     },
     {
       "file": "api/src/Api/Program.cs",

@@ -1,4 +1,5 @@
 using CtxApp.Application.Abstractions;
+using CtxApp.Application.Gdpr;
 using CtxApp.Domain.Gdpr;
 using CtxApp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -14,36 +15,36 @@ namespace CtxApp.Infrastructure.Gdpr;
 /// an already-issued access token stops working as soon as the user row is gone.
 /// </summary>
 public sealed class AccountEraser(
-    CtxAppDbContext db,
+    CtxAppDbContext dbContext,
     IEnumerable<IPersonalDataContributor> contributors,
     IExportArchiveStore archives)
 {
-    public async Task EraseAsync(Guid userId, CancellationToken ct = default)
+    public async Task EraseAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        await using var transaction = await db.Database.BeginTransactionAsync(ct);
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         foreach (var contributor in contributors)
         {
-            await contributor.EraseAsync(userId, ct);
+            await contributor.EraseAsync(userId, cancellationToken);
         }
 
-        var jobs = await db.Set<DataExportJob>().Where(j => j.UserId == userId).ToListAsync(ct);
+        var jobs = await dbContext.Set<DataExportJob>().Where(j => j.UserId == userId).ToListAsync(cancellationToken);
         foreach (var job in jobs)
         {
             archives.Delete(job.StorageKey);
         }
-        db.Set<DataExportJob>().RemoveRange(jobs);
+        dbContext.Set<DataExportJob>().RemoveRange(jobs);
 
-        var consents = await db.Set<ConsentRecord>().Where(c => c.UserId == userId).ToListAsync(ct);
-        db.Set<ConsentRecord>().RemoveRange(consents);
+        var consents = await dbContext.Set<ConsentRecord>().Where(c => c.UserId == userId).ToListAsync(cancellationToken);
+        dbContext.Set<ConsentRecord>().RemoveRange(consents);
 
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == userId, ct);
+        var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
         if (user is not null)
         {
-            db.Users.Remove(user);
+            dbContext.Users.Remove(user);
         }
 
-        await db.SaveChangesAsync(ct);
-        await transaction.CommitAsync(ct);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
     }
 }

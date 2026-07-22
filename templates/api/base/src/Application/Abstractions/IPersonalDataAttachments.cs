@@ -12,5 +12,5 @@ public sealed record PersonalDataAttachment(string Path, Func<CancellationToken,
 /// </summary>
 public interface IPersonalDataAttachments
 {
-    IAsyncEnumerable<PersonalDataAttachment> AttachmentsAsync(Guid userId, CancellationToken ct = default);
+    IAsyncEnumerable<PersonalDataAttachment> AttachmentsAsync(Guid userId, CancellationToken cancellationToken = default);
 }

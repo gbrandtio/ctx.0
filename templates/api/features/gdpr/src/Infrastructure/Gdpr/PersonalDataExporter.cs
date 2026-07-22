@@ -23,12 +23,12 @@ public sealed class PersonalDataExporter(
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
     };
 
-    public async Task<byte[]> BuildArchiveAsync(Guid userId, CancellationToken ct = default)
+    public async Task<byte[]> BuildArchiveAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var sections = new SortedDictionary<string, object?>(StringComparer.Ordinal);
         foreach (var contributor in contributors)
         {
-            sections[contributor.Section] = await contributor.ExportAsync(userId, ct);
+            sections[contributor.Section] = await contributor.ExportAsync(userId, cancellationToken);
         }
 
         var bundle = new
@@ -43,16 +43,16 @@ public sealed class PersonalDataExporter(
         {
             await using (var entry = archive.CreateEntry("export.json").Open())
             {
-                await JsonSerializer.SerializeAsync(entry, bundle, Json, ct);
+                await JsonSerializer.SerializeAsync(entry, bundle, Json, cancellationToken);
             }
 
             foreach (var source in attachments)
             {
-                await foreach (var attachment in source.AttachmentsAsync(userId, ct))
+                await foreach (var attachment in source.AttachmentsAsync(userId, cancellationToken))
                 {
-                    await using var content = await attachment.Open(ct);
+                    await using var content = await attachment.Open(cancellationToken);
                     await using var entry = archive.CreateEntry(attachment.Path).Open();
-                    await content.CopyToAsync(entry, ct);
+                    await content.CopyToAsync(entry, cancellationToken);
                 }
             }
         }

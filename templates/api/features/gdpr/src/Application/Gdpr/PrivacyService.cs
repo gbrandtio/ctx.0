@@ -13,13 +13,13 @@ public sealed class PrivacyService(
     IClock clock,
     IPasswordHasher passwords) : IPrivacyService
 {
-    public async Task<ConsentDto?> GetLatestConsentAsync(Guid userId, CancellationToken ct = default)
+    public async Task<ConsentDto?> GetLatestConsentAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var record = await repository.GetLatestConsentAsync(userId, ct);
+        var record = await repository.GetLatestConsentAsync(userId, cancellationToken);
         return record is null ? null : new ConsentDto(record.PolicyVersion, record.Purposes.Split(',', StringSplitOptions.RemoveEmptyEntries), record.Source, record.DecidedAt);
     }
 
-    public async Task<ConsentDto> RecordConsentAsync(Guid userId, string policyVersion, string[] purposes, string? source, CancellationToken ct = default)
+    public async Task<ConsentDto> RecordConsentAsync(Guid userId, string policyVersion, string[] purposes, string? source, CancellationToken cancellationToken = default)
     {
         var record = new ConsentRecord
         {
@@ -29,14 +29,14 @@ public sealed class PrivacyService(
             Source = string.IsNullOrWhiteSpace(source) ? "app" : source,
         };
         repository.AddConsent(record);
-        await unitOfWork.SaveChangesAsync(ct);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return new ConsentDto(record.PolicyVersion, record.Purposes.Split(',', StringSplitOptions.RemoveEmptyEntries), record.Source, record.DecidedAt);
     }
 
-    public async Task<ExportJobCreatedDto> RequestExportAsync(Guid userId, CancellationToken ct = default)
+    public async Task<ExportJobCreatedDto> RequestExportAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        await PurgeExpiredAsync(userId, ct);
+        await PurgeExpiredAsync(userId, cancellationToken);
 
         var token = tokens.NewToken();
         var job = new DataExportJob
@@ -46,16 +46,16 @@ public sealed class PrivacyService(
             DownloadTokenHash = hasher.Hash(token),
         };
         repository.AddExportJob(job);
-        await unitOfWork.SaveChangesAsync(ct);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        await queue.EnqueueAsync(new ExportTicket(job.Id, userId), ct);
+        await queue.EnqueueAsync(new ExportTicket(job.Id, userId), cancellationToken);
 
         return new ExportJobCreatedDto(job.Id, job.Status.ToString(), token);
     }
 
-    public async Task<ExportJobDto?> GetExportJobAsync(Guid id, CancellationToken ct = default)
+    public async Task<ExportJobDto?> GetExportJobAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var job = await repository.GetExportJobAsync(id, ct);
+        var job = await repository.GetExportJobAsync(id, cancellationToken);
         if (job is null)
         {
             return null;
@@ -64,9 +64,9 @@ public sealed class PrivacyService(
         return new ExportJobDto(job.Id, job.Status.ToString(), job.CreatedAt, job.CompletedAt, job.ExpiresAt, job.DownloadedAt, job.SizeBytes, job.Error);
     }
 
-    public async Task<(byte[] Bundle, string ContentType, string FileName)?> DownloadExportAsync(Guid id, string token, CancellationToken ct = default)
+    public async Task<(byte[] Bundle, string ContentType, string FileName)?> DownloadExportAsync(Guid id, string token, CancellationToken cancellationToken = default)
     {
-        var job = await repository.GetExportJobAsync(id, ct);
+        var job = await repository.GetExportJobAsync(id, cancellationToken);
         if (job is null)
         {
             return null;
@@ -86,31 +86,31 @@ public sealed class PrivacyService(
         {
             if (job.DownloadedAt is null)
             {
-                await ExpireAsync(job, ct);
+                await ExpireAsync(job, cancellationToken);
             }
             throw new InvalidOperationException("Export has been consumed or has expired");
         }
 
-        var bundle = await archives.ReadAsync(job.StorageKey, ct);
+        var bundle = await archives.ReadAsync(job.StorageKey, cancellationToken);
 
         job.DownloadedAt = clock.UtcNow;
         archives.Delete(job.StorageKey);
-        await unitOfWork.SaveChangesAsync(ct);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return (bundle, "application/zip", $"ctx-export-{job.Id:n}.zip");
     }
 
-    public async Task<bool> VerifyPasswordAsync(Guid userId, string password, CancellationToken ct = default)
+    public async Task<bool> VerifyPasswordAsync(Guid userId, string password, CancellationToken cancellationToken = default)
     {
-        var credential = await repository.GetUserCredentialAsync(userId, ct);
+        var credential = await repository.GetUserCredentialAsync(userId, cancellationToken);
         if (credential is null) return false;
 
         return passwords.Verify(password, credential.PasswordHash);
     }
 
-    private async Task PurgeExpiredAsync(Guid userId, CancellationToken ct)
+    private async Task PurgeExpiredAsync(Guid userId, CancellationToken cancellationToken)
     {
-        var stale = await repository.GetStaleExportJobsAsync(userId, clock.UtcNow, ct);
+        var stale = await repository.GetStaleExportJobsAsync(userId, clock.UtcNow, cancellationToken);
         foreach (var job in stale)
         {
             archives.Delete(job.StorageKey);
@@ -118,15 +118,15 @@ public sealed class PrivacyService(
         }
         if (stale.Count > 0)
         {
-            await unitOfWork.SaveChangesAsync(ct);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
     }
 
-    private async Task ExpireAsync(DataExportJob job, CancellationToken ct)
+    private async Task ExpireAsync(DataExportJob job, CancellationToken cancellationToken)
     {
         archives.Delete(job.StorageKey);
         job.Status = DataExportStatus.Expired;
-        await unitOfWork.SaveChangesAsync(ct);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     private static bool FixedTimeEquals(string a, string b) =>

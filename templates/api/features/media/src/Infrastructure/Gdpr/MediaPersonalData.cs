@@ -13,14 +13,14 @@ namespace CtxApp.Infrastructure.Gdpr;
 /// user's own content. Erasure deletes the blobs from the store before dropping
 /// the metadata rows, so nothing is left orphaned on disk.
 /// </summary>
-public sealed class MediaPersonalData(CtxAppDbContext db, IBlobStore blobs)
+public sealed class MediaPersonalData(CtxAppDbContext dbContext, IBlobStore blobStore)
     : IPersonalDataContributor, IPersonalDataAttachments
 {
     public string Section => "media";
 
-    public async Task<object?> ExportAsync(Guid userId, CancellationToken ct = default)
+    public async Task<object?> ExportAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var objects = await OwnedAsync(userId, ct);
+        var objects = await OwnedAsync(userId, cancellationToken);
         return objects.Count == 0
             ? null
             : objects
@@ -37,31 +37,31 @@ public sealed class MediaPersonalData(CtxAppDbContext db, IBlobStore blobs)
     }
 
     public async IAsyncEnumerable<PersonalDataAttachment> AttachmentsAsync(
-        Guid userId, [EnumeratorCancellation] CancellationToken ct = default)
+        Guid userId, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        foreach (var media in await OwnedAsync(userId, ct))
+        foreach (var media in await OwnedAsync(userId, cancellationToken))
         {
             var key = media.StorageKey;
-            yield return new PersonalDataAttachment(ArchivePath(media), token => blobs.ReadAsync(key, token));
+            yield return new PersonalDataAttachment(ArchivePath(media), token => blobStore.ReadAsync(key, token));
         }
     }
 
-    public async Task EraseAsync(Guid userId, CancellationToken ct = default)
+    public async Task EraseAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var objects = await db.Set<MediaObject>().Where(m => m.UserId == userId).ToListAsync(ct);
+        var objects = await dbContext.Set<MediaObject>().Where(m => m.UserId == userId).ToListAsync(cancellationToken);
         foreach (var media in objects)
         {
-            await blobs.DeleteAsync(media.StorageKey, ct);
+            await blobStore.DeleteAsync(media.StorageKey, cancellationToken);
         }
-        db.Set<MediaObject>().RemoveRange(objects);
+        dbContext.Set<MediaObject>().RemoveRange(objects);
     }
 
-    private Task<List<MediaObject>> OwnedAsync(Guid userId, CancellationToken ct) =>
-        db.Set<MediaObject>()
+    private Task<List<MediaObject>> OwnedAsync(Guid userId, CancellationToken cancellationToken) =>
+        dbContext.Set<MediaObject>()
             .AsNoTracking()
             .Where(m => m.UserId == userId)
             .OrderBy(m => m.CreatedAt)
-            .ToListAsync(ct);
+            .ToListAsync(cancellationToken);
 
     /// <summary>
     /// Where the blob lands inside the archive. The id keeps entries unique when

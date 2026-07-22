@@ -17,12 +17,12 @@ public interface IPersonalDataContributor
     /// Return null when the feature holds nothing for the user. Derived and
     /// internal values (hashes, blind indexes, foreign keys) are left out.
     /// </summary>
-    Task<object?> ExportAsync(Guid userId, CancellationToken ct = default);
+    Task<object?> ExportAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Erase everything this feature holds for the user. Called inside the
     /// deletion transaction, so implementations stage their deletes on the
     /// shared <c>DbContext</c> and leave committing to the caller.
     /// </summary>
-    Task EraseAsync(Guid userId, CancellationToken ct = default);
+    Task EraseAsync(Guid userId, CancellationToken cancellationToken = default);
 }

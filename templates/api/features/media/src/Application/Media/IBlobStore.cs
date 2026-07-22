@@ -9,11 +9,11 @@ namespace CtxApp.Application.Media;
 public interface IBlobStore
 {
     /// <summary>Write (or overwrite) the blob at <paramref name="key"/> from <paramref name="content"/>.</summary>
-    Task WriteAsync(string key, Stream content, CancellationToken ct = default);
+    Task WriteAsync(string key, Stream content, CancellationToken cancellationToken = default);
 
     /// <summary>Open the blob at <paramref name="key"/> as a readable, seekable-from-start stream.</summary>
-    Task<Stream> ReadAsync(string key, CancellationToken ct = default);
+    Task<Stream> ReadAsync(string key, CancellationToken cancellationToken = default);
 
     /// <summary>Remove the blob at <paramref name="key"/> if it exists; a no-op otherwise.</summary>
-    Task DeleteAsync(string key, CancellationToken ct = default);
+    Task DeleteAsync(string key, CancellationToken cancellationToken = default);
 }

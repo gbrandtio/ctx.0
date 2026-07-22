@@ -16,7 +16,7 @@
     {
       "file": "api/src/Api/Program.cs",
       "anchor": "services",
-      "insert": "builder.Services.AddScoped<CtxApp.Application.Abstractions.IRefreshTokenStore, CtxApp.Infrastructure.Persistence.EfRefreshTokenStore>();\nbuilder.Services.AddScoped<CtxApp.Application.Security.RefreshTokenService>();\nbuilder.Services.AddScoped<CtxApp.Application.Abstractions.IPersonalDataContributor, CtxApp.Infrastructure.Gdpr.AuthPersonalData>();"
+      "insert": "builder.Services.AddScoped<CtxApp.Application.Auth.IAuthRepository, CtxApp.Infrastructure.Persistence.AuthRepository>();\nbuilder.Services.AddScoped<CtxApp.Application.Auth.IAuthService, CtxApp.Application.Auth.AuthService>();\nbuilder.Services.AddScoped<CtxApp.Application.Abstractions.IRefreshTokenStore, CtxApp.Infrastructure.Persistence.EfRefreshTokenStore>();\nbuilder.Services.AddScoped<CtxApp.Application.Security.RefreshTokenService>();\nbuilder.Services.AddScoped<CtxApp.Application.Abstractions.IPersonalDataContributor, CtxApp.Infrastructure.Gdpr.AuthPersonalData>();"
     },
     {
       "file": "api/src/Api/Program.cs",

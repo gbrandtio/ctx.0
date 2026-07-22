@@ -24,15 +24,15 @@ public sealed class ExportArchiveStore : IExportArchiveStore
         Directory.CreateDirectory(_root);
     }
 
-    public async Task WriteAsync(string key, byte[] content, CancellationToken ct = default)
+    public async Task WriteAsync(string key, byte[] content, CancellationToken cancellationToken = default)
     {
         var envelope = _cipher.Encrypt(Convert.ToBase64String(content));
-        await File.WriteAllTextAsync(PathFor(key), envelope, ct);
+        await File.WriteAllTextAsync(PathFor(key), envelope, cancellationToken);
     }
 
-    public async Task<byte[]> ReadAsync(string key, CancellationToken ct = default)
+    public async Task<byte[]> ReadAsync(string key, CancellationToken cancellationToken = default)
     {
-        var envelope = await File.ReadAllTextAsync(PathFor(key), ct);
+        var envelope = await File.ReadAllTextAsync(PathFor(key), cancellationToken);
         return Convert.FromBase64String(_cipher.Decrypt(envelope));
     }
 

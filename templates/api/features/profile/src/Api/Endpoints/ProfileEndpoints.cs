@@ -20,13 +20,13 @@ public static class ProfileEndpoints
     {
         var group = app.MapGroup("/v1/profile").RequireAuthorization();
 
-        group.MapGet("/", async (IProfileService profileService, ICurrentUser user, CancellationToken ct) =>
+        group.MapGet("/", async (IProfileService profileService, ICurrentUser user, CancellationToken cancellationToken) =>
         {
-            var profile = await profileService.GetOrCreateProfileAsync(user.UserId!.Value, ct);
+            var profile = await profileService.GetOrCreateProfileAsync(user.UserId!.Value, cancellationToken);
             return Results.Ok(profile);
         });
 
-        group.MapPut("/", async (UpdateProfileRequest body, IProfileService profileService, ICurrentUser user, CancellationToken ct) =>
+        group.MapPut("/", async (UpdateProfileRequest body, IProfileService profileService, ICurrentUser user, CancellationToken cancellationToken) =>
         {
             var profile = await profileService.UpdateProfileAsync(
                 user.UserId!.Value, 
@@ -34,7 +34,7 @@ public static class ProfileEndpoints
                 body.Bio, 
                 body.AvatarUrl, 
                 body.AvatarMediaId, 
-                ct);
+                cancellationToken);
 
             return Results.Ok(profile);
         });

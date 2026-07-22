@@ -27,9 +27,9 @@ public static class PrivacyEndpoints
 
         // --- Consent -------------------------------------------------------
 
-        group.MapGet("/consent", async (IPrivacyService privacyService, ICurrentUser user, GdprOptions options, CancellationToken ct) =>
+        group.MapGet("/consent", async (IPrivacyService privacyService, ICurrentUser user, GdprOptions options, CancellationToken cancellationToken) =>
         {
-            var latest = await privacyService.GetLatestConsentAsync(user.UserId!.Value, ct);
+            var latest = await privacyService.GetLatestConsentAsync(user.UserId!.Value, cancellationToken);
             return Results.Ok(new { policyVersion = options.PolicyVersion, consent = latest });
         });
 
@@ -38,15 +38,15 @@ public static class PrivacyEndpoints
             IPrivacyService privacyService,
             ICurrentUser user,
             GdprOptions options,
-            IStringLocalizer<Messages> loc,
-            CancellationToken ct) =>
+            IStringLocalizer<Messages> stringLocalizer,
+            CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(body.PolicyVersion))
             {
-                return Results.BadRequest(new { error = loc["gdpr.policyVersionRequired"].Value });
+                return Results.BadRequest(new { error = stringLocalizer["gdpr.policyVersionRequired"].Value });
             }
 
-            var consent = await privacyService.RecordConsentAsync(user.UserId!.Value, body.PolicyVersion, body.Purposes ?? [], body.Source, ct);
+            var consent = await privacyService.RecordConsentAsync(user.UserId!.Value, body.PolicyVersion, body.Purposes ?? [], body.Source, cancellationToken);
 
             return Results.Ok(new { policyVersion = options.PolicyVersion, consent });
         });
@@ -56,9 +56,9 @@ public static class PrivacyEndpoints
         group.MapPost("/export", async (
             IPrivacyService privacyService,
             ICurrentUser user,
-            CancellationToken ct) =>
+            CancellationToken cancellationToken) =>
         {
-            var result = await privacyService.RequestExportAsync(user.UserId!.Value, ct);
+            var result = await privacyService.RequestExportAsync(user.UserId!.Value, cancellationToken);
 
             return Results.Accepted($"/v1/privacy/export/{result.JobId}", new
             {
@@ -68,9 +68,9 @@ public static class PrivacyEndpoints
             });
         });
 
-        group.MapGet("/export/{id:guid}", async (Guid id, IPrivacyService privacyService, CancellationToken ct) =>
+        group.MapGet("/export/{id:guid}", async (Guid id, IPrivacyService privacyService, CancellationToken cancellationToken) =>
         {
-            var job = await privacyService.GetExportJobAsync(id, ct);
+            var job = await privacyService.GetExportJobAsync(id, cancellationToken);
             return job is null
                 ? Results.NotFound()
                 : Results.Ok(new
@@ -90,12 +90,12 @@ public static class PrivacyEndpoints
             Guid id,
             string? token,
             IPrivacyService privacyService,
-            IStringLocalizer<Messages> loc,
-            CancellationToken ct) =>
+            IStringLocalizer<Messages> stringLocalizer,
+            CancellationToken cancellationToken) =>
         {
             try
             {
-                var download = await privacyService.DownloadExportAsync(id, token ?? string.Empty, ct);
+                var download = await privacyService.DownloadExportAsync(id, token ?? string.Empty, cancellationToken);
                 if (download is null)
                 {
                     return Results.NotFound();
@@ -105,18 +105,18 @@ public static class PrivacyEndpoints
             }
             catch (UnauthorizedAccessException)
             {
-                return Results.Json(new { error = loc["gdpr.invalidDownloadToken"].Value }, statusCode: StatusCodes.Status401Unauthorized);
+                return Results.Json(new { error = stringLocalizer["gdpr.invalidDownloadToken"].Value }, statusCode: StatusCodes.Status401Unauthorized);
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("ready"))
             {
                 return Results.Json(
-                    new { error = loc["gdpr.exportNotReady", "processing"].Value },
+                    new { error = stringLocalizer["gdpr.exportNotReady", "processing"].Value },
                     statusCode: StatusCodes.Status409Conflict);
             }
             catch (InvalidOperationException)
             {
                 return Results.Json(
-                    new { error = loc["gdpr.exportConsumed"].Value },
+                    new { error = stringLocalizer["gdpr.exportConsumed"].Value },
                     statusCode: StatusCodes.Status410Gone);
             }
         });
@@ -128,22 +128,22 @@ public static class PrivacyEndpoints
             IPrivacyService privacyService,
             ICurrentUser user,
             AccountEraser eraser,
-            IStringLocalizer<Messages> loc,
-            CancellationToken ct) =>
+            IStringLocalizer<Messages> stringLocalizer,
+            CancellationToken cancellationToken) =>
         {
             if (!string.Equals(body.Confirm, "DELETE", StringComparison.Ordinal))
             {
-                return Results.BadRequest(new { error = loc["gdpr.confirmDelete"].Value });
+                return Results.BadRequest(new { error = stringLocalizer["gdpr.confirmDelete"].Value });
             }
 
             var userId = user.UserId!.Value;
-            var isPasswordValid = await privacyService.VerifyPasswordAsync(userId, body.Password, ct);
+            var isPasswordValid = await privacyService.VerifyPasswordAsync(userId, body.Password, cancellationToken);
             if (!isPasswordValid)
             {
-                return Results.Json(new { error = loc["gdpr.passwordMismatch"].Value }, statusCode: StatusCodes.Status401Unauthorized);
+                return Results.Json(new { error = stringLocalizer["gdpr.passwordMismatch"].Value }, statusCode: StatusCodes.Status401Unauthorized);
             }
 
-            await eraser.EraseAsync(userId, ct);
+            await eraser.EraseAsync(userId, cancellationToken);
             return Results.NoContent();
         });
 

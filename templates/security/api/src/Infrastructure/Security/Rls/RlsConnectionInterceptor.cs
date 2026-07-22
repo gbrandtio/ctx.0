@@ -25,10 +25,10 @@ public sealed class RlsConnectionInterceptor(ICurrentUser currentUser) : DbConne
         command.ExecuteNonQuery();
     }
 
-    private async Task ApplyAsync(DbConnection connection, CancellationToken ct)
+    private async Task ApplyAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await using var command = CreateCommand(connection);
-        await command.ExecuteNonQueryAsync(ct);
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     private DbCommand CreateCommand(DbConnection connection)

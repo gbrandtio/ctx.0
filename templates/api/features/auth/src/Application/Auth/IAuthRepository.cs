@@ -5,11 +5,11 @@ namespace CtxApp.Application.Auth;
 
 public interface IAuthRepository
 {
-    Task<User?> GetUserByEmailAsync(string email, CancellationToken ct = default);
-    Task<User?> GetUserByIdAsync(Guid id, CancellationToken ct = default);
-    Task<bool> IsEmailTakenAsync(string email, CancellationToken ct = default);
+    Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<User?> GetUserByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> IsEmailTakenAsync(string email, CancellationToken cancellationToken = default);
     void AddUser(User user);
 
-    Task<UserCredential?> GetUserCredentialAsync(Guid userId, CancellationToken ct = default);
+    Task<UserCredential?> GetUserCredentialAsync(Guid userId, CancellationToken cancellationToken = default);
     void AddUserCredential(UserCredential credential);
 }

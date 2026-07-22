@@ -100,8 +100,8 @@ public class MediaRlsStorageTests : IAsyncLifetime
         // At rest, the file-name column is ciphertext (envelope has 5 dotted parts).
         await using var admin = new NpgsqlConnection(_adminConnectionString);
         await admin.OpenAsync();
-        await using (var cmd = new NpgsqlCommand("SELECT \"FileName\" FROM media", admin))
-        await using (var reader = await cmd.ExecuteReaderAsync())
+        await using (var command = new NpgsqlCommand("SELECT \"FileName\" FROM media", admin))
+        await using (var reader = await command.ExecuteReaderAsync())
         {
             while (await reader.ReadAsync())
             {
