@@ -44,9 +44,9 @@ export interface SettingsEntry {
   import: string;
 }
 
-/** A single idempotent edit to a shared/base file (e.g. Program.cs, pubspec.yaml). */
+/** A single idempotent edit to a shared/base file (e.g. ServiceRegistration.cs, pubspec.yaml). */
 export interface WiringEdit {
-  /** Workspace-relative path of the file to edit, e.g. "api/src/Api/Program.cs". */
+  /** Workspace-relative path of the file to edit, e.g. "api/src/Api/Configuration/ServiceRegistration.cs". */
   file: string;
   /**
    * Anchor tag to insert near. The target file must contain a line with the

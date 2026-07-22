@@ -53,18 +53,24 @@ describe('createWorkspace', () => {
     expect(pubspec).toContain('name: acme');
     expect(pubspec).not.toContain('ctxapp');
 
-    const program = await fs.readFile(path.join(targetDir, 'api', 'src', 'Api', 'Program.cs'), 'utf8');
-    expect(program).toContain('Acme.Infrastructure.Persistence');
-    expect(program).not.toContain('CtxApp');
+    const services = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Configuration', 'ServiceRegistration.cs'),
+      'utf8',
+    );
+    expect(services).toContain('Acme.Infrastructure.Persistence');
+    expect(services).not.toContain('CtxApp');
   });
 
   it('applies wiring idempotently for enabled features', async () => {
     const { targetDir } = await generate();
 
-    const program = await fs.readFile(path.join(targetDir, 'api', 'src', 'Api', 'Program.cs'), 'utf8');
-    expect(program).toContain('app.MapPingEndpoints();');
+    const endpoints = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Configuration', 'EndpointRegistration.cs'),
+      'utf8',
+    );
+    expect(endpoints).toContain('PingEndpoints.MapPingEndpoints(app);');
     // Inserted exactly once, below the anchor.
-    expect(program.match(/app\.MapPingEndpoints\(\);/g)?.length).toBe(1);
+    expect(endpoints.match(/PingEndpoints\.MapPingEndpoints\(app\);/g)?.length).toBe(1);
 
     const di = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'di.dart'), 'utf8');
     expect(di).toContain('BlocProvider<PingCubit>');
@@ -237,12 +243,19 @@ describe('createWorkspace', () => {
       path.join(targetDir, 'app', 'lib', 'features', 'notifications', 'bloc', 'notifications_cubit.dart'),
     )).toBe(true);
 
-    const program = await fs.readFile(path.join(targetDir, 'api', 'src', 'Api', 'Program.cs'), 'utf8');
+    const endpoints = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Configuration', 'EndpointRegistration.cs'),
+      'utf8',
+    );
+    const services = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Configuration', 'ServiceRegistration.cs'),
+      'utf8',
+    );
     // Endpoint + services wired exactly once.
-    expect(program.match(/app\.MapNotificationsEndpoints\(\);/g)?.length).toBe(1);
-    expect(program).toContain('builder.Services.AddCtxNotifications(builder.Configuration);');
-    // The shared `using` is not duplicated even though notes + notifications both wire it.
-    expect(program.match(/using Acme\.Api\.Endpoints;/g)?.length).toBe(1);
+    expect(endpoints.match(/NotificationsEndpoints\.MapNotificationsEndpoints\(app\);/g)?.length).toBe(1);
+    expect(services).toContain(
+      'Acme.Api.Notifications.NotificationsBootstrap.AddCtxNotifications(builder.Services, builder.Configuration);',
+    );
 
     // Firebase deps injected into pubspec via the shared anchor.
     const pubspec = await fs.readFile(path.join(targetDir, 'app', 'pubspec.yaml'), 'utf8');
@@ -273,12 +286,22 @@ describe('createWorkspace', () => {
       path.join(targetDir, 'app', 'lib', 'features', 'gdpr', 'views', 'consent_banner.dart'),
     )).toBe(true);
 
-    const program = await fs.readFile(path.join(targetDir, 'api', 'src', 'Api', 'Program.cs'), 'utf8');
-    expect(program.match(/app\.MapPrivacyEndpoints\(\);/g)?.length).toBe(1);
-    expect(program.match(/builder\.Services\.AddCtxGdpr\(builder\.Configuration\);/g)?.length).toBe(1);
+    const endpoints = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Configuration', 'EndpointRegistration.cs'),
+      'utf8',
+    );
+    const services = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Configuration', 'ServiceRegistration.cs'),
+      'utf8',
+    );
+    expect(endpoints.match(/PrivacyEndpoints\.MapPrivacyEndpoints\(app\);/g)?.length).toBe(1);
+    expect(
+      services.match(/Acme\.Api\.Gdpr\.GdprBootstrap\.AddCtxGdpr\(builder\.Services, builder\.Configuration\);/g)
+        ?.length,
+    ).toBe(1);
     // Every data-owning feature registers its personal-data contributor.
-    expect(program).toContain('Acme.Infrastructure.Gdpr.AuthPersonalData');
-    expect(program).toContain('Acme.Infrastructure.Gdpr.NotesPersonalData');
+    expect(services).toContain('Acme.Infrastructure.Gdpr.AuthPersonalData');
+    expect(services).toContain('Acme.Infrastructure.Gdpr.NotesPersonalData');
 
     // The banner wraps every route (app-overlay), so it shows before the auth
     // gate's login screen — which wraps only the home route (home-wrap).

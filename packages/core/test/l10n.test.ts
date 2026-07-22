@@ -127,12 +127,16 @@ describe('composed translations', () => {
     expect(app).toContain('supportedLocales: AppL10nSupport.supportedLocales,');
     expect(app).toContain('locale: context.watch<LocaleCubit>().state,');
 
-    const program = await fs.readFile(
-      path.join(targetDir, 'api', 'src', 'Api', 'Program.cs'),
+    const services = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Configuration', 'ServiceRegistration.cs'),
       'utf8',
     );
-    expect(program).toContain('builder.Services.AddCtxLocalization();');
-    expect(program).toContain('app.UseCtxLocalization();');
+    expect(services).toContain('builder.Services.AddCtxLocalization();');
+    const pipeline = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Configuration', 'RequestPipeline.cs'),
+      'utf8',
+    );
+    expect(pipeline).toContain('app.UseCtxLocalization();');
   });
 
   it('always localizes both sides, even with no features', async () => {
@@ -167,12 +171,16 @@ describe('composed translations', () => {
         path.join(targetDir, 'api', 'src', 'Api', 'Resources', 'Localization', 'Messages.resx'),
       ),
     ).toBe(true);
-    const program = await fs.readFile(
-      path.join(targetDir, 'api', 'src', 'Api', 'Program.cs'),
+    const services = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Configuration', 'ServiceRegistration.cs'),
       'utf8',
     );
-    expect(program).toContain('builder.Services.AddCtxLocalization();');
-    expect(program).toContain('app.UseCtxLocalization();');
+    expect(services).toContain('builder.Services.AddCtxLocalization();');
+    const pipeline = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Configuration', 'RequestPipeline.cs'),
+      'utf8',
+    );
+    expect(pipeline).toContain('app.UseCtxLocalization();');
   });
 
   it('never copies a translation fragment into the workspace', async () => {

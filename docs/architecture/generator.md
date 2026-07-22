@@ -58,15 +58,16 @@ Adding a feature to ctx.0 means adding a directory and this file, leaving the ge
 
 ## Shared files use anchors
 
-Copying folders breaks down when two features need the same file. Both `notes` and `profile` register themselves in the API's `Program.cs`. If each shipped its own copy, the second one applied would erase the first.
+Copying folders breaks down when two features need the same file. Both `notes` and `profile` register themselves in the API's service registration. If each shipped its own copy, the second one applied would erase the first.
 
 Shared files therefore ship with labelled insertion points, written as comments the host
-language ignores. The API's `Program.cs` carries three: one among the imports, one where
-services are registered, and one where endpoints are mapped.
+language ignores. The API host carries three across its composition files: `usings` in
+`Program.cs`, `services` in `Configuration/ServiceRegistration.cs`, and `endpoints` in
+`Configuration/EndpointRegistration.cs`.
 
 A feature's `wiring` array names, for each line it contributes, the file, the anchor, and
-the text to insert. `notes` has four such entries, adding its import, its service
-registrations and its endpoint mapping.
+the text to insert. `notes` has three such entries: its service registrations, its endpoint
+mapping, and its entity configuration on the `DbContext`.
 
 Many features can insert at one anchor. An insertion that is already present is skipped, so enabling a feature, disabling it and enabling it again leaves the file as it started.
 

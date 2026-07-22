@@ -13,7 +13,7 @@ Three documents, covering the generator and the two applications it produces.
   workspace generated with `profile`.
 
 - [**Generated API**](api.md). The .NET application in `api/`: the four projects and their
-  dependency direction, composition through `Program.cs` anchors, minimal API endpoint
+  dependency direction, composition split across the host's `Configuration/` files, minimal API endpoint
   groups, EF Core with envelope encryption and row-level security, and how features serve
   each other through `Application` interfaces.
 

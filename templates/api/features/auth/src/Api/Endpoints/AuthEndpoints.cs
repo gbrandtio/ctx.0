@@ -73,7 +73,7 @@ public static class AuthEndpoints
             return Results.NoContent();
         });
 
-        app.MapGet("/v1/me", async (ICurrentUser currentUser, IAuthService auth, CancellationToken cancellationToken) =>
+        app.MapGet("/v1/me", async (ICurrentUser currentUser, IAuthService authService, CancellationToken cancellationToken) =>
             {
                 var user = currentUser.UserId is { } id ? await authService.GetUserAsync(id, cancellationToken) : null;
                 return user is null

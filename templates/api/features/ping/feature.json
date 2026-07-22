@@ -11,14 +11,9 @@
   },
   "wiring": [
     {
-      "file": "api/src/Api/Program.cs",
-      "anchor": "usings",
-      "insert": "using CtxApp.Api.Endpoints;"
-    },
-    {
-      "file": "api/src/Api/Program.cs",
+      "file": "api/src/Api/Configuration/EndpointRegistration.cs",
       "anchor": "endpoints",
-      "insert": "app.MapPingEndpoints();"
+      "insert": "CtxApp.Api.Endpoints.PingEndpoints.MapPingEndpoints(app);"
     },
     {
       "file": "app/lib/app/di.dart",

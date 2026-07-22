@@ -16,19 +16,14 @@
   ],
   "wiring": [
     {
-      "file": "api/src/Api/Program.cs",
-      "anchor": "usings",
-      "insert": "using CtxApp.Api.Endpoints;"
-    },
-    {
-      "file": "api/src/Api/Program.cs",
+      "file": "api/src/Api/Configuration/ServiceRegistration.cs",
       "anchor": "services",
       "insert": "builder.Services.AddScoped<CtxApp.Application.Profile.IProfileRepository, CtxApp.Infrastructure.Persistence.ProfileRepository>();\nbuilder.Services.AddScoped<CtxApp.Application.Profile.IProfileService, CtxApp.Application.Profile.ProfileService>();\nbuilder.Services.AddSingleton(new CtxApp.Infrastructure.Security.Rls.RlsPolicy(\"user_profiles\", \"UserId\"));\nbuilder.Services.AddScoped<CtxApp.Application.Abstractions.IPersonalDataContributor, CtxApp.Infrastructure.Gdpr.ProfilePersonalData>();"
     },
     {
-      "file": "api/src/Api/Program.cs",
+      "file": "api/src/Api/Configuration/EndpointRegistration.cs",
       "anchor": "endpoints",
-      "insert": "app.MapProfileEndpoints();"
+      "insert": "CtxApp.Api.Endpoints.ProfileEndpoints.MapProfileEndpoints(app);"
     },
     {
       "file": "api/src/Infrastructure/Persistence/CtxAppDbContext.cs",

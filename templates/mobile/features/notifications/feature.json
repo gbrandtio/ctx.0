@@ -21,24 +21,14 @@
   ],
   "wiring": [
     {
-      "file": "api/src/Api/Program.cs",
-      "anchor": "usings",
-      "insert": "using CtxApp.Api.Endpoints;"
-    },
-    {
-      "file": "api/src/Api/Program.cs",
-      "anchor": "usings",
-      "insert": "using CtxApp.Api.Notifications;"
-    },
-    {
-      "file": "api/src/Api/Program.cs",
+      "file": "api/src/Api/Configuration/ServiceRegistration.cs",
       "anchor": "services",
-      "insert": "builder.Services.AddCtxNotifications(builder.Configuration);\nbuilder.Services.AddScoped<CtxApp.Application.Notifications.INotificationsRepository, CtxApp.Infrastructure.Persistence.NotificationsRepository>();\nbuilder.Services.AddScoped<CtxApp.Application.Notifications.INotificationsService, CtxApp.Application.Notifications.NotificationsService>();"
+      "insert": "CtxApp.Api.Notifications.NotificationsBootstrap.AddCtxNotifications(builder.Services, builder.Configuration);\nbuilder.Services.AddScoped<CtxApp.Application.Notifications.INotificationsRepository, CtxApp.Infrastructure.Persistence.NotificationsRepository>();\nbuilder.Services.AddScoped<CtxApp.Application.Notifications.INotificationsService, CtxApp.Application.Notifications.NotificationsService>();"
     },
     {
-      "file": "api/src/Api/Program.cs",
+      "file": "api/src/Api/Configuration/EndpointRegistration.cs",
       "anchor": "endpoints",
-      "insert": "app.MapNotificationsEndpoints();"
+      "insert": "CtxApp.Api.Endpoints.NotificationsEndpoints.MapNotificationsEndpoints(app);"
     },
     {
       "file": "api/src/Infrastructure/Persistence/CtxAppDbContext.cs",

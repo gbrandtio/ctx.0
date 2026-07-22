@@ -20,24 +20,14 @@
   ],
   "wiring": [
     {
-      "file": "api/src/Api/Program.cs",
-      "anchor": "usings",
-      "insert": "using CtxApp.Api.Endpoints;"
-    },
-    {
-      "file": "api/src/Api/Program.cs",
-      "anchor": "usings",
-      "insert": "using CtxApp.Api.Media;"
-    },
-    {
-      "file": "api/src/Api/Program.cs",
+      "file": "api/src/Api/Configuration/ServiceRegistration.cs",
       "anchor": "services",
-      "insert": "builder.Services.AddCtxMedia(builder.Configuration);\nbuilder.Services.AddScoped<CtxApp.Application.Media.IMediaRepository, CtxApp.Infrastructure.Persistence.MediaRepository>();\nbuilder.Services.AddScoped<CtxApp.Application.Media.IMediaService, CtxApp.Application.Media.MediaService>();"
+      "insert": "CtxApp.Api.Media.MediaBootstrap.AddCtxMedia(builder.Services, builder.Configuration);\nbuilder.Services.AddScoped<CtxApp.Application.Media.IMediaRepository, CtxApp.Infrastructure.Persistence.MediaRepository>();\nbuilder.Services.AddScoped<CtxApp.Application.Media.IMediaService, CtxApp.Application.Media.MediaService>();"
     },
     {
-      "file": "api/src/Api/Program.cs",
+      "file": "api/src/Api/Configuration/EndpointRegistration.cs",
       "anchor": "endpoints",
-      "insert": "app.MapMediaEndpoints();"
+      "insert": "CtxApp.Api.Endpoints.MediaEndpoints.MapMediaEndpoints(app);"
     },
     {
       "file": "api/src/Infrastructure/Persistence/CtxAppDbContext.cs",

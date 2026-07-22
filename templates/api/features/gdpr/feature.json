@@ -22,24 +22,14 @@
   ],
   "wiring": [
     {
-      "file": "api/src/Api/Program.cs",
-      "anchor": "usings",
-      "insert": "using CtxApp.Api.Endpoints;"
-    },
-    {
-      "file": "api/src/Api/Program.cs",
-      "anchor": "usings",
-      "insert": "using CtxApp.Api.Gdpr;"
-    },
-    {
-      "file": "api/src/Api/Program.cs",
+      "file": "api/src/Api/Configuration/ServiceRegistration.cs",
       "anchor": "services",
-      "insert": "builder.Services.AddCtxGdpr(builder.Configuration);"
+      "insert": "CtxApp.Api.Gdpr.GdprBootstrap.AddCtxGdpr(builder.Services, builder.Configuration);"
     },
     {
-      "file": "api/src/Api/Program.cs",
+      "file": "api/src/Api/Configuration/EndpointRegistration.cs",
       "anchor": "endpoints",
-      "insert": "app.MapPrivacyEndpoints();"
+      "insert": "CtxApp.Api.Endpoints.PrivacyEndpoints.MapPrivacyEndpoints(app);"
     },
     {
       "file": "api/src/Infrastructure/Persistence/CtxAppDbContext.cs",

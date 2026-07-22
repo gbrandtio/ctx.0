@@ -39,12 +39,23 @@ A feature's files land in whichever projects it needs. `notes` writes
 
 ## Composition
 
-`Program.cs` is short, and stays short because features extend it through anchors rather
-than editing it. It does six things: register the security plane, register localisation,
-register the `DbContext` against PostgreSQL with the container's interceptors attached,
-build the app, map the health check and the always-on security endpoints, and run. Two
-anchors sit in the middle of that, one among the service registrations and one among the
-endpoint mappings, with a third among the imports.
+`Program.cs` is a short orchestrator: create the builder, `AddCtxServices()`, build the
+app, `UseCtxPipeline()`, `MapCtxEndpoints()`, run. The work behind those calls is split by
+concern into `Configuration/`:
+
+- `ServiceRegistration.cs` (`AddCtxServices`): registers the security plane, localisation,
+  the `DbContext` against PostgreSQL with the container's interceptors attached, and the
+  unit of work.
+- `RequestPipeline.cs` (`UseCtxPipeline`): the middleware, culture resolution before the
+  security plane.
+- `EndpointRegistration.cs` (`MapCtxEndpoints`): the health check and the always-on
+  security endpoints.
+- `EnvironmentSettings.cs`: reads each environment variable into a typed, named property so
+  the rest of the host depends on it rather than raw configuration keys.
+
+Features extend the composition through anchors rather than editing it. Three anchors carry
+the extension points: `usings` in `Program.cs`, `services` in `ServiceRegistration.cs`, and
+`endpoints` in `EndpointRegistration.cs`.
 
 `AddCtxSecurity` registers the whole security plane: password hashing, JWT issuing and
 validation, refresh tokens, device key registry, ALE key provider, envelope cipher, blind
