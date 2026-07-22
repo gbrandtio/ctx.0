@@ -3,8 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:ctxapp/l10n/gen/app_l10n.dart';
 import 'package:ctxapp/l10n/l10n_support.dart';
-
-import '../bloc/locale_cubit.dart';
+import 'package:ctxapp/session/locale_cubit.dart';
 
 /// Lets the user pick the app's language, or hand the choice back to the device.
 ///

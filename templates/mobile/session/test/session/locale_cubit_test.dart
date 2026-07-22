@@ -2,8 +2,8 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ctxapp/features/l10n/bloc/locale_cubit.dart';
-import 'package:ctxapp/features/l10n/data/locale_store.dart';
+import 'package:ctxapp/session/locale_cubit.dart';
+import 'package:ctxapp/session/locale_store.dart';
 import 'package:ctxapp/l10n/l10n_support.dart';
 
 /// In-memory language storage, standing in for the device's secure storage.

@@ -58,18 +58,13 @@
     },
     {
       "file": "app/lib/app/di.dart",
-      "anchor": "imports",
-      "insert": "import '../features/auth/data/token_store.dart';"
+      "anchor": "providers",
+      "insert": "    BlocProvider<ConsentCubit>(create: (_) => ConsentCubit(SecureConsentStore(), HttpPrivacyRepository(ctxSession))..load()),"
     },
     {
       "file": "app/lib/app/di.dart",
       "anchor": "providers",
-      "insert": "    BlocProvider<ConsentCubit>(create: (_) => ConsentCubit(SecureConsentStore(), HttpPrivacyRepository(SecureTokenStore()))..load()),"
-    },
-    {
-      "file": "app/lib/app/di.dart",
-      "anchor": "providers",
-      "insert": "    BlocProvider<PrivacyCubit>(create: (_) => PrivacyCubit(HttpPrivacyRepository(SecureTokenStore()))),"
+      "insert": "    BlocProvider<PrivacyCubit>(create: (_) => PrivacyCubit(HttpPrivacyRepository(ctxSession))),"
     },
     {
       "file": "app/lib/app/app.dart",

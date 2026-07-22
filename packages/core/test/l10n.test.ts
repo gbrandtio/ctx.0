@@ -135,10 +135,44 @@ describe('composed translations', () => {
     expect(program).toContain('app.UseCtxLocalization();');
   });
 
-  it('leaves a workspace with no translatable feature alone', async () => {
+  it('always localizes both sides, even with no features', async () => {
+    // The mandatory session layer (mobile) and the API base both make localization
+    // always-on: a bare workspace is localized end to end. On the mobile side the
+    // ARB and support library are generated and the delegates are wired; on the API
+    // side the culture list, the neutral resource set and the Accept-Language
+    // middleware are all present.
     const { targetDir } = await generate([]);
-    expect(await fs.pathExists(path.join(targetDir, 'app', 'lib', 'l10n'))).toBe(false);
-    expect(await fs.pathExists(path.join(targetDir, 'api', 'src', 'Api', 'Resources'))).toBe(false);
+
+    expect(await fs.pathExists(path.join(targetDir, 'app', 'lib', 'l10n'))).toBe(true);
+    const arb = await fs.readFile(
+      path.join(targetDir, 'app', 'lib', 'l10n', 'app_en.arb'),
+      'utf8',
+    );
+    expect(arb).toContain('"appTitle"');
+    // The support library the session layer's delegates bind to is generated too,
+    // so app.dart's `AppL10nSupport` reference resolves without the l10n feature.
+    expect(
+      await fs.pathExists(path.join(targetDir, 'app', 'lib', 'l10n', 'l10n_support.dart')),
+    ).toBe(true);
+
+    // API localization is always-on, so its generated artefacts and wiring exist
+    // with no features enabled.
+    expect(
+      await fs.pathExists(
+        path.join(targetDir, 'api', 'src', 'Api', 'Localization', 'SupportedCultures.g.cs'),
+      ),
+    ).toBe(true);
+    expect(
+      await fs.pathExists(
+        path.join(targetDir, 'api', 'src', 'Api', 'Resources', 'Localization', 'Messages.resx'),
+      ),
+    ).toBe(true);
+    const program = await fs.readFile(
+      path.join(targetDir, 'api', 'src', 'Api', 'Program.cs'),
+      'utf8',
+    );
+    expect(program).toContain('builder.Services.AddCtxLocalization();');
+    expect(program).toContain('app.UseCtxLocalization();');
   });
 
   it('never copies a translation fragment into the workspace', async () => {

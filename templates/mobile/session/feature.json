@@ -1,0 +1,39 @@
+{
+  "id": "session",
+  "summary": "Mandatory application-layer session: the credential/token store, the sign-in status, and the app locale. Auth and l10n plug into it; every other feature reads it.",
+  "sides": ["mobile"],
+  "core": true,
+  "env": [],
+  "wiring": [
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "imports",
+      "insert": "import 'package:ctxapp/session/session_cubit.dart';\nimport 'package:ctxapp/session/token_store.dart';\nimport 'package:ctxapp/session/locale_cubit.dart';\nimport 'package:ctxapp/session/locale_store.dart';"
+    },
+    {
+      "file": "app/lib/app/di.dart",
+      "anchor": "providers",
+      "insert": "    BlocProvider<SessionCubit>(create: (_) => SessionCubit(ctxSession)..restore()),\n    BlocProvider<LocaleCubit>(\n      create: (_) => LocaleCubit(\n        SecureLocaleStore(),\n        onLanguageChanged: (code) => ctxSecureClient.acceptLanguage = code,\n      )..load(),\n    ),"
+    },
+    {
+      "file": "app/lib/app/app.dart",
+      "anchor": "app-imports",
+      "insert": "import 'package:ctxapp/session/locale_cubit.dart';\nimport 'package:ctxapp/l10n/gen/app_l10n.dart';\nimport 'package:ctxapp/l10n/l10n_support.dart';"
+    },
+    {
+      "file": "app/lib/app/app.dart",
+      "anchor": "app-material",
+      "insert": "      locale: context.watch<LocaleCubit>().state,\n      localizationsDelegates: AppL10nSupport.delegates,\n      supportedLocales: AppL10nSupport.supportedLocales,\n      onGenerateTitle: (context) => AppL10n.of(context).appTitle,"
+    },
+    {
+      "file": "app/pubspec.yaml",
+      "anchor": "pubspec-deps",
+      "insert": "  flutter_localizations:\n    sdk: flutter\n  intl: any"
+    },
+    {
+      "file": "app/pubspec.yaml",
+      "anchor": "pubspec-flutter",
+      "insert": "  generate: true"
+    }
+  ]
+}

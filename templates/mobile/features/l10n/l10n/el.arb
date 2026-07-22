@@ -1,10 +1,5 @@
 {
   "@@locale": "el",
-  "appTitle": "CtxApp",
-  "commonSave": "Αποθήκευση",
-  "commonCancel": "Άκυρο",
-  "commonDelete": "Διαγραφή",
-  "commonError": "Σφάλμα: {message}",
   "languageTitle": "Γλώσσα",
   "languageUseDevice": "Γλώσσα συσκευής",
   "languageUseDeviceHint": "Ακολουθεί τη γλώσσα που έχει οριστεί στη συσκευή σας."

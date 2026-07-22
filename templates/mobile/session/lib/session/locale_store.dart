@@ -12,7 +12,7 @@ abstract class LocaleStore {
 }
 
 /// [LocaleStore] backed by platform secure storage — the same store the rest of
-/// the app already uses, so the choice survives restarts without pulling in a
+/// the session already uses, so the choice survives restarts without pulling in a
 /// second persistence dependency.
 class SecureLocaleStore implements LocaleStore {
   SecureLocaleStore([FlutterSecureStorage? storage]) : _storage = storage ?? const FlutterSecureStorage();

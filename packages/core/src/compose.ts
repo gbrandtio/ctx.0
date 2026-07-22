@@ -149,6 +149,15 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   collectManifestExtras(readOptionalManifest(layout.securityMobile));
   localeSources.push({ dir: layout.securityMobile, side: 'mobile' });
 
+  // The mandatory application-layer session: credentials, sign-in status and
+  // locale. Always applied (never a toggleable feature), so auth and l10n can
+  // plug into it and every other feature can read it. Its wiring adds the
+  // Session/Locale providers and the localization delegates to the base app.
+  const session = await applyLayer('session', layout.mobileSession, targetDir, 'app', vars);
+  applied.push(session);
+  collectManifestExtras(readOptionalManifest(layout.mobileSession));
+  localeSources.push({ dir: layout.mobileSession, side: 'mobile' });
+
   const secApi = await applyLayer('security_api', layout.securityApi, targetDir, 'api', vars);
   applied.push(secApi);
   collectManifestExtras(readOptionalManifest(layout.securityApi));

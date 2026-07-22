@@ -57,13 +57,8 @@
     },
     {
       "file": "app/lib/app/di.dart",
-      "anchor": "imports",
-      "insert": "import '../features/auth/data/token_store.dart';"
-    },
-    {
-      "file": "app/lib/app/di.dart",
       "anchor": "providers",
-      "insert": "    BlocProvider<NotificationsCubit>(create: (_) => NotificationsCubit(HttpNotificationsRepository(SecureTokenStore()))),"
+      "insert": "    BlocProvider<NotificationsCubit>(create: (_) => NotificationsCubit(HttpNotificationsRepository(ctxSession))),"
     }
   ]
 }

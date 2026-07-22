@@ -6,9 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 namespace CtxApp.Api.Localization;
 
 /// <summary>
-/// Registration surface for the localization feature. The base <c>Program.cs</c>
-/// calls <see cref="AddCtxLocalization"/> during service configuration and
-/// <see cref="UseCtxLocalization"/> when building the pipeline.
+/// Registration surface for localization. It is part of the always-on base, so
+/// the API answers in the caller's language in every workspace: the base
+/// <c>Program.cs</c> calls <see cref="AddCtxLocalization"/> during service
+/// configuration and <see cref="UseCtxLocalization"/> when building the pipeline.
 /// </summary>
 /// <remarks>
 /// The supported cultures come from <see cref="SupportedCultures.Codes"/>, which

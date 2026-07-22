@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:ctxapp/l10n/gen/app_l10n.dart';
+import 'package:ctxapp/session/session_cubit.dart';
 
 import '../bloc/auth_cubit.dart';
 
@@ -31,9 +32,17 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(title: Text(l.authSignInTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: BlocBuilder<AuthCubit, AuthState>(
+        child: BlocConsumer<AuthCubit, AuthState>(
+          listener: (context, state) {
+            // The form authenticated; hand the session its new status. The gate
+            // watches SessionCubit, so this is what swaps the login screen for
+            // the app shell.
+            if (state.status == AuthStatus.success) {
+              context.read<SessionCubit>().signedIn();
+            }
+          },
           builder: (context, state) {
-            final busy = state.status == AuthStatus.authenticating;
+            final busy = state.status == AuthStatus.submitting;
             final cubit = context.read<AuthCubit>();
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

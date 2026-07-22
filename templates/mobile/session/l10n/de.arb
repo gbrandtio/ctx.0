@@ -1,0 +1,8 @@
+{
+  "@@locale": "de",
+  "appTitle": "CtxApp",
+  "commonSave": "Speichern",
+  "commonCancel": "Abbrechen",
+  "commonDelete": "Löschen",
+  "commonError": "Fehler: {message}"
+}

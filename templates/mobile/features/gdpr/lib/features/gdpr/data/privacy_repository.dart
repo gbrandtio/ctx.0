@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
-import '../../auth/data/token_store.dart';
+import 'package:ctxapp/session/token_store.dart';
 
 /// The server's view of the user's consent: the notice version in force, and the
 /// decision on record (null when the user has never answered on this account).

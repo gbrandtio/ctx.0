@@ -1,0 +1,15 @@
+{
+  "@@locale": "en",
+  "appTitle": "CtxApp",
+  "commonSave": "Save",
+  "commonCancel": "Cancel",
+  "commonDelete": "Delete",
+  "commonError": "Error: {message}",
+  "@commonError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  }
+}

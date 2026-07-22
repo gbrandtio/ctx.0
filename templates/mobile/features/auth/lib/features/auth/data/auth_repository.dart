@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'token_store.dart';
+import 'package:ctxapp/session/token_store.dart';
 
 /// Raised when authentication fails; carries the server's message.
 class AuthException implements Exception {
@@ -18,6 +18,9 @@ abstract class AuthRepository {
   Future<void> register(String email, String password);
   Future<void> logout();
   Future<bool> hasSession();
+
+  /// Fires when the stored session is rejected on renewal.
+  Stream<void> get sessionLost;
 }
 
 /// [AuthRepository] backed by the `/v1/auth` endpoints. These endpoints exchange
@@ -37,11 +40,31 @@ class HttpAuthRepository implements AuthRepository {
   @override
   Future<void> register(String email, String password) => _authenticate('/v1/auth/register', email, password);
 
+  /// Revokes the refresh token family server-side, then drops the local
+  /// session. An unreachable API still ends the session on the device.
   @override
-  Future<void> logout() => _store.clear();
+  Future<void> logout() async {
+    final refresh = await _store.readRefreshToken();
+    if (refresh != null) {
+      try {
+        await _http.post(
+          Uri.parse('$_baseUrl/v1/auth/logout'),
+          headers: const {'Content-Type': 'application/json'},
+          body: jsonEncode({'refreshToken': refresh}),
+        );
+      } catch (_) {
+        // Ignored: the local clear below is what ends the session here.
+      }
+    }
+    await _store.clear();
+  }
 
+  /// True when a token is available, renewing an expired one if it can.
   @override
   Future<bool> hasSession() async => (await _store.readAccessToken()) != null;
+
+  @override
+  Stream<void> get sessionLost => _store.sessionLost;
 
   Future<void> _authenticate(String path, String email, String password) async {
     final response = await _http.post(
@@ -56,6 +79,7 @@ class HttpAuthRepository implements AuthRepository {
     await _store.save(
       accessToken: json['accessToken'] as String,
       refreshToken: json['refreshToken'] as String,
+      accessExpiresAt: DateTime.parse(json['accessTokenExpiresAt'] as String).toUtc(),
     );
   }
 

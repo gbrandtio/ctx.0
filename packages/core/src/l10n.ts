@@ -122,12 +122,17 @@ export async function composeLocales(
     }
   }
 
-  // The support libraries belong to the `l10n` feature: they are generated only
-  // when its overlays are part of this workspace. Without it there is nothing to
-  // localize — every feature that carries translations requires `l10n`.
-  if (await fs.pathExists(path.join(workspaceRoot, 'app', 'lib', 'features', 'l10n'))) {
+  // The mobile support library belongs to the mandatory session layer, which
+  // always wires the MaterialApp delegates and `supportedLocales`, so it is
+  // generated for every workspace. The session overlay always contributes the
+  // app title and common strings, so there is always an ARB to back it.
+  if (await fs.pathExists(path.join(workspaceRoot, 'app', 'lib', 'session'))) {
     await writeSupportLibrary(workspaceRoot, locales, vars);
   }
+  // The API localization bootstrap ships in the always-on base, so its directory
+  // is present in every workspace and the culture list + neutral resource set are
+  // generated unconditionally — the API answers in the caller's language even
+  // with no features enabled.
   if (await fs.pathExists(path.join(workspaceRoot, LOCALIZATION_DIR_REL))) {
     await writeSupportedCultures(workspaceRoot, locales, vars);
     // The resource set must exist even when no enabled feature has a message

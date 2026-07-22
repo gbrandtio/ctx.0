@@ -31,12 +31,12 @@
     {
       "file": "app/lib/app/di.dart",
       "anchor": "imports",
-      "insert": "import '../features/auth/bloc/auth_cubit.dart';\nimport '../features/auth/data/auth_repository.dart';\nimport '../features/auth/data/token_store.dart';"
+      "insert": "import '../features/auth/bloc/auth_cubit.dart';\nimport '../features/auth/data/auth_repository.dart';"
     },
     {
       "file": "app/lib/app/di.dart",
       "anchor": "providers",
-      "insert": "    BlocProvider<AuthCubit>(create: (_) => AuthCubit(HttpAuthRepository(SecureTokenStore()))..restore()),"
+      "insert": "    BlocProvider<AuthCubit>(create: (_) => AuthCubit(HttpAuthRepository(ctxSession))),"
     },
     {
       "file": "app/lib/app/app.dart",

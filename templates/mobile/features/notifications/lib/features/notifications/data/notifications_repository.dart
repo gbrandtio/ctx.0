@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import '../../auth/data/token_store.dart';
+import 'package:ctxapp/session/token_store.dart';
 
 /// One in-app notification as returned by the API.
 class NotificationItem {

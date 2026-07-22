@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../bloc/auth_cubit.dart';
+import 'package:ctxapp/session/session_cubit.dart';
+
 import 'login_page.dart';
 
-/// Shows the login screen until the user is authenticated, then the app.
+/// Shows the login screen until the session is authenticated, then the app. It
+/// renders purely from the app-wide [SessionCubit] — auth owns the login form,
+/// the session owns whether anyone is signed in.
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key, required this.child});
 
@@ -12,16 +15,14 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthCubit, AuthState>(
+    return BlocBuilder<SessionCubit, SessionState>(
       builder: (context, state) {
         switch (state.status) {
-          case AuthStatus.authenticated:
+          case SessionStatus.authenticated:
             return child;
-          case AuthStatus.unknown:
+          case SessionStatus.unknown:
             return const Scaffold(body: Center(child: CircularProgressIndicator()));
-          case AuthStatus.unauthenticated:
-          case AuthStatus.authenticating:
-          case AuthStatus.failure:
+          case SessionStatus.anonymous:
             return const LoginPage();
         }
       },

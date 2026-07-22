@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
-import '../../auth/data/token_store.dart';
+import 'package:ctxapp/session/token_store.dart';
 
 /// One stored file as returned by the API. Bytes are fetched separately from
 /// [MediaRepository.downloadUri] (an authenticated request), not embedded here.

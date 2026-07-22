@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:ctxapp/l10n/l10n_support.dart';
 
-import '../data/locale_store.dart';
+import 'locale_store.dart';
 
 /// Holds the app's locale override.
 ///

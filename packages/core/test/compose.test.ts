@@ -344,3 +344,46 @@ describe('createWorkspace', () => {
     ).rejects.toThrow(/not empty/);
   });
 });
+
+describe('session layer', () => {
+  it('is applied even with no features and owns the credential store', async () => {
+    const { targetDir, result } = await generate([]);
+
+    expect(result.manifest.features.map((f) => f.id)).toContain('session');
+    expect(
+      await fs.pathExists(path.join(targetDir, 'app', 'lib', 'session', 'token_store.dart')),
+    ).toBe(true);
+    expect(
+      await fs.pathExists(path.join(targetDir, 'app', 'lib', 'session', 'session_cubit.dart')),
+    ).toBe(true);
+
+    // The session provider and the locale wiring are always present.
+    const di = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'di.dart'), 'utf8');
+    expect(di).toContain('BlocProvider<SessionCubit>');
+    expect(di).toContain('BlocProvider<LocaleCubit>');
+    const app = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'app.dart'), 'utf8');
+    expect(app).toContain('locale: context.watch<LocaleCubit>().state,');
+  });
+
+  it('makes auth a session provider: consumers read ctxSession, not the auth store', async () => {
+    const { targetDir } = await generate(['auth', 'profile']);
+
+    const di = await fs.readFile(path.join(targetDir, 'app', 'lib', 'app', 'di.dart'), 'utf8');
+    // Exactly one SessionCubit registration (from the session layer, not auth).
+    expect(di.match(/BlocProvider<SessionCubit>/g)?.length).toBe(1);
+    expect(di).toContain('HttpProfileRepository(ctxSession)');
+    expect(di).not.toContain('ctxTokens');
+
+    // Nothing imports the old auth-owned token store; profile reads the session.
+    const profileRepo = await fs.readFile(
+      path.join(targetDir, 'app', 'lib', 'features', 'profile', 'data', 'profile_repository.dart'),
+      'utf8',
+    );
+    expect(profileRepo).toContain("import 'package:acme/session/token_store.dart';");
+    expect(
+      await fs.pathExists(
+        path.join(targetDir, 'app', 'lib', 'features', 'auth', 'data', 'token_store.dart'),
+      ),
+    ).toBe(false);
+  });
+});

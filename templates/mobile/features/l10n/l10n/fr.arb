@@ -1,10 +1,5 @@
 {
   "@@locale": "fr",
-  "appTitle": "CtxApp",
-  "commonSave": "Enregistrer",
-  "commonCancel": "Annuler",
-  "commonDelete": "Supprimer",
-  "commonError": "Erreur : {message}",
   "languageTitle": "Langue",
   "languageUseDevice": "Utiliser la langue de l'appareil",
   "languageUseDeviceHint": "Suit la langue configurée sur votre appareil."
