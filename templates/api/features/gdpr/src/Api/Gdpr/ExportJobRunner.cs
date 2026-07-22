@@ -1,4 +1,5 @@
 using CtxApp.Application.Abstractions;
+using CtxApp.Application.Gdpr;
 using CtxApp.Domain.Gdpr;
 using CtxApp.Infrastructure.Gdpr;
 using CtxApp.Infrastructure.Persistence;

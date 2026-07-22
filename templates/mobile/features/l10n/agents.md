@@ -4,8 +4,13 @@ locale state and mobile plumbing (`LocaleCubit`, the secure locale store, the
 `MaterialApp` delegates, `l10n.yaml`, `generate: true`) are in the mandatory
 `session` layer, and the API's Accept-Language handling is in the API base
 (`AddCtxLocalization`). So an app is fully localized whether or not this feature
-is enabled; enabling it only adds the tab that lets the user change the language
-from inside the app instead of following the device.
+is enabled; enabling it only adds the Language row that lets the user change the
+language from inside the app instead of following the device.
+
+- This feature is a **row under Settings**, not a navigation tab: its `feature.json`
+  declares a `settingsEntry` (not `nav`) and `requires` the `settings` feature, so
+  the picker is reached through the settings hub (`SettingsPage`). The engine adds
+  the row when both features are enabled.
 
 - **The ARB files are generated, not written.** `app/lib/l10n/app_<code>.arb` was
   merged by ctx.0 from the per-feature fragments of the languages picked at create
@@ -20,9 +25,9 @@ from inside the app instead of following the device.
   delegates. New user-facing text goes in the ARB files, never inline in a widget.
 - `l10n/l10n_support.dart` is also generated: it names the supported locales, the
   delegates, and each language's own name for the picker. Do not edit it.
-- `views/language_page.dart` is the nav tab: "Use device language" plus one row per
-  supported locale, each labelled in its own language so it is legible to someone
-  who cannot read the current one. It reads and drives the session's `LocaleCubit`
+- `views/language_page.dart` is the picker Settings opens: "Use device language" plus
+  one row per supported locale, each labelled in its own language so it is legible to
+  someone who cannot read the current one. It reads and drives the session's `LocaleCubit`
   — selecting a row overrides the device language, which the session persists and
   reports to `ctxSecureClient.acceptLanguage` so the API answers in the same
   language as the UI.

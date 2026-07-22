@@ -31,6 +31,12 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> register(String email, String password) =>
       _run(() => _repository.register(email, password));
 
+  /// Ends the session: revokes the refresh-token family server-side and clears
+  /// the local credentials. The caller tells the session it is now signed out,
+  /// the mirror of the sign-in handshake. An unreachable API still clears the
+  /// device, so this does not surface a failure state.
+  Future<void> logout() => _repository.logout();
+
   Future<void> _run(Future<void> Function() action) async {
     emit(const AuthState(status: AuthStatus.submitting));
     try {

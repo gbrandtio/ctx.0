@@ -3,5 +3,6 @@
   "profileTitle": "Προφίλ",
   "profileDisplayNameLabel": "Εμφανιζόμενο όνομα",
   "profileBioLabel": "Βιογραφικό",
-  "profileAvatarUrlLabel": "URL εικόνας προφίλ"
+  "profileAvatarUrlLabel": "URL εικόνας προφίλ",
+  "profileLogout": "Αποσύνδεση"
 }

@@ -2,11 +2,9 @@ using CtxApp.Api.Localization;
 using CtxApp.Application.Media;
 using CtxApp.Domain.Media;
 using CtxApp.Infrastructure.Media;
-using CtxApp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using CtxApp.Application.Abstractions;
 using Microsoft.Extensions.Localization;
 
@@ -26,7 +24,7 @@ public static class MediaEndpoints
 
         group.MapPost("/", async (
             HttpRequest request,
-            CtxAppDbContext db,
+            IMediaService mediaService,
             ICurrentUser user,
             IBlobStore blobs,
             MediaOptions options,
@@ -61,33 +59,25 @@ public static class MediaEndpoints
                 await blobs.WriteAsync(key, upload, ct);
             }
 
-            var media = new MediaObject
-            {
-                UserId = user.UserId!.Value,
-                FileName = string.IsNullOrWhiteSpace(file.FileName) ? "file" : Path.GetFileName(file.FileName),
-                ContentType = contentType,
-                SizeBytes = file.Length,
-                StorageKey = key,
-            };
-            db.Set<MediaObject>().Add(media);
-            await db.SaveChangesAsync(ct);
+            var fileName = string.IsNullOrWhiteSpace(file.FileName) ? "file" : Path.GetFileName(file.FileName);
+            var mediaDto = await mediaService.CreateMediaAsync(user.UserId!.Value, fileName, contentType, file.Length, key, ct);
 
-            return Results.Ok(new { media.Id, media.FileName, media.ContentType, media.SizeBytes, media.CreatedAt });
+            return Results.Ok(new { mediaDto.Id, mediaDto.FileName, mediaDto.ContentType, mediaDto.SizeBytes, mediaDto.CreatedAt });
         });
 
-        group.MapGet("/", async (CtxAppDbContext db) =>
+        group.MapGet("/", async (IMediaService mediaService, CancellationToken ct) =>
         {
-            var items = await db.Set<MediaObject>().OrderByDescending(m => m.CreatedAt).ToListAsync();
+            var items = await mediaService.GetAllAsync(ct);
             return Results.Ok(new
             {
                 items = items.Select(m => new { m.Id, m.FileName, m.ContentType, m.SizeBytes, m.CreatedAt }),
             });
         });
 
-        group.MapGet("/{id:guid}", async (Guid id, CtxAppDbContext db, IBlobStore blobs, CancellationToken ct) =>
+        group.MapGet("/{id:guid}", async (Guid id, IMediaService mediaService, IBlobStore blobs, CancellationToken ct) =>
         {
             // RLS scopes the lookup to the caller; another user's id resolves to null.
-            var media = await db.Set<MediaObject>().FirstOrDefaultAsync(m => m.Id == id, ct);
+            var media = await mediaService.GetMediaObjectAsync(id, ct);
             if (media is null)
             {
                 return Results.NotFound();
@@ -96,15 +86,14 @@ public static class MediaEndpoints
             return Results.File(stream, media.ContentType, media.FileName);
         });
 
-        group.MapDelete("/{id:guid}", async (Guid id, CtxAppDbContext db, IBlobStore blobs, CancellationToken ct) =>
+        group.MapDelete("/{id:guid}", async (Guid id, IMediaService mediaService, IBlobStore blobs, CancellationToken ct) =>
         {
-            var media = await db.Set<MediaObject>().FirstOrDefaultAsync(m => m.Id == id, ct);
+            var media = await mediaService.GetMediaObjectAsync(id, ct);
             if (media is null)
             {
                 return Results.NotFound();
             }
-            db.Set<MediaObject>().Remove(media);
-            await db.SaveChangesAsync(ct);
+            await mediaService.DeleteMediaAsync(media, ct);
             await blobs.DeleteAsync(media.StorageKey, ct);
             return Results.NoContent();
         });

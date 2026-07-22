@@ -21,7 +21,8 @@ export async function runStatus(): Promise<void> {
       for (const feature of status.features) {
         const mark = feature.enabled ? pc.green('●') : pc.dim('○');
         const tab = feature.tab ? pc.cyan(' [tab]') : '';
-        console.log(`  ${mark} ${feature.id.padEnd(20)} ${pc.dim(feature.summary)}${tab}`);
+        const setting = feature.setting ? pc.cyan(' [settings]') : '';
+        console.log(`  ${mark} ${feature.id.padEnd(20)} ${pc.dim(feature.summary)}${tab}${setting}`);
       }
       console.log(pc.dim(`\n  layout   : ${manifest.navigation.layout}`));
       console.log(pc.dim(`  languages: ${manifest.localization.locales.join(', ')}`));

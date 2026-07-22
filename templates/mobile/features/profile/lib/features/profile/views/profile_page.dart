@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:ctxapp/l10n/gen/app_l10n.dart';
+import 'package:ctxapp/session/session_cubit.dart';
+import 'package:ctxapp/features/auth/bloc/auth_cubit.dart';
+import 'package:ctxapp/features/settings/views/settings_page.dart';
 
 import '../bloc/profile_cubit.dart';
 import '../data/profile_repository.dart';
@@ -50,11 +53,33 @@ class _ProfilePageState extends State<ProfilePage> {
         );
   }
 
+  void _openSettings() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
+  }
+
+  /// Ends the session and hands control back to the auth gate. The session is
+  /// read before the await so nothing touches this widget's context across the
+  /// gap; auth revokes server-side, then the session is told it is signed out.
+  Future<void> _logout() async {
+    final session = context.read<SessionCubit>();
+    await context.read<AuthCubit>().logout();
+    session.signedOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppL10n.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l.profileTitle)),
+      appBar: AppBar(
+        title: Text(l.profileTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: l.settingsTitle,
+            onPressed: _openSettings,
+          ),
+        ],
+      ),
       body: BlocConsumer<ProfileCubit, ProfileState>(
         listener: (context, state) {
           if (state.profile != null) _hydrate(state.profile!);
@@ -102,6 +127,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: state.status == ProfileStatus.saving
                     ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
                     : Text(l.commonSave),
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: _logout,
+                icon: const Icon(Icons.logout),
+                label: Text(l.profileLogout),
               ),
             ],
           );

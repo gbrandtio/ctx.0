@@ -3,5 +3,6 @@
   "profileTitle": "Profil",
   "profileDisplayNameLabel": "Anzeigename",
   "profileBioLabel": "Kurzprofil",
-  "profileAvatarUrlLabel": "Avatar-URL"
+  "profileAvatarUrlLabel": "Avatar-URL",
+  "profileLogout": "Abmelden"
 }

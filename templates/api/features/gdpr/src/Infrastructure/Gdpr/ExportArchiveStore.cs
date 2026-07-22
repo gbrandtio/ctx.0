@@ -1,4 +1,5 @@
 using CtxApp.Application.Abstractions;
+using CtxApp.Application.Gdpr;
 
 namespace CtxApp.Infrastructure.Gdpr;
 
@@ -11,7 +12,7 @@ namespace CtxApp.Infrastructure.Gdpr;
 /// Storage keys are validated as 32-char hex (the ids the endpoints mint) so a
 /// key can never escape the configured root.
 /// </summary>
-public sealed class ExportArchiveStore
+public sealed class ExportArchiveStore : IExportArchiveStore
 {
     private readonly string _root;
     private readonly IFieldCipher _cipher;

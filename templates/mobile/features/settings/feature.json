@@ -1,0 +1,11 @@
+{
+  "id": "settings",
+  "summary": "A settings hub reached from the profile page: a single screen that gathers the opt-in controls other features contribute (language, privacy) as rows, instead of each being its own navigation tab.",
+  "sides": ["mobile"],
+  "requires": [],
+  "env": [],
+  "userSteps": [
+    "Settings is not a navigation tab; it opens from the gear in the profile page's app bar. Enable `profile` to reach it, or push `SettingsPage` from your own screen.",
+    "A feature appears here by declaring a `settingsEntry` in its feature.json (like `l10n` and `gdpr` do); the hub's rows are generated from the enabled ones."
+  ]
+}

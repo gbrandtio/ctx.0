@@ -18,9 +18,13 @@ the consent banner and the Privacy screen.
   directory (injectable as `saveArchive`, which is what the tests use instead of
   touching the filesystem). The token is shown by the server once — hold on to it
   for the download and do not persist it.
-- `views/privacy_page.dart` is the nav tab: consent switches, "Download my data"
-  with a share action, and a delete flow that requires typing `DELETE` plus the
-  password (the server enforces both again).
+- `views/privacy_page.dart` is a **row under Settings**, not a nav tab: consent
+  switches, "Download my data" with a share action, and a delete flow that requires
+  typing `DELETE` plus the password (the server enforces both again). The feature
+  declares a `settingsEntry` and `requires` the `settings` feature, so the screen is
+  reached through the settings hub (`SettingsPage`).
 - After a successful deletion the session is dead; the auth gate returns the user
   to the login screen on the next token use.
-- Requires the `auth` feature (for the session token) — enable them together.
+- Requires the `auth` feature (for the session token) — enable them together. When
+  `profile` is enabled this feature comes with it, so a profile app ships
+  data-subject rights by default.

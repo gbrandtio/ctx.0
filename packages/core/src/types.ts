@@ -27,6 +27,23 @@ export interface FeatureNav {
   import: string;
 }
 
+/**
+ * Declarative metadata for a feature's row in the Settings hub. A feature that
+ * declares `settingsEntry` is *settings-capable*: it is surfaced as a `ListTile`
+ * inside the generated `SettingsPage` (the `settings` feature) rather than as a
+ * main-navigation tab. It is the settings-hub analogue of {@link FeatureNav}.
+ */
+export interface SettingsEntry {
+  /** Row label, e.g. "Language". */
+  label: string;
+  /** Material icon name (a `Icons.<name>` identifier), e.g. "translate". */
+  icon: string;
+  /** Destination screen widget class the row opens, e.g. "LanguagePage". */
+  page: string;
+  /** App-relative import for the page widget, e.g. "../features/l10n/views/language_page.dart". */
+  import: string;
+}
+
 /** A single idempotent edit to a shared/base file (e.g. Program.cs, pubspec.yaml). */
 export interface WiringEdit {
   /** Workspace-relative path of the file to edit, e.g. "api/src/Api/Program.cs". */
@@ -66,6 +83,12 @@ export interface FeatureManifest {
    * main-navigation tab in the generated mobile shell (a *nav-capable* feature).
    */
   nav?: FeatureNav;
+  /**
+   * Settings-hub metadata. Present iff the feature is surfaced as a row inside
+   * the generated `SettingsPage` (a *settings-capable* feature) instead of, or
+   * as well as, a main-navigation tab.
+   */
+  settingsEntry?: SettingsEntry;
   /** Dependency additions per side. */
   deps?: FeatureDeps;
   /** Idempotent edits to shared files. */
@@ -94,6 +117,12 @@ export interface WorkspaceNavigation {
    * order. Empty means the shell renders a minimal placeholder screen.
    */
   tabs: string[];
+  /**
+   * Enabled, settings-capable feature ids surfaced as rows in the generated
+   * `SettingsPage`, in row order. Empty when the `settings` feature is not
+   * enabled, or enabled with no settings-capable feature to populate it.
+   */
+  settings: string[];
 }
 
 /** The languages a workspace was generated with. */
@@ -115,7 +144,7 @@ export interface WorkspaceTheme {
 /** The `.ctx/manifest.json` persisted at the root of a generated workspace. */
 export interface WorkspaceManifest {
   /** Schema version of the manifest itself. */
-  schema: 4;
+  schema: 5;
   /** CLI version that generated / last modified the workspace. */
   ctx0Version: string;
   /** Wire-protocol version shared by both sides. */

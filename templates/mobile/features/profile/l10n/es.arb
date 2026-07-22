@@ -3,5 +3,6 @@
   "profileTitle": "Perfil",
   "profileDisplayNameLabel": "Nombre visible",
   "profileBioLabel": "Biografía",
-  "profileAvatarUrlLabel": "URL del avatar"
+  "profileAvatarUrlLabel": "URL del avatar",
+  "profileLogout": "Cerrar sesión"
 }

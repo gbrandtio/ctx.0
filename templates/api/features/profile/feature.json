@@ -2,7 +2,7 @@
   "id": "profile",
   "summary": "Editable user account profile (display name, bio, avatar) with envelope-encrypted fields and per-user RLS isolation.",
   "sides": ["mobile", "api"],
-  "requires": ["auth", "l10n"],
+  "requires": ["auth", "l10n", "settings", "gdpr"],
   "nav": {
     "label": "Profile",
     "icon": "person",
@@ -23,7 +23,7 @@
     {
       "file": "api/src/Api/Program.cs",
       "anchor": "services",
-      "insert": "builder.Services.AddSingleton(new CtxApp.Infrastructure.Security.Rls.RlsPolicy(\"user_profiles\", \"UserId\"));\nbuilder.Services.AddScoped<CtxApp.Application.Abstractions.IPersonalDataContributor, CtxApp.Infrastructure.Gdpr.ProfilePersonalData>();"
+      "insert": "builder.Services.AddScoped<CtxApp.Application.Profile.IProfileRepository, CtxApp.Infrastructure.Persistence.ProfileRepository>();\nbuilder.Services.AddScoped<CtxApp.Application.Profile.IProfileService, CtxApp.Application.Profile.ProfileService>();\nbuilder.Services.AddSingleton(new CtxApp.Infrastructure.Security.Rls.RlsPolicy(\"user_profiles\", \"UserId\"));\nbuilder.Services.AddScoped<CtxApp.Application.Abstractions.IPersonalDataContributor, CtxApp.Infrastructure.Gdpr.ProfilePersonalData>();"
     },
     {
       "file": "api/src/Api/Program.cs",

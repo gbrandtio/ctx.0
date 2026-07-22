@@ -1,10 +1,9 @@
 using CtxApp.Application.Abstractions;
 using CtxApp.Domain.Notes;
-using CtxApp.Infrastructure.Persistence;
+using CtxApp.Application.Notes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 
 namespace CtxApp.Api.Endpoints;
 
@@ -21,31 +20,22 @@ public static class NotesEndpoints
     {
         var group = app.MapGroup("/v1/notes").RequireAuthorization();
 
-        group.MapPost("/", async (CreateNoteRequest body, CtxAppDbContext db, ICurrentUser user, IBlindIndex blindIndex) =>
+        group.MapPost("/", async (CreateNoteRequest body, INotesService notesService, ICurrentUser user, CancellationToken ct) =>
         {
-            var note = new Note
-            {
-                UserId = user.UserId!.Value,
-                Title = body.Title,
-                TitleBlindIndex = blindIndex.Compute(body.Title),
-                Body = body.Body,
-            };
-            db.Set<Note>().Add(note);
-            await db.SaveChangesAsync();
-            return Results.Ok(new { note.Id });
+            var id = await notesService.CreateNoteAsync(user.UserId!.Value, body.Title, body.Body, ct);
+            return Results.Ok(new { Id = id });
         });
 
-        group.MapGet("/", async (CtxAppDbContext db) =>
+        group.MapGet("/", async (INotesService notesService, CancellationToken ct) =>
         {
-            var notes = await db.Set<Note>().OrderByDescending(n => n.CreatedAt).ToListAsync();
-            return Results.Ok(notes.Select(n => new { n.Id, n.Title, n.Body, n.CreatedAt }));
+            var notes = await notesService.GetNotesAsync(ct);
+            return Results.Ok(notes);
         });
 
-        group.MapGet("/search", async (string title, CtxAppDbContext db, IBlindIndex blindIndex) =>
+        group.MapGet("/search", async (string title, INotesService notesService, CancellationToken ct) =>
         {
-            var index = blindIndex.Compute(title);
-            var notes = await db.Set<Note>().Where(n => n.TitleBlindIndex == index).ToListAsync();
-            return Results.Ok(notes.Select(n => new { n.Id, n.Title, n.Body }));
+            var notes = await notesService.SearchNotesAsync(title, ct);
+            return Results.Ok(notes);
         });
 
         return app;

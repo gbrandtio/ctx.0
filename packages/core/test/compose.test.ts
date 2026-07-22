@@ -109,8 +109,16 @@ describe('createWorkspace', () => {
     const docsDir = path.join(targetDir, 'docs', 'features');
 
     const docs = (await fs.readdir(docsDir)).sort();
-    // l10n is pulled in as a dependency of every feature that carries strings.
-    expect(docs).toEqual(['AUTH.md', 'L10N.md', 'NOTES.md', 'NOTIFICATIONS.md', 'PING.md']);
+    // l10n is pulled in as a dependency of every feature that carries strings,
+    // and l10n in turn pulls in settings (the hub its Language row lives under).
+    expect(docs).toEqual([
+      'AUTH.md',
+      'L10N.md',
+      'NOTES.md',
+      'NOTIFICATIONS.md',
+      'PING.md',
+      'SETTINGS.md',
+    ]);
 
     // The doc carries the fragment body, incl. auth's merged mobile + api guidance.
     const authDoc = await fs.readFile(path.join(docsDir, 'AUTH.md'), 'utf8');
@@ -127,7 +135,7 @@ describe('createWorkspace', () => {
       features: ['ping', 'auth'],
     });
     const smallerDocs = (await fs.readdir(path.join(smaller, 'docs', 'features'))).sort();
-    expect(smallerDocs).toEqual(['AUTH.md', 'L10N.md', 'PING.md']);
+    expect(smallerDocs).toEqual(['AUTH.md', 'L10N.md', 'PING.md', 'SETTINGS.md']);
 
     // Fragment files are engine metadata: never copied into the workspace tree.
     const strays: string[] = [];
@@ -188,12 +196,14 @@ describe('createWorkspace', () => {
   it('records applied layers and vars in the manifest', async () => {
     const { targetDir, vars } = await generate();
     const manifest = await fs.readJson(path.join(targetDir, '.ctx', 'manifest.json'));
-    expect(manifest.schema).toBe(4);
+    expect(manifest.schema).toBe(5);
     expect(manifest.vars).toMatchObject(vars);
-    // Navigation is persisted; ping and the l10n feature it pulls in are both
-    // nav-capable, so both default to tabs.
+    // Navigation is persisted; ping is nav-capable so it defaults to a tab, while
+    // the l10n feature it pulls in is now a Settings row (not a tab), and l10n in
+    // turn pulls in the settings hub.
     expect(manifest.navigation.layout).toBe('bottom_nav');
-    expect(manifest.navigation.tabs).toEqual(['l10n', 'ping']);
+    expect(manifest.navigation.tabs).toEqual(['ping']);
+    expect(manifest.navigation.settings).toEqual(['l10n']);
     // The languages are persisted too: every offered one, unless narrowed.
     expect(manifest.localization.default).toBe('en');
     expect(manifest.localization.locales).toEqual(['en', 'el', 'de', 'fr', 'es']);
@@ -315,7 +325,13 @@ describe('createWorkspace', () => {
     // ping was enabled but not chosen as a tab: it is not in the shell.
     expect(shell).not.toContain('PingPage');
     const manifest = await fs.readJson(path.join(targetDir, '.ctx', 'manifest.json'));
-    expect(manifest.navigation).toEqual({ layout: 'drawer', tabs: ['notifications'] });
+    // l10n (pulled in by every string-carrying feature) is a Settings row, so it
+    // is recorded under settings rather than as a tab.
+    expect(manifest.navigation).toEqual({
+      layout: 'drawer',
+      tabs: ['notifications'],
+      settings: ['l10n'],
+    });
   });
 
   it('renders a placeholder shell when no tabs are selected', async () => {

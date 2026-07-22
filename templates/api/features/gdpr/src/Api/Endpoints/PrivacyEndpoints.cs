@@ -1,16 +1,11 @@
-using System.Security.Cryptography;
-using System.Text;
 using CtxApp.Api.Gdpr;
 using CtxApp.Api.Localization;
 using CtxApp.Application.Abstractions;
-using CtxApp.Domain.Auth;
-using CtxApp.Domain.Gdpr;
+using CtxApp.Application.Gdpr;
 using CtxApp.Infrastructure.Gdpr;
-using CtxApp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace CtxApp.Api.Endpoints;
@@ -32,15 +27,15 @@ public static class PrivacyEndpoints
 
         // --- Consent -------------------------------------------------------
 
-        group.MapGet("/consent", async (CtxAppDbContext db, ICurrentUser user, GdprOptions options, CancellationToken ct) =>
+        group.MapGet("/consent", async (IPrivacyService privacyService, ICurrentUser user, GdprOptions options, CancellationToken ct) =>
         {
-            var latest = await LatestConsentAsync(db, user.UserId!.Value, ct);
-            return Results.Ok(new { policyVersion = options.PolicyVersion, consent = Present(latest) });
+            var latest = await privacyService.GetLatestConsentAsync(user.UserId!.Value, ct);
+            return Results.Ok(new { policyVersion = options.PolicyVersion, consent = latest });
         });
 
         group.MapPut("/consent", async (
             ConsentDecisionRequest body,
-            CtxAppDbContext db,
+            IPrivacyService privacyService,
             ICurrentUser user,
             GdprOptions options,
             IStringLocalizer<Messages> loc,
@@ -51,66 +46,37 @@ public static class PrivacyEndpoints
                 return Results.BadRequest(new { error = loc["gdpr.policyVersionRequired"].Value });
             }
 
-            // Append rather than update: the history of decisions is the evidence
-            // that consent was given, and withdrawing is just a narrower decision.
-            var record = new ConsentRecord
-            {
-                UserId = user.UserId!.Value,
-                PolicyVersion = body.PolicyVersion,
-                Purposes = string.Join(',', (body.Purposes ?? []).Where(p => !string.IsNullOrWhiteSpace(p)).Distinct()),
-                Source = string.IsNullOrWhiteSpace(body.Source) ? "app" : body.Source,
-            };
-            db.Set<ConsentRecord>().Add(record);
-            await db.SaveChangesAsync(ct);
+            var consent = await privacyService.RecordConsentAsync(user.UserId!.Value, body.PolicyVersion, body.Purposes ?? [], body.Source, ct);
 
-            return Results.Ok(new { policyVersion = options.PolicyVersion, consent = Present(record) });
+            return Results.Ok(new { policyVersion = options.PolicyVersion, consent });
         });
 
         // --- Export --------------------------------------------------------
 
         group.MapPost("/export", async (
-            CtxAppDbContext db,
+            IPrivacyService privacyService,
             ICurrentUser user,
-            ExportJobQueue queue,
-            ExportArchiveStore archives,
-            ITokenGenerator tokens,
-            ITokenHasher hasher,
-            IClock clock,
             CancellationToken ct) =>
         {
-            var userId = user.UserId!.Value;
-            await PurgeExpiredAsync(db, archives, userId, clock, ct);
+            var result = await privacyService.RequestExportAsync(user.UserId!.Value, ct);
 
-            var token = tokens.NewToken();
-            var job = new DataExportJob
+            return Results.Accepted($"/v1/privacy/export/{result.JobId}", new
             {
-                UserId = userId,
-                StorageKey = Guid.NewGuid().ToString("n"),
-                DownloadTokenHash = hasher.Hash(token),
-            };
-            db.Set<DataExportJob>().Add(job);
-            await db.SaveChangesAsync(ct);
-
-            await queue.EnqueueAsync(new ExportTicket(job.Id, userId), ct);
-
-            // The token is shown exactly once; only its hash is stored.
-            return Results.Accepted($"/v1/privacy/export/{job.Id}", new
-            {
-                jobId = job.Id,
-                status = job.Status.ToString(),
-                downloadToken = token,
+                jobId = result.JobId,
+                status = result.Status,
+                downloadToken = result.DownloadToken,
             });
         });
 
-        group.MapGet("/export/{id:guid}", async (Guid id, CtxAppDbContext db, CancellationToken ct) =>
+        group.MapGet("/export/{id:guid}", async (Guid id, IPrivacyService privacyService, CancellationToken ct) =>
         {
-            var job = await db.Set<DataExportJob>().AsNoTracking().FirstOrDefaultAsync(j => j.Id == id, ct);
+            var job = await privacyService.GetExportJobAsync(id, ct);
             return job is null
                 ? Results.NotFound()
                 : Results.Ok(new
                 {
-                    jobId = job.Id,
-                    status = job.Status.ToString(),
+                    jobId = job.JobId,
+                    status = job.Status,
                     job.CreatedAt,
                     job.CompletedAt,
                     job.ExpiresAt,
@@ -123,58 +89,44 @@ public static class PrivacyEndpoints
         group.MapGet("/export/{id:guid}/download", async (
             Guid id,
             string? token,
-            CtxAppDbContext db,
-            ExportArchiveStore archives,
-            ITokenHasher hasher,
-            IClock clock,
+            IPrivacyService privacyService,
             IStringLocalizer<Messages> loc,
             CancellationToken ct) =>
         {
-            var job = await db.Set<DataExportJob>().FirstOrDefaultAsync(j => j.Id == id, ct);
-            if (job is null)
+            try
             {
-                return Results.NotFound();
+                var download = await privacyService.DownloadExportAsync(id, token ?? string.Empty, ct);
+                if (download is null)
+                {
+                    return Results.NotFound();
+                }
+
+                return Results.File(download.Value.Bundle, download.Value.ContentType, download.Value.FileName);
             }
-            if (string.IsNullOrEmpty(token) || !FixedTimeEquals(hasher.Hash(token), job.DownloadTokenHash))
+            catch (UnauthorizedAccessException)
             {
                 return Results.Json(new { error = loc["gdpr.invalidDownloadToken"].Value }, statusCode: StatusCodes.Status401Unauthorized);
             }
-            if (job.Status != DataExportStatus.Ready)
+            catch (InvalidOperationException ex) when (ex.Message.Contains("ready"))
             {
                 return Results.Json(
-                    new { error = loc["gdpr.exportNotReady", job.Status.ToString().ToLowerInvariant()].Value, job.Error },
+                    new { error = loc["gdpr.exportNotReady", "processing"].Value },
                     statusCode: StatusCodes.Status409Conflict);
             }
-            if (job.DownloadedAt is not null || job.ExpiresAt <= clock.UtcNow)
+            catch (InvalidOperationException)
             {
-                if (job.DownloadedAt is null)
-                {
-                    await ExpireAsync(db, archives, job, ct);
-                }
                 return Results.Json(
                     new { error = loc["gdpr.exportConsumed"].Value },
                     statusCode: StatusCodes.Status410Gone);
             }
-
-            var bundle = await archives.ReadAsync(job.StorageKey, ct);
-
-            // A bundle is handed over once: the archive goes as it is served, so a
-            // leaked link cannot be replayed and the plaintext-adjacent copy on
-            // disk lives no longer than it must.
-            job.DownloadedAt = clock.UtcNow;
-            archives.Delete(job.StorageKey);
-            await db.SaveChangesAsync(ct);
-
-            return Results.File(bundle, "application/zip", $"ctx-export-{job.Id:n}.zip");
         });
 
         // --- Erasure -------------------------------------------------------
 
         group.MapPost("/account/delete", async (
             DeleteAccountRequest body,
-            CtxAppDbContext db,
+            IPrivacyService privacyService,
             ICurrentUser user,
-            IPasswordHasher passwords,
             AccountEraser eraser,
             IStringLocalizer<Messages> loc,
             CancellationToken ct) =>
@@ -185,8 +137,8 @@ public static class PrivacyEndpoints
             }
 
             var userId = user.UserId!.Value;
-            var credential = await db.Set<UserCredential>().AsNoTracking().FirstOrDefaultAsync(c => c.UserId == userId, ct);
-            if (credential is null || !passwords.Verify(body.Password, credential.PasswordHash))
+            var isPasswordValid = await privacyService.VerifyPasswordAsync(userId, body.Password, ct);
+            if (!isPasswordValid)
             {
                 return Results.Json(new { error = loc["gdpr.passwordMismatch"].Value }, statusCode: StatusCodes.Status401Unauthorized);
             }
@@ -197,62 +149,4 @@ public static class PrivacyEndpoints
 
         return app;
     }
-
-    private static Task<ConsentRecord?> LatestConsentAsync(CtxAppDbContext db, Guid userId, CancellationToken ct) =>
-        db.Set<ConsentRecord>()
-            .AsNoTracking()
-            .Where(c => c.UserId == userId)
-            .OrderByDescending(c => c.DecidedAt)
-            .FirstOrDefaultAsync(ct);
-
-    private static object? Present(ConsentRecord? record) =>
-        record is null
-            ? null
-            : new
-            {
-                record.PolicyVersion,
-                Purposes = record.Purposes.Length == 0 ? Array.Empty<string>() : record.Purposes.Split(','),
-                record.Source,
-                record.DecidedAt,
-            };
-
-    /// <summary>
-    /// Drop the caller's aged-out exports and their archives. Run when a new export
-    /// is requested: RLS scopes every query to one user, so retention is enforced
-    /// on the user's own rows instead of from a privileged sweep. A bundle that was
-    /// downloaded keeps its <c>Ready</c> status and its <c>DownloadedAt</c> stamp —
-    /// the row is the record of what happened — and its archive is already gone.
-    /// </summary>
-    private static async Task PurgeExpiredAsync(
-        CtxAppDbContext db, ExportArchiveStore archives, Guid userId, IClock clock, CancellationToken ct)
-    {
-        var now = clock.UtcNow;
-        var stale = await db.Set<DataExportJob>()
-            .Where(j => j.UserId == userId
-                && j.DownloadedAt == null
-                && j.ExpiresAt != null
-                && j.ExpiresAt <= now)
-            .ToListAsync(ct);
-
-        foreach (var job in stale)
-        {
-            archives.Delete(job.StorageKey);
-            job.Status = DataExportStatus.Expired;
-        }
-        if (stale.Count > 0)
-        {
-            await db.SaveChangesAsync(ct);
-        }
-    }
-
-    private static async Task ExpireAsync(
-        CtxAppDbContext db, ExportArchiveStore archives, DataExportJob job, CancellationToken ct)
-    {
-        archives.Delete(job.StorageKey);
-        job.Status = DataExportStatus.Expired;
-        await db.SaveChangesAsync(ct);
-    }
-
-    private static bool FixedTimeEquals(string a, string b) =>
-        CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(a), Encoding.UTF8.GetBytes(b));
 }

@@ -1,9 +1,7 @@
 using System.Threading.Channels;
+using CtxApp.Application.Gdpr;
 
 namespace CtxApp.Api.Gdpr;
-
-/// <summary>A queued export: which job to build, and for whom.</summary>
-public sealed record ExportTicket(Guid JobId, Guid UserId);
 
 /// <summary>
 /// In-process hand-off from the request that asks for an export to the background
@@ -11,7 +9,7 @@ public sealed record ExportTicket(Guid JobId, Guid UserId);
 /// local blob store: point both at a shared queue and store when you scale out.
 /// A restart leaves a job row Pending; the user can ask again.
 /// </summary>
-public sealed class ExportJobQueue
+public sealed class ExportJobQueue : IExportJobQueue
 {
     private readonly Channel<ExportTicket> _channel = Channel.CreateUnbounded<ExportTicket>();
 

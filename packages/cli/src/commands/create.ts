@@ -388,10 +388,15 @@ function layoutLabel(layouts: LayoutDescriptor[], layout: LayoutId): string {
 function reportAlwaysOnFeatures(catalog: CatalogFeature[], ids: string[]): void {
   if (ids.length === 0) return;
   const byId = new Map(catalog.map((feature) => [feature.id, feature]));
-  console.log(pc.bold('\nAlways-on features (not navigation tabs):'));
+  console.log(pc.bold('\nEnabled features that are not navigation tabs:'));
   for (const id of ids) {
-    const summary = byId.get(id)?.summary ?? '';
-    console.log(`  - ${pc.cyan(id)} — ${summary} ${pc.dim('(integrates app-wide, not a tab)')}`);
+    const feature = byId.get(id);
+    // A settings-capable feature is a row inside the Settings hub; the rest
+    // integrate app-wide with no screen of their own.
+    const note = feature?.settingsEntry
+      ? `(a row under Settings: ${feature.settingsEntry.label})`
+      : '(integrates app-wide, not a tab)';
+    console.log(`  - ${pc.cyan(id)} — ${feature?.summary ?? ''} ${pc.dim(note)}`);
   }
   console.log();
 }

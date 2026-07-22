@@ -26,13 +26,17 @@ export interface Vars {
   bundleId: string;
 }
 
-/** A feature as the catalog reports it. `nav` is present iff it can be a tab. */
+/**
+ * A feature as the catalog reports it. `nav` is present iff it can be a main-nav
+ * tab; `settingsEntry` iff it is surfaced as a row inside the Settings hub.
+ */
 export interface CatalogFeature {
   id: string;
   summary: string;
   sides: Side[];
   requires: string[];
   nav?: { label: string; icon: string; page: string; import: string };
+  settingsEntry?: { label: string; icon: string; page: string; import: string };
 }
 
 /** A language the workspace can be generated with. */
@@ -96,7 +100,7 @@ export interface WorkspaceManifest {
   protocolVersion: string;
   vars: Vars;
   features: { id: string; files: string[]; hash: string }[];
-  navigation: { layout: LayoutId; tabs: string[] };
+  navigation: { layout: LayoutId; tabs: string[]; settings: string[] };
   localization: { default: string; locales: string[] };
   theme: WorkspaceTheme;
 }
@@ -168,7 +172,13 @@ export interface Calls {
     result: {
       isWorkspace: boolean;
       manifest?: WorkspaceManifest;
-      features: { id: string; summary: string; enabled: boolean; tab: boolean }[];
+      features: {
+        id: string;
+        summary: string;
+        enabled: boolean;
+        tab: boolean;
+        setting: boolean;
+      }[];
     };
   };
   'secrets.generate': {

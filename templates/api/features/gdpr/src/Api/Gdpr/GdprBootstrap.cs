@@ -1,4 +1,5 @@
 using CtxApp.Application.Abstractions;
+using CtxApp.Application.Gdpr;
 using CtxApp.Infrastructure.Gdpr;
 using CtxApp.Infrastructure.Security.Rls;
 using Microsoft.AspNetCore.Http;
@@ -30,12 +31,15 @@ public static class GdprBootstrap
         // AddCtxSecurity (Program.cs calls that first), so this resolution wins.
         services.AddScoped<ICurrentUser, SubjectScopedCurrentUser>();
 
-        services.AddSingleton<ExportArchiveStore>();
+        services.AddSingleton<IExportArchiveStore, ExportArchiveStore>();
         services.AddScoped<PersonalDataExporter>();
         services.AddScoped<AccountEraser>();
 
-        services.AddSingleton<ExportJobQueue>();
+        services.AddSingleton<IExportJobQueue, ExportJobQueue>();
         services.AddHostedService<ExportJobRunner>();
+
+        services.AddScoped<IPrivacyRepository, CtxApp.Infrastructure.Persistence.PrivacyRepository>();
+        services.AddScoped<IPrivacyService, PrivacyService>();
 
         return services;
     }

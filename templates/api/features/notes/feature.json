@@ -16,7 +16,7 @@
     {
       "file": "api/src/Api/Program.cs",
       "anchor": "services",
-      "insert": "builder.Services.AddSingleton(new CtxApp.Infrastructure.Security.Rls.RlsPolicy(\"notes\", \"UserId\"));\nbuilder.Services.AddScoped<CtxApp.Application.Abstractions.IPersonalDataContributor, CtxApp.Infrastructure.Gdpr.NotesPersonalData>();"
+      "insert": "builder.Services.AddScoped<CtxApp.Application.Notes.INotesRepository, CtxApp.Infrastructure.Persistence.NotesRepository>();\nbuilder.Services.AddScoped<CtxApp.Application.Notes.INotesService, CtxApp.Application.Notes.NotesService>();\nbuilder.Services.AddSingleton(new CtxApp.Infrastructure.Security.Rls.RlsPolicy(\"notes\", \"UserId\"));\nbuilder.Services.AddScoped<CtxApp.Application.Abstractions.IPersonalDataContributor, CtxApp.Infrastructure.Gdpr.NotesPersonalData>();"
     },
     {
       "file": "api/src/Api/Program.cs",

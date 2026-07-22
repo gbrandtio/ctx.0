@@ -14,6 +14,7 @@ export type {
   Side,
   LayoutId,
   FeatureNav,
+  SettingsEntry,
   WiringEdit,
   FeatureDeps,
   FeatureManifest,
@@ -32,6 +33,9 @@ export type { CatalogEntry } from './catalog.js';
 // Navigation shell: layout catalog + nav-capable feature helper.
 export { LAYOUTS, isLayoutId, navCapable, composeShell, SHELL_REL } from './shell.js';
 export type { LayoutDescriptor } from './shell.js';
+
+// Settings hub: settings-capable feature helper + the hub-page composer.
+export { settingsCapable, composeSettings, SETTINGS_PAGE_REL } from './settings.js';
 
 // Localization: the offered languages + the per-locale translation composer.
 export {

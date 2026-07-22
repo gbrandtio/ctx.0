@@ -1,8 +1,9 @@
 {
   "id": "l10n",
-  "summary": "Opt-in in-app language picker: a nav tab that lets the user switch among the languages the app ships. The locale state, the localization plumbing (mobile) and the Accept-Language handling (API) are always-on, in the session layer and the API base respectively; this feature only adds the picker UI.",
+  "summary": "Opt-in in-app language picker: a row under Settings that lets the user switch among the languages the app ships. The locale state, the localization plumbing (mobile) and the Accept-Language handling (API) are always-on, in the session layer and the API base respectively; this feature only adds the picker UI.",
   "sides": ["mobile"],
-  "nav": {
+  "requires": ["settings"],
+  "settingsEntry": {
     "label": "Language",
     "icon": "translate",
     "page": "LanguagePage",

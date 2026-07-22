@@ -16,7 +16,7 @@ namespace CtxApp.Infrastructure.Gdpr;
 public sealed class AccountEraser(
     CtxAppDbContext db,
     IEnumerable<IPersonalDataContributor> contributors,
-    ExportArchiveStore archives)
+    IExportArchiveStore archives)
 {
     public async Task EraseAsync(Guid userId, CancellationToken ct = default)
     {

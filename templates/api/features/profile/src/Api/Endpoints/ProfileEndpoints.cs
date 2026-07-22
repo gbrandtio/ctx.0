@@ -1,10 +1,9 @@
 using CtxApp.Application.Abstractions;
 using CtxApp.Domain.Profile;
-using CtxApp.Infrastructure.Persistence;
+using CtxApp.Application.Profile;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 
 namespace CtxApp.Api.Endpoints;
 
@@ -21,45 +20,25 @@ public static class ProfileEndpoints
     {
         var group = app.MapGroup("/v1/profile").RequireAuthorization();
 
-        group.MapGet("/", async (CtxAppDbContext db, ICurrentUser user, CancellationToken ct) =>
+        group.MapGet("/", async (IProfileService profileService, ICurrentUser user, CancellationToken ct) =>
         {
-            var userId = user.UserId!.Value;
-            var profile = await db.Set<UserProfile>().FirstOrDefaultAsync(p => p.UserId == userId, ct);
-            if (profile is null)
-            {
-                profile = new UserProfile { UserId = userId, DisplayName = string.Empty };
-                db.Set<UserProfile>().Add(profile);
-                await db.SaveChangesAsync(ct);
-            }
-            return Results.Ok(Present(profile));
+            var profile = await profileService.GetOrCreateProfileAsync(user.UserId!.Value, ct);
+            return Results.Ok(profile);
         });
 
-        group.MapPut("/", async (UpdateProfileRequest body, CtxAppDbContext db, ICurrentUser user, CancellationToken ct) =>
+        group.MapPut("/", async (UpdateProfileRequest body, IProfileService profileService, ICurrentUser user, CancellationToken ct) =>
         {
-            var userId = user.UserId!.Value;
-            var profile = await db.Set<UserProfile>().FirstOrDefaultAsync(p => p.UserId == userId, ct);
-            if (profile is null)
-            {
-                profile = new UserProfile { UserId = userId, DisplayName = body.DisplayName ?? string.Empty };
-                db.Set<UserProfile>().Add(profile);
-            }
-            else if (body.DisplayName is not null)
-            {
-                profile.DisplayName = body.DisplayName;
-            }
+            var profile = await profileService.UpdateProfileAsync(
+                user.UserId!.Value, 
+                body.DisplayName, 
+                body.Bio, 
+                body.AvatarUrl, 
+                body.AvatarMediaId, 
+                ct);
 
-            profile.Bio = body.Bio;
-            profile.AvatarUrl = body.AvatarUrl;
-            profile.AvatarMediaId = body.AvatarMediaId;
-            profile.UpdatedAt = DateTimeOffset.UtcNow;
-            await db.SaveChangesAsync(ct);
-
-            return Results.Ok(Present(profile));
+            return Results.Ok(profile);
         });
 
         return app;
     }
-
-    private static object Present(UserProfile p) =>
-        new { p.DisplayName, p.Bio, p.AvatarUrl, p.AvatarMediaId, p.UpdatedAt };
 }

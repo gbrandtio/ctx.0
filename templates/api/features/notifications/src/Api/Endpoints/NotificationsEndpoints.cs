@@ -1,12 +1,10 @@
 using CtxApp.Application.Abstractions;
 using CtxApp.Application.Notifications;
 using CtxApp.Domain.Notifications;
-using CtxApp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
 
 namespace CtxApp.Api.Endpoints;
 
@@ -25,85 +23,43 @@ public static class NotificationsEndpoints
     {
         var group = app.MapGroup("/v1/notifications").RequireAuthorization();
 
-        group.MapGet("/", async (CtxAppDbContext db) =>
+        group.MapGet("/", async (INotificationsService notificationsService, CancellationToken ct) =>
         {
-            var items = await db.Set<Notification>().OrderByDescending(n => n.CreatedAt).ToListAsync();
-            return Results.Ok(new
-            {
-                items = items.Select(n => new { n.Id, n.Title, n.Body, n.ReadAt, n.CreatedAt }),
-            });
+            var items = await notificationsService.GetAllAsync(ct);
+            return Results.Ok(new { items });
         });
 
-        group.MapGet("/unread-count", async (CtxAppDbContext db) =>
+        group.MapGet("/unread-count", async (INotificationsService notificationsService, CancellationToken ct) =>
         {
-            var count = await db.Set<Notification>().CountAsync(n => n.ReadAt == null);
+            var count = await notificationsService.CountUnreadAsync(ct);
             return Results.Ok(new { count });
         });
 
-        group.MapPost("/", async (CreateNotificationRequest body, CtxAppDbContext db, ICurrentUser user, IPushSender push, CancellationToken ct) =>
+        group.MapPost("/", async (CreateNotificationRequest body, INotificationsService notificationsService, ICurrentUser user, CancellationToken ct) =>
         {
-            var notification = new Notification
-            {
-                UserId = user.UserId!.Value,
-                Title = body.Title,
-                Body = body.Body,
-            };
-            db.Set<Notification>().Add(notification);
-            await db.SaveChangesAsync(ct);
-
-            // Fan out to the user's registered devices (RLS scopes this to them).
-            var tokens = await db.Set<DeviceToken>().Select(d => d.Token).ToListAsync(ct);
-            if (tokens.Count > 0)
-            {
-                await push.SendAsync(tokens, body.Title, body.Body, ct);
-            }
-
-            return Results.Ok(new { notification.Id });
+            var id = await notificationsService.CreateNotificationAsync(user.UserId!.Value, body.Title, body.Body, ct);
+            return Results.Ok(new { Id = id });
         });
 
-        group.MapPost("/{id:guid}/read", async (Guid id, CtxAppDbContext db) =>
+        group.MapPost("/{id:guid}/read", async (Guid id, INotificationsService notificationsService, CancellationToken ct) =>
         {
-            var notification = await db.Set<Notification>().FirstOrDefaultAsync(n => n.Id == id);
+            var notification = await notificationsService.MarkAsReadAsync(id, ct);
             if (notification is null)
             {
                 return Results.NotFound();
             }
-            notification.ReadAt = DateTimeOffset.UtcNow;
-            await db.SaveChangesAsync();
             return Results.Ok(new { notification.Id, notification.ReadAt });
         });
 
-        group.MapPost("/devices", async (RegisterDeviceRequest body, CtxAppDbContext db, ICurrentUser user, IBlindIndex blindIndex, CancellationToken ct) =>
+        group.MapPost("/devices", async (RegisterDeviceRequest body, INotificationsService notificationsService, ICurrentUser user, CancellationToken ct) =>
         {
-            var index = blindIndex.Compute(body.Token);
-            var existing = await db.Set<DeviceToken>().FirstOrDefaultAsync(d => d.TokenBlindIndex == index, ct);
-            if (existing is null)
-            {
-                db.Set<DeviceToken>().Add(new DeviceToken
-                {
-                    UserId = user.UserId!.Value,
-                    Platform = body.Platform,
-                    Token = body.Token,
-                    TokenBlindIndex = index,
-                });
-            }
-            else
-            {
-                existing.Platform = body.Platform;
-            }
-            await db.SaveChangesAsync(ct);
+            await notificationsService.RegisterDeviceAsync(user.UserId!.Value, body.Platform, body.Token, ct);
             return Results.NoContent();
         });
 
-        group.MapDelete("/devices", async ([FromBody] UnregisterDeviceRequest body, CtxAppDbContext db, IBlindIndex blindIndex, CancellationToken ct) =>
+        group.MapDelete("/devices", async ([FromBody] UnregisterDeviceRequest body, INotificationsService notificationsService, CancellationToken ct) =>
         {
-            var index = blindIndex.Compute(body.Token);
-            var existing = await db.Set<DeviceToken>().FirstOrDefaultAsync(d => d.TokenBlindIndex == index, ct);
-            if (existing is not null)
-            {
-                db.Set<DeviceToken>().Remove(existing);
-                await db.SaveChangesAsync(ct);
-            }
+            await notificationsService.UnregisterDeviceAsync(body.Token, ct);
             return Results.NoContent();
         });
 

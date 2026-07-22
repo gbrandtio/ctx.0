@@ -18,6 +18,8 @@ builder.Services.AddDbContext<CtxAppDbContext>((sp, options) =>
         .UseNpgsql(builder.Configuration.GetConnectionString("Default"))
         .AddInterceptors(sp.GetServices<Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor>()));
 
+builder.Services.AddScoped<CtxApp.Application.Abstractions.IUnitOfWork, CtxApp.Infrastructure.Persistence.UnitOfWork>();
+
 // ctx:anchor:services
 
 var app = builder.Build();

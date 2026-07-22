@@ -4,6 +4,7 @@ import { templateLayout } from './paths.js';
 import { loadCatalog, resolveFeatureOrder, type CatalogEntry } from './catalog.js';
 import { applyWiring, copyTree, hashTree } from './overlay.js';
 import { composeShell, navCapable } from './shell.js';
+import { composeSettings, settingsCapable } from './settings.js';
 import { composeLocales, resolveLocales, DEFAULT_LOCALE, type LocaleSource } from './l10n.js';
 import { composeTheme, resolveTheme, GOOGLE_FONTS_DEPENDENCY } from './theme.js';
 import { scaffoldFlutterPlatforms } from './flutter.js';
@@ -193,6 +194,11 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   assertTabsEnabled(tabs, order);
   await composeShell(targetDir, navLayout, tabs, catalog, vars, opts.templatesRoot);
 
+  // 3b-ii. Fill the Settings hub (the `settings` feature's page) with a row per
+  //        enabled settings-capable feature. A no-op when `settings` is off.
+  const settings = settingsCapable(catalog, order);
+  await composeSettings(targetDir, settings, catalog, vars);
+
   // 3c. Generate the theme the base app imports: the chosen seed colour in both
   //     brightnesses, and the chosen font's text theme when there is one.
   await composeTheme(targetDir, theme, vars);
@@ -208,12 +214,12 @@ export async function createWorkspace(opts: CreateOptions): Promise<CreateResult
   await writeFeatureDocs(targetDir, agentsFragments);
 
   const manifest: WorkspaceManifest = {
-    schema: 4,
+    schema: 5,
     ctx0Version: opts.toolVersion ?? coreVersion(),
     protocolVersion: protocolVersion(opts.templatesRoot),
     vars,
     features: applied,
-    navigation: { layout: navLayout, tabs },
+    navigation: { layout: navLayout, tabs, settings },
     localization: { default: DEFAULT_LOCALE, locales },
     theme,
   };

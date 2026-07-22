@@ -50,6 +50,7 @@ export const HANDLERS: Handlers = {
       sides: manifest.sides,
       requires: manifest.requires ?? [],
       ...(manifest.nav ? { nav: manifest.nav } : {}),
+      ...(manifest.settingsEntry ? { settingsEntry: manifest.settingsEntry } : {}),
     })),
   }),
 
@@ -100,7 +101,13 @@ export const HANDLERS: Handlers = {
     if (!(await isWorkspace(args.dir))) {
       return {
         isWorkspace: false,
-        features: listed.map((m) => ({ id: m.id, summary: m.summary, enabled: false, tab: false })),
+        features: listed.map((m) => ({
+          id: m.id,
+          summary: m.summary,
+          enabled: false,
+          tab: false,
+          setting: false,
+        })),
       };
     }
 
@@ -109,6 +116,7 @@ export const HANDLERS: Handlers = {
     // reserved ids that never appear in the catalog.
     const enabled = new Set(manifest.features.map((f) => f.id.split(':')[0] ?? f.id));
     const tabs = new Set(manifest.navigation?.tabs ?? []);
+    const settings = new Set(manifest.navigation?.settings ?? []);
     return {
       isWorkspace: true,
       manifest,
@@ -117,6 +125,7 @@ export const HANDLERS: Handlers = {
         summary: m.summary,
         enabled: enabled.has(m.id),
         tab: tabs.has(m.id),
+        setting: settings.has(m.id),
       })),
     };
   },
