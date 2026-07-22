@@ -25,8 +25,7 @@ public static class NotificationsBootstrap
         // Personal data this feature holds, for the gdpr feature's export/erasure.
         services.AddScoped<IPersonalDataContributor, NotificationsPersonalData>();
 
-        var fcm = new FcmOptions();
-        configuration.GetSection(FcmOptions.Section).Bind(fcm);
+        var fcm = FcmOptions.FromConfiguration(configuration);
         services.AddSingleton(fcm);
 
         if (!string.IsNullOrWhiteSpace(fcm.ProjectId) && !string.IsNullOrWhiteSpace(fcm.ServiceAccountJson))

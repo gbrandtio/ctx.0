@@ -250,8 +250,8 @@ implementations shipped by each feature, and one consumer resolving the set.
 
 ## Configuration
 
-Settings come from configuration sections bound at startup, including the JWT signing key,
-envelope keys and rate limits. `AddCtxSecurity` refuses to start when the signing key is
+Settings are read from `CAPITAL_SNAKE_CASE` environment variables at startup, including the
+JWT signing key, envelope keys and rate limits. `AddCtxSecurity` refuses to start when the signing key is
 shorter than 32 characters, and points at `ctx0 keygen`. Failing at boot rather than at the
 first signed token means a misconfigured workspace cannot serve traffic.
 

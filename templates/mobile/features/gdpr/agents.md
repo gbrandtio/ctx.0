@@ -10,7 +10,7 @@ the consent banner and the Privacy screen.
   it renders above every route *including the login screen* — that is why it uses
   that anchor rather than `home-wrap`, which sits inside the auth gate.
 - Re-prompting is driven by the notice version: the cubit compares the stored
-  decision's `policyVersion` with the server's `Gdpr__PolicyVersion`. Bumping that
+  decision's `policyVersion` with the server's `GDPR_POLICY_VERSION`. Bumping that
   setting is how a changed privacy notice reaches every user.
 - `bloc/privacy_cubit.dart` owns the two long actions. The export is built on the
   server, so it requests a job, polls until it is ready, downloads it with the

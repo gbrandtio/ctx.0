@@ -17,17 +17,17 @@ import crypto from 'node:crypto';
  */
 export interface ServerSecrets {
   /** P-256 private scalar, 32 raw bytes, base64. */
-  Ctx__Ale__PrivateKey: string;
+  CTX_ALE_PRIVATE_KEY: string;
   /** P-256 public point, uncompressed (0x04 || X || Y), 65 raw bytes, base64. */
-  Ctx__Ale__PublicKey: string;
+  CTX_ALE_PUBLIC_KEY: string;
   /** 48 random bytes, base64. */
-  Ctx__Jwt__SigningKey: string;
+  CTX_JWT_SIGNING_KEY: string;
   /** Key-encryption key version 1: 32 random bytes, base64. */
-  Ctx__Envelope__Keks__1: string;
+  CTX_ENVELOPE_KEKS_1: string;
   /** The KEK version envelope encryption writes with. */
-  Ctx__Envelope__ActiveKekVersion: string;
+  CTX_ENVELOPE_ACTIVE_KEK_VERSION: string;
   /** Blind-index HMAC key: 32 random bytes, base64. */
-  Ctx__Envelope__BlindIndexKey: string;
+  CTX_ENVELOPE_BLIND_INDEX_KEY: string;
 }
 
 /**
@@ -50,12 +50,12 @@ export function generateServerSecrets(): ServerSecrets {
   const uncompressed = Buffer.concat([Buffer.from([0x04]), leftPad(x, 32), leftPad(y, 32)]);
 
   return {
-    Ctx__Ale__PrivateKey: leftPad(d, 32).toString('base64'),
-    Ctx__Ale__PublicKey: uncompressed.toString('base64'),
-    Ctx__Jwt__SigningKey: crypto.randomBytes(48).toString('base64'),
-    Ctx__Envelope__Keks__1: crypto.randomBytes(32).toString('base64'),
-    Ctx__Envelope__ActiveKekVersion: '1',
-    Ctx__Envelope__BlindIndexKey: crypto.randomBytes(32).toString('base64'),
+    CTX_ALE_PRIVATE_KEY: leftPad(d, 32).toString('base64'),
+    CTX_ALE_PUBLIC_KEY: uncompressed.toString('base64'),
+    CTX_JWT_SIGNING_KEY: crypto.randomBytes(48).toString('base64'),
+    CTX_ENVELOPE_KEKS_1: crypto.randomBytes(32).toString('base64'),
+    CTX_ENVELOPE_ACTIVE_KEK_VERSION: '1',
+    CTX_ENVELOPE_BLIND_INDEX_KEY: crypto.randomBytes(32).toString('base64'),
   };
 }
 

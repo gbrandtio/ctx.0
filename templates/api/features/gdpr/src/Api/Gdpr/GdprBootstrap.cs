@@ -10,7 +10,7 @@ namespace CtxApp.Api.Gdpr;
 
 /// <summary>
 /// Registration surface for the privacy feature. The base <c>Program.cs</c> calls
-/// <see cref="AddCtxGdpr"/> during service configuration: it binds
+/// <see cref="AddCtxGdpr"/> during service configuration: it reads
 /// <see cref="GdprOptions"/>, declares per-user RLS isolation for the consent and
 /// export tables, and wires the archive store, exporter, eraser and background
 /// export runner.
@@ -22,8 +22,7 @@ public static class GdprBootstrap
         services.AddSingleton(new RlsPolicy("consent_records", "UserId"));
         services.AddSingleton(new RlsPolicy("data_export_jobs", "UserId"));
 
-        var options = new GdprOptions();
-        configuration.GetSection(GdprOptions.Section).Bind(options);
+        var options = GdprOptions.FromConfiguration(configuration);
         services.AddSingleton(options);
 
         // Replaces the security plane's request-bound ICurrentUser with one that

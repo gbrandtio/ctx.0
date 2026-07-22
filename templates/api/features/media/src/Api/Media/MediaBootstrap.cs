@@ -11,7 +11,7 @@ namespace CtxApp.Api.Media;
 /// <summary>
 /// Registration surface for the media feature. The base <c>Program.cs</c> calls
 /// <see cref="AddCtxMedia"/> during service configuration: it declares per-user
-/// RLS isolation for the media table, binds <see cref="MediaOptions"/>, wires the
+/// RLS isolation for the media table, reads <see cref="MediaOptions"/>, wires the
 /// filesystem blob store (encrypted at rest via the security plane), and declares
 /// the personal data the feature holds.
 /// </summary>
@@ -21,8 +21,7 @@ public static class MediaBootstrap
     {
         services.AddSingleton(new RlsPolicy("media", "UserId"));
 
-        var options = new MediaOptions();
-        configuration.GetSection(MediaOptions.Section).Bind(options);
+        var options = MediaOptions.FromConfiguration(configuration);
         services.AddSingleton(options);
 
         services.AddSingleton<IBlobStore, LocalBlobStore>();

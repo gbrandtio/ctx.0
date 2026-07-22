@@ -10,13 +10,13 @@
     "import": "../features/notifications/views/notifications_page.dart"
   },
   "env": [
-    "Notifications__Fcm__ProjectId — Firebase project id; unset means pushes are logged, not delivered.",
-    "Notifications__Fcm__ServiceAccountJson — service-account key JSON (inline or file path); unset means pushes are logged, not delivered."
+    "NOTIFICATIONS_FCM_PROJECT_ID — Firebase project id; unset means pushes are logged, not delivered.",
+    "NOTIFICATIONS_FCM_SERVICE_ACCOUNT_JSON — service-account key JSON (inline or file path); unset means pushes are logged, not delivered."
   ],
   "userSteps": [
     "Push is optional: with no FCM config the API logs pushes and the app skips device registration — in-app notifications work either way.",
     "To enable push, create a Firebase project, add the Android/iOS apps, and place google-services.json / GoogleService-Info.plist into the app per the FlutterFire setup.",
-    "Set Notifications__Fcm__ProjectId and Notifications__Fcm__ServiceAccountJson on the API to deliver through FCM.",
+    "Set NOTIFICATIONS_FCM_PROJECT_ID and NOTIFICATIONS_FCM_SERVICE_ACCOUNT_JSON on the API to deliver through FCM.",
     "In production apply the schema and RLS with `dotnet ef database update`; in Development the app creates them at startup."
   ],
   "wiring": [

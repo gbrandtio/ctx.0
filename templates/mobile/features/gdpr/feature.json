@@ -10,14 +10,14 @@
     "import": "../features/gdpr/views/privacy_page.dart"
   },
   "env": [
-    "Gdpr__ExportRoot — filesystem directory for export archives (default ./_exports); archives are envelope-encrypted at rest.",
-    "Gdpr__ExportTtlHours — how long a completed export stays downloadable (default 168 = 7 days).",
-    "Gdpr__PolicyVersion — the privacy-notice version in force (default 1); the app re-prompts when a user's recorded consent names a different one."
+    "GDPR_EXPORT_ROOT — filesystem directory for export archives (default ./_exports); archives are envelope-encrypted at rest.",
+    "GDPR_EXPORT_TTL_HOURS — how long a completed export stays downloadable (default 168 = 7 days).",
+    "GDPR_POLICY_VERSION — the privacy-notice version in force (default 1); the app re-prompts when a user's recorded consent names a different one."
   ],
   "userSteps": [
-    "Write your privacy notice and set Gdpr__PolicyVersion; bump it whenever the notice changes so every user is asked again.",
+    "Write your privacy notice and set GDPR_POLICY_VERSION; bump it whenever the notice changes so every user is asked again.",
     "Export and erasure cover the features enabled in this workspace via IPersonalDataContributor — any feature you add yourself must register one to be included.",
-    "The export archives live under Gdpr__ExportRoot on the API host; for multi-instance deployments back it with shared storage and replace the in-process export queue.",
+    "The export archives live under GDPR_EXPORT_ROOT on the API host; for multi-instance deployments back it with shared storage and replace the in-process export queue.",
     "In production apply the schema and RLS with `dotnet ef database update`; in Development the app creates them at startup."
   ],
   "wiring": [

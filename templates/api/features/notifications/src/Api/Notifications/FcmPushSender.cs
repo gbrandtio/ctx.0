@@ -3,20 +3,30 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using CtxApp.Application.Notifications;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace CtxApp.Api.Notifications;
 
-/// <summary>Options for FCM delivery, bound from the <c>Notifications:Fcm</c> section.</summary>
+/// <summary>Options for FCM delivery, read from the <c>NOTIFICATIONS_FCM_*</c> environment variables.</summary>
 public sealed class FcmOptions
 {
-    public const string Section = "Notifications:Fcm";
-
     /// <summary>Firebase project id. When empty, push falls back to the logging sender.</summary>
     public string ProjectId { get; set; } = string.Empty;
 
     /// <summary>Service-account key: the JSON content inline, or a path to the JSON file.</summary>
     public string ServiceAccountJson { get; set; } = string.Empty;
+
+    /// <summary>Read the options from the <c>NOTIFICATIONS_FCM_*</c> environment variables, falling back to defaults.</summary>
+    public static FcmOptions FromConfiguration(IConfiguration configuration)
+    {
+        var defaults = new FcmOptions();
+        return new FcmOptions
+        {
+            ProjectId = configuration["NOTIFICATIONS_FCM_PROJECT_ID"] ?? defaults.ProjectId,
+            ServiceAccountJson = configuration["NOTIFICATIONS_FCM_SERVICE_ACCOUNT_JSON"] ?? defaults.ServiceAccountJson,
+        };
+    }
 }
 
 /// <summary>
@@ -26,7 +36,7 @@ public sealed class FcmOptions
 /// exchanges it for a short-lived OAuth2 access token (cached until it nears
 /// expiry), and posts one message per device token. Activated by
 /// <see cref="NotificationsBootstrap.AddCtxNotifications"/> when
-/// <c>Notifications:Fcm:ProjectId</c> is configured.
+/// <c>NOTIFICATIONS_FCM_PROJECT_ID</c> is configured.
 /// </summary>
 public sealed class FcmPushSender : IPushSender
 {

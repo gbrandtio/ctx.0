@@ -53,8 +53,8 @@ public class MediaRlsStorageTests : IAsyncLifetime
         {
             TestConfig.Apply(builder);
             builder.UseEnvironment("Development"); // creates schema + RLS policies at startup
-            builder.UseSetting("ConnectionStrings:Default", appConnectionString);
-            builder.UseSetting("Media:Root", _mediaRoot);
+            builder.UseSetting("CONNECTION_STRINGS_DEFAULT", appConnectionString);
+            builder.UseSetting("MEDIA_ROOT", _mediaRoot);
         });
         _client = _factory.CreateClient();
     }

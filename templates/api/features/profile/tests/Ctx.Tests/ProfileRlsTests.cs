@@ -50,7 +50,7 @@ public class ProfileRlsTests : IAsyncLifetime
         {
             TestConfig.Apply(builder);
             builder.UseEnvironment("Development"); // creates schema + RLS policies at startup
-            builder.UseSetting("ConnectionStrings:Default", appConnectionString);
+            builder.UseSetting("CONNECTION_STRINGS_DEFAULT", appConnectionString);
         });
         _client = _factory.CreateClient();
     }

@@ -56,7 +56,7 @@ public class NotificationsRlsPushTests : IAsyncLifetime
         {
             TestConfig.Apply(builder);
             builder.UseEnvironment("Development"); // creates schema + RLS policies at startup
-            builder.UseSetting("ConnectionStrings:Default", appConnectionString);
+            builder.UseSetting("CONNECTION_STRINGS_DEFAULT", appConnectionString);
             builder.ConfigureTestServices(services => services.AddSingleton<IPushSender>(_push));
         });
         _client = _factory.CreateClient();

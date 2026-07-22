@@ -60,9 +60,9 @@ public class GdprPrivacyTests : IAsyncLifetime
         {
             TestConfig.Apply(builder);
             builder.UseEnvironment("Development"); // creates schema + RLS policies at startup
-            builder.UseSetting("ConnectionStrings:Default", appConnectionString);
-            builder.UseSetting("Gdpr:ExportRoot", _exportRoot);
-            builder.UseSetting("Gdpr:PolicyVersion", "2024-11-01");
+            builder.UseSetting("CONNECTION_STRINGS_DEFAULT", appConnectionString);
+            builder.UseSetting("GDPR_EXPORT_ROOT", _exportRoot);
+            builder.UseSetting("GDPR_POLICY_VERSION", "2024-11-01");
         });
         _client = _factory.CreateClient();
     }

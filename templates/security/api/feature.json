@@ -4,16 +4,16 @@
   "sides": ["api"],
   "core": true,
   "env": [
-    "ConnectionStrings__Default",
-    "Ctx__Ale__PrivateKey",
-    "Ctx__Ale__PublicKey",
-    "Ctx__Jwt__SigningKey",
-    "Ctx__Envelope__Keks__1",
-    "Ctx__Envelope__ActiveKekVersion",
-    "Ctx__Envelope__BlindIndexKey"
+    "CONNECTION_STRINGS_DEFAULT",
+    "CTX_ALE_PRIVATE_KEY",
+    "CTX_ALE_PUBLIC_KEY",
+    "CTX_JWT_SIGNING_KEY",
+    "CTX_ENVELOPE_KEKS_1",
+    "CTX_ENVELOPE_ACTIVE_KEK_VERSION",
+    "CTX_ENVELOPE_BLIND_INDEX_KEY"
   ],
   "userSteps": [
-    "Set ConnectionStrings__Default to your PostgreSQL instance (docker compose up starts one).",
-    "Generate secrets with `ctx0 keygen` and set the printed Ctx__Ale__*, Ctx__Jwt__* and Ctx__Envelope__* variables via the environment."
+    "Set CONNECTION_STRINGS_DEFAULT to your PostgreSQL instance (docker compose up starts one).",
+    "Generate secrets with `ctx0 keygen` and set the printed CTX_ALE_*, CTX_JWT_* and CTX_ENVELOPE_* variables via the environment."
   ]
 }

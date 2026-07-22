@@ -30,7 +30,7 @@ public class PingRoundTripTests : IClassFixture<WebApplicationFactory<Program>>
             // RLS startup initializer from touching one.
             builder.UseEnvironment("Production");
             TestConfig.Apply(builder);
-            builder.UseSetting("ConnectionStrings:Default", "Host=localhost;Database=ctxapp;Username=ctxapp;Password=x");
+            builder.UseSetting("CONNECTION_STRINGS_DEFAULT", "Host=localhost;Database=ctxapp;Username=ctxapp;Password=x");
         });
     }
 

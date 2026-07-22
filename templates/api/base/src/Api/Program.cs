@@ -15,7 +15,7 @@ builder.Services.AddCtxLocalization();
 // --- Persistence (EF Core code-first, PostgreSQL) with the RLS interceptor ---
 builder.Services.AddDbContext<CtxAppDbContext>((sp, options) =>
     options
-        .UseNpgsql(builder.Configuration.GetConnectionString("Default"))
+        .UseNpgsql(builder.Configuration["CONNECTION_STRINGS_DEFAULT"])
         .AddInterceptors(sp.GetServices<Microsoft.EntityFrameworkCore.Diagnostics.IInterceptor>()));
 
 builder.Services.AddScoped<CtxApp.Application.Abstractions.IUnitOfWork, CtxApp.Infrastructure.Persistence.UnitOfWork>();

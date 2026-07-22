@@ -6,7 +6,7 @@ namespace CtxApp.Api.Notifications;
 /// <summary>
 /// The default <see cref="IPushSender"/>, used when no FCM credentials are
 /// configured. It logs the intended delivery instead of sending, so the API runs
-/// and its tests pass end to end offline. Set <c>Notifications:Fcm:*</c> to switch
+/// and its tests pass end to end offline. Set <c>NOTIFICATIONS_FCM_*</c> to switch
 /// to real delivery via <see cref="FcmPushSender"/>.
 /// </summary>
 public sealed class LoggingPushSender(ILogger<LoggingPushSender> logger) : IPushSender

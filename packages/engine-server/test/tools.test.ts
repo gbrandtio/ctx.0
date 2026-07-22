@@ -130,13 +130,13 @@ describe('calls', () => {
       secrets: Record<string, string>;
     };
 
-    expect(Buffer.from(secrets.Ctx__Ale__PrivateKey!, 'base64')).toHaveLength(32);
-    const pub = Buffer.from(secrets.Ctx__Ale__PublicKey!, 'base64');
+    expect(Buffer.from(secrets.CTX_ALE_PRIVATE_KEY!, 'base64')).toHaveLength(32);
+    const pub = Buffer.from(secrets.CTX_ALE_PUBLIC_KEY!, 'base64');
     expect(pub).toHaveLength(65);
     expect(pub[0]).toBe(0x04);
-    expect(Buffer.from(secrets.Ctx__Jwt__SigningKey!, 'base64')).toHaveLength(48);
-    expect(Buffer.from(secrets.Ctx__Envelope__Keks__1!, 'base64')).toHaveLength(32);
-    expect(secrets.Ctx__Envelope__ActiveKekVersion).toBe('1');
-    expect(Buffer.from(secrets.Ctx__Envelope__BlindIndexKey!, 'base64')).toHaveLength(32);
+    expect(Buffer.from(secrets.CTX_JWT_SIGNING_KEY!, 'base64')).toHaveLength(48);
+    expect(Buffer.from(secrets.CTX_ENVELOPE_KEKS_1!, 'base64')).toHaveLength(32);
+    expect(secrets.CTX_ENVELOPE_ACTIVE_KEK_VERSION).toBe('1');
+    expect(Buffer.from(secrets.CTX_ENVELOPE_BLIND_INDEX_KEY!, 'base64')).toHaveLength(32);
   });
 });

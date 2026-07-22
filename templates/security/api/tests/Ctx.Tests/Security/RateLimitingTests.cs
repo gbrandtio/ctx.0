@@ -16,9 +16,9 @@ public class RateLimitingTests : IClassFixture<WebApplicationFactory<Program>>
         {
             builder.UseEnvironment("Production"); // no database needed for /health
             TestConfig.Apply(builder);
-            builder.UseSetting("Ctx:RateLimit:PermitLimit", "3");
-            builder.UseSetting("Ctx:RateLimit:WindowSeconds", "60");
-            builder.UseSetting("ConnectionStrings:Default", "Host=localhost;Database=ctxapp;Username=ctxapp;Password=x");
+            builder.UseSetting("CTX_RATE_LIMIT_PERMIT_LIMIT", "3");
+            builder.UseSetting("CTX_RATE_LIMIT_WINDOW_SECONDS", "60");
+            builder.UseSetting("CONNECTION_STRINGS_DEFAULT", "Host=localhost;Database=ctxapp;Username=ctxapp;Password=x");
         });
     }
 

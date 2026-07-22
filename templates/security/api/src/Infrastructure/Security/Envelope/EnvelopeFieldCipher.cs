@@ -21,13 +21,13 @@ public sealed class EnvelopeFieldCipher : IFieldCipher
     {
         if (options.Keks.Count == 0)
         {
-            throw new InvalidOperationException("Ctx:Envelope:Keks is not configured. Run `ctx0 keygen`.");
+            throw new InvalidOperationException("CTX_ENVELOPE_KEKS_1 is not configured. Run `ctx0 keygen`.");
         }
         _keks = options.Keks.ToDictionary(kv => kv.Key, kv => DecodeKek(kv.Key, kv.Value));
         _activeVersion = options.ActiveKekVersion;
         if (!_keks.TryGetValue(_activeVersion, out var active))
         {
-            throw new InvalidOperationException($"Ctx:Envelope:ActiveKekVersion '{_activeVersion}' has no configured KEK.");
+            throw new InvalidOperationException($"CTX_ENVELOPE_ACTIVE_KEK_VERSION '{_activeVersion}' has no configured KEK.");
         }
         _activeKek = active;
     }

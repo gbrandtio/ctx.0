@@ -13,9 +13,9 @@ storing user **binaries** (files, images). Follow it when adding similar storage
   row-level policy + the per-request `app.user_id` GUC, never hand-filter.
 - **Never trust a client path or key.** Storage keys are server-minted 32-char
   hex GUIDs; `LocalBlobStore` rejects anything else so a key cannot escape the
-  configured `Media__Root`.
-- Uploads are validated against `Media__MaxBytes` and the optional
-  `Media__AllowedContentTypes` allowlist before anything is written.
+  configured `MEDIA_ROOT`.
+- Uploads are validated against `MEDIA_MAX_BYTES` and the optional
+  `MEDIA_ALLOWED_CONTENT_TYPES_*` allowlist before anything is written.
 - Registration + RLS policy live in `MediaBootstrap.AddCtxMedia`; endpoints in
   `MediaEndpoints.cs`; entity + EF config under `Domain/Media` and
   `Persistence/Configurations`. Add a migration for schema changes.

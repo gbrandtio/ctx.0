@@ -31,12 +31,11 @@ public static class SecurityBootstrap
 {
     public static IServiceCollection AddCtxSecurity(this IServiceCollection services, IConfiguration config)
     {
-        var jwt = new JwtOptions();
-        config.GetSection(JwtOptions.Section).Bind(jwt);
+        var jwt = JwtOptions.FromConfiguration(config);
         if (jwt.SigningKey.Length < 32)
         {
             throw new InvalidOperationException(
-                "Ctx:Jwt:SigningKey must be at least 32 characters. Run `ctx0 keygen`.");
+                "CTX_JWT_SIGNING_KEY must be at least 32 characters. Run `ctx0 keygen`.");
         }
 
         services.AddSingleton(jwt);
@@ -54,8 +53,7 @@ public static class SecurityBootstrap
         services.AddSingleton<IAleKeyProvider, ConfigAleKeyProvider>();
 
         // Encryption at rest: envelope encryption + blind indexes.
-        var envelope = new EnvelopeOptions();
-        config.GetSection(EnvelopeOptions.Section).Bind(envelope);
+        var envelope = EnvelopeOptions.FromConfiguration(config);
         services.AddSingleton(envelope);
         services.AddSingleton<IFieldCipher, EnvelopeFieldCipher>();
         services.AddSingleton<IBlindIndex, HmacBlindIndex>();
@@ -84,8 +82,7 @@ public static class SecurityBootstrap
         services.AddAuthorization();
 
         // Rate limiting: per authenticated user, else per client IP.
-        var rate = new RateLimitOptions();
-        config.GetSection(RateLimitOptions.Section).Bind(rate);
+        var rate = RateLimitOptions.FromConfiguration(config);
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;

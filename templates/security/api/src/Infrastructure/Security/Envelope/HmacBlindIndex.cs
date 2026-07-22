@@ -13,7 +13,7 @@ public sealed class HmacBlindIndex : IBlindIndex
     {
         if (string.IsNullOrEmpty(options.BlindIndexKey))
         {
-            throw new InvalidOperationException("Ctx:Envelope:BlindIndexKey is not configured. Run `ctx0 keygen`.");
+            throw new InvalidOperationException("CTX_ENVELOPE_BLIND_INDEX_KEY is not configured. Run `ctx0 keygen`.");
         }
         _key = Convert.FromBase64String(options.BlindIndexKey);
     }
