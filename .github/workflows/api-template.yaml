@@ -1,0 +1,43 @@
+name: API Template
+
+# Composes a workspace with every API feature and builds it, so a template that
+# no longer compiles fails here rather than in a generated project.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-template-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      # templates/api targets net9.0.
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      # The test skips itself when the SDK is missing, which would turn a broken
+      # setup step into a green run. Fail loudly instead.
+      - name: Verify the .NET SDK is on PATH
+        run: dotnet --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the composed API
+        run: npm run test:api

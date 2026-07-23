@@ -21,12 +21,14 @@ class ProfileData {
   final DateTime? updatedAt;
 
   factory ProfileData.fromJson(Map<String, dynamic> json) => ProfileData(
-        displayName: (json['displayName'] as String?) ?? '',
-        bio: json['bio'] as String?,
-        avatarUrl: json['avatarUrl'] as String?,
-        avatarMediaId: json['avatarMediaId'] as String?,
-        updatedAt: json['updatedAt'] == null ? null : DateTime.parse(json['updatedAt'] as String),
-      );
+    displayName: (json['displayName'] as String?) ?? '',
+    bio: json['bio'] as String?,
+    avatarUrl: json['avatarUrl'] as String?,
+    avatarMediaId: json['avatarMediaId'] as String?,
+    updatedAt: json['updatedAt'] == null
+        ? null
+        : DateTime.parse(json['updatedAt'] as String),
+  );
 }
 
 /// Raised when a profile request fails.
@@ -40,7 +42,11 @@ class ProfileException implements Exception {
 /// Reads and updates the signed-in user's profile.
 abstract class ProfileRepository {
   Future<ProfileData> get();
-  Future<ProfileData> update({required String displayName, String? bio, String? avatarUrl});
+  Future<ProfileData> update({
+    required String displayName,
+    String? bio,
+    String? avatarUrl,
+  });
 }
 
 /// [ProfileRepository] backed by the JWT-protected `/v1/profile` endpoints. The
@@ -49,8 +55,13 @@ abstract class ProfileRepository {
 /// ALE `secureSend` client, which carries no user identity).
 class HttpProfileRepository implements ProfileRepository {
   HttpProfileRepository(this._tokens, {String? baseUrl, http.Client? client})
-      : _baseUrl = baseUrl ?? const String.fromEnvironment('CTX_API_BASE_URL', defaultValue: 'http://localhost:5080'),
-        _http = client ?? http.Client();
+    : _baseUrl =
+          baseUrl ??
+          const String.fromEnvironment(
+            'CTX_API_BASE_URL',
+            defaultValue: 'http://localhost:5080',
+          ),
+      _http = client ?? http.Client();
 
   final TokenStore _tokens;
   final String _baseUrl;
@@ -58,16 +69,27 @@ class HttpProfileRepository implements ProfileRepository {
 
   @override
   Future<ProfileData> get() async {
-    final response = await _http.get(Uri.parse('$_baseUrl/v1/profile/'), headers: await _headers());
+    final response = await _http.get(
+      Uri.parse('$_baseUrl/v1/profile/'),
+      headers: await _headers(),
+    );
     return ProfileData.fromJson(_decode(response));
   }
 
   @override
-  Future<ProfileData> update({required String displayName, String? bio, String? avatarUrl}) async {
+  Future<ProfileData> update({
+    required String displayName,
+    String? bio,
+    String? avatarUrl,
+  }) async {
     final response = await _http.put(
       Uri.parse('$_baseUrl/v1/profile/'),
       headers: await _headers(),
-      body: jsonEncode({'displayName': displayName, 'bio': bio, 'avatarUrl': avatarUrl}),
+      body: jsonEncode({
+        'displayName': displayName,
+        'bio': bio,
+        'avatarUrl': avatarUrl,
+      }),
     );
     return ProfileData.fromJson(_decode(response));
   }
@@ -75,7 +97,10 @@ class HttpProfileRepository implements ProfileRepository {
   Future<Map<String, String>> _headers() async {
     final token = await _tokens.readAccessToken();
     if (token == null) throw const ProfileException('Not signed in');
-    return {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'};
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
   }
 
   Map<String, dynamic> _decode(http.Response response) {

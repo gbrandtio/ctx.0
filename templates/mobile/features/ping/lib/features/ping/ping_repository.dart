@@ -8,7 +8,9 @@ class PingRepository {
 
   /// Send [message] and return the server's echo.
   Future<String> ping(String message) async {
-    final reply = await _client.secureSend('POST', '/v1/ping', {'message': message});
+    final reply = await _client.secureSend('POST', '/v1/ping', {
+      'message': message,
+    });
     return reply['echo'] as String;
   }
 }

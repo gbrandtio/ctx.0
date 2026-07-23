@@ -13,7 +13,9 @@ Map<String, dynamic> loadGoldenVectors() {
     }
     final parent = dir.parent;
     if (parent.path == dir.path) {
-      throw StateError('Could not locate .ctx/vectors.json above ${Directory.current.path}');
+      throw StateError(
+        'Could not locate .ctx/vectors.json above ${Directory.current.path}',
+      );
     }
     dir = parent;
   }

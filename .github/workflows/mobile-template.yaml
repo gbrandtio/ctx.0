@@ -1,0 +1,47 @@
+name: Mobile Template
+
+# Two guards over the Flutter side: the template .dart sources stay formatted,
+# and a workspace composed with every mobile feature analyzes cleanly.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-template-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      # Pinned because the formatter's style moves between releases, and an
+      # unpinned upgrade would rewrite every template file. This release ships
+      # Dart 3.12.2, which is the SDK floor the generated app declares.
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.7'
+          channel: stable
+          cache: true
+
+      # The tests skip themselves when the SDK is missing, which would turn a
+      # broken setup step into a green run. Fail loudly instead.
+      - name: Verify the Flutter SDK is on PATH
+        run: flutter --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Format check and analyze the composed app
+        run: npm run test:mobile

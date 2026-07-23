@@ -67,7 +67,11 @@ void main() {
           200,
         );
       });
-      final repo = HttpAuthRepository(store, baseUrl: 'http://api', client: client);
+      final repo = HttpAuthRepository(
+        store,
+        baseUrl: 'http://api',
+        client: client,
+      );
 
       await repo.login('a@b.com', 'password1');
 
@@ -79,13 +83,25 @@ void main() {
 
     test('a failure surfaces the server error and stores nothing', () async {
       final store = InMemoryTokenStore();
-      final client = MockClient((request) async =>
-          http.Response(jsonEncode({'error': 'Invalid credentials.'}), 401));
-      final repo = HttpAuthRepository(store, baseUrl: 'http://api', client: client);
+      final client = MockClient(
+        (request) async =>
+            http.Response(jsonEncode({'error': 'Invalid credentials.'}), 401),
+      );
+      final repo = HttpAuthRepository(
+        store,
+        baseUrl: 'http://api',
+        client: client,
+      );
 
       await expectLater(
         repo.login('a@b.com', 'wrong'),
-        throwsA(isA<AuthException>().having((e) => e.message, 'message', 'Invalid credentials.')),
+        throwsA(
+          isA<AuthException>().having(
+            (e) => e.message,
+            'message',
+            'Invalid credentials.',
+          ),
+        ),
       );
       expect(await repo.hasSession(), isFalse);
     });
@@ -95,10 +111,16 @@ void main() {
       String? revoked;
       final client = MockClient((request) async {
         expect(request.url.path, '/v1/auth/logout');
-        revoked = (jsonDecode(request.body) as Map<String, dynamic>)['refreshToken'] as String;
+        revoked =
+            (jsonDecode(request.body) as Map<String, dynamic>)['refreshToken']
+                as String;
         return http.Response('', 204);
       });
-      final repo = HttpAuthRepository(store, baseUrl: 'http://api', client: client);
+      final repo = HttpAuthRepository(
+        store,
+        baseUrl: 'http://api',
+        client: client,
+      );
 
       await repo.logout();
 
@@ -106,15 +128,24 @@ void main() {
       expect(await repo.hasSession(), isFalse);
     });
 
-    test('logout still ends the local session when the API is unreachable', () async {
-      final store = signedIn(inMinutes: 10);
-      final client = MockClient((_) async => throw const SocketException('offline'));
-      final repo = HttpAuthRepository(store, baseUrl: 'http://api', client: client);
+    test(
+      'logout still ends the local session when the API is unreachable',
+      () async {
+        final store = signedIn(inMinutes: 10);
+        final client = MockClient(
+          (_) async => throw const SocketException('offline'),
+        );
+        final repo = HttpAuthRepository(
+          store,
+          baseUrl: 'http://api',
+          client: client,
+        );
 
-      await repo.logout();
+        await repo.logout();
 
-      expect(store.access, isNull);
-      expect(store.refresh, isNull);
-    });
+        expect(store.access, isNull);
+        expect(store.refresh, isNull);
+      },
+    );
   });
 }

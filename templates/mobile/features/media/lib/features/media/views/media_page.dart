@@ -29,10 +29,10 @@ class _MediaPageState extends State<MediaPage> {
     if (picked == null || !mounted) return;
     final bytes = await picked.readAsBytes();
     await context.read<MediaCubit>().upload(
-          fileName: picked.name,
-          contentType: picked.mimeType ?? 'application/octet-stream',
-          bytes: bytes,
-        );
+      fileName: picked.name,
+      contentType: picked.mimeType ?? 'application/octet-stream',
+      bytes: bytes,
+    );
   }
 
   @override
@@ -44,7 +44,11 @@ class _MediaPageState extends State<MediaPage> {
         builder: (context, state) => FloatingActionButton(
           onPressed: state.uploading ? null : _pickAndUpload,
           child: state.uploading
-              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
               : const Icon(Icons.upload_file),
         ),
       ),
@@ -55,7 +59,10 @@ class _MediaPageState extends State<MediaPage> {
           }
           if (state.status == MediaStatus.failure && state.items.isEmpty) {
             return Center(
-              child: Text(l.commonError(state.error ?? ''), style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                l.commonError(state.error ?? ''),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             );
           }
           if (state.items.isEmpty) {
@@ -68,7 +75,9 @@ class _MediaPageState extends State<MediaPage> {
               itemBuilder: (context, i) {
                 final item = state.items[i];
                 return ListTile(
-                  leading: Icon(item.isImage ? Icons.image : Icons.insert_drive_file),
+                  leading: Icon(
+                    item.isImage ? Icons.image : Icons.insert_drive_file,
+                  ),
                   title: Text(item.fileName),
                   subtitle: Text(_formatSize(item.sizeBytes)),
                   trailing: IconButton(

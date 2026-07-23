@@ -39,7 +39,10 @@ class FakePrivacyRepository implements PrivacyRepository {
   }
 
   @override
-  Future<ConsentStatus> recordConsent({required String policyVersion, required Set<String> purposes}) async {
+  Future<ConsentStatus> recordConsent({
+    required String policyVersion,
+    required Set<String> purposes,
+  }) async {
     if (!signedIn) throw const PrivacyException('Not signed in');
     recorded.add(purposes);
     return ConsentStatus(
@@ -51,17 +54,22 @@ class FakePrivacyRepository implements PrivacyRepository {
   }
 
   @override
-  Future<({ExportJob job, String downloadToken})> requestExport() async => throw UnimplementedError();
-
-  @override
-  Future<ExportJob> exportStatus(String jobId) async => throw UnimplementedError();
-
-  @override
-  Future<Uint8List> downloadExport({required String jobId, required String downloadToken}) async =>
+  Future<({ExportJob job, String downloadToken})> requestExport() async =>
       throw UnimplementedError();
 
   @override
-  Future<void> deleteAccount({required String password}) async => throw UnimplementedError();
+  Future<ExportJob> exportStatus(String jobId) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<Uint8List> downloadExport({
+    required String jobId,
+    required String downloadToken,
+  }) async => throw UnimplementedError();
+
+  @override
+  Future<void> deleteAccount({required String password}) async =>
+      throw UnimplementedError();
 }
 
 void main() {
@@ -79,12 +87,14 @@ void main() {
   blocTest<ConsentCubit, ConsentState>(
     're-prompts when the notice version has moved on',
     build: () => ConsentCubit(
-      FakeConsentStore(ConsentDecision(
-        policyVersion: '1',
-        purposes: const {'analytics'},
-        decidedAt: DateTime.utc(2024),
-        synced: true,
-      )),
+      FakeConsentStore(
+        ConsentDecision(
+          policyVersion: '1',
+          purposes: const {'analytics'},
+          decidedAt: DateTime.utc(2024),
+          synced: true,
+        ),
+      ),
       FakePrivacyRepository(policyVersion: '2'),
     ),
     act: (cubit) => cubit.load(),
@@ -111,23 +121,33 @@ void main() {
     ],
   );
 
-  test('a decision made while signed out is kept locally and synced on the next load', () async {
-    final store = FakeConsentStore();
-    final offline = ConsentCubit(store, FakePrivacyRepository(signedIn: false));
-    await offline.load();
-    await offline.essentialOnly();
+  test(
+    'a decision made while signed out is kept locally and synced on the next load',
+    () async {
+      final store = FakeConsentStore();
+      final offline = ConsentCubit(
+        store,
+        FakePrivacyRepository(signedIn: false),
+      );
+      await offline.load();
+      await offline.essentialOnly();
 
-    final stored = await store.read();
-    expect(stored, isNotNull);
-    expect(stored!.purposes, isEmpty);
-    expect(stored.synced, isFalse, reason: 'no session, so the server has not seen it yet');
+      final stored = await store.read();
+      expect(stored, isNotNull);
+      expect(stored!.purposes, isEmpty);
+      expect(
+        stored.synced,
+        isFalse,
+        reason: 'no session, so the server has not seen it yet',
+      );
 
-    final api = FakePrivacyRepository();
-    final signedIn = ConsentCubit(store, api);
-    await signedIn.load();
+      final api = FakePrivacyRepository();
+      final signedIn = ConsentCubit(store, api);
+      await signedIn.load();
 
-    expect(api.recorded, [<String>{}]);
-    expect((await store.read())!.synced, isTrue);
-    expect(signedIn.state.prompting, isFalse);
-  });
+      expect(api.recorded, [<String>{}]);
+      expect((await store.read())!.synced, isTrue);
+      expect(signedIn.state.prompting, isFalse);
+    },
+  );
 }

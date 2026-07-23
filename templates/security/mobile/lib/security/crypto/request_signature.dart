@@ -11,7 +11,12 @@ class RequestSignature {
   const RequestSignature._();
 
   /// Build the canonical string that is signed and verified.
-  static String canonical(String method, String pathAndQuery, String timestamp, Uint8List body) {
+  static String canonical(
+    String method,
+    String pathAndQuery,
+    String timestamp,
+    Uint8List body,
+  ) {
     final bodyHash = _hex(SHA256Digest().process(body));
     return [method.toUpperCase(), pathAndQuery, timestamp, bodyHash].join('\n');
   }
@@ -20,13 +25,23 @@ class RequestSignature {
   ///
   /// Uses deterministic ECDSA (RFC 6979) so signing needs no entropy source and
   /// is reproducible; the API verifier accepts it like any valid signature.
-  static String sign(Uint8List devicePrivateScalar, String method, String pathAndQuery, String timestamp, Uint8List body) {
+  static String sign(
+    Uint8List devicePrivateScalar,
+    String method,
+    String pathAndQuery,
+    String timestamp,
+    Uint8List body,
+  ) {
     final priv = P256.privateKeyFromScalar(devicePrivateScalar);
     final signer = ECDSASigner(SHA256Digest(), HMac(SHA256Digest(), 64));
     signer.init(true, PrivateKeyParameter<ECPrivateKey>(priv));
-    final sig = signer.generateSignature(
-      Uint8List.fromList(utf8.encode(canonical(method, pathAndQuery, timestamp, body))),
-    ) as ECSignature;
+    final sig =
+        signer.generateSignature(
+              Uint8List.fromList(
+                utf8.encode(canonical(method, pathAndQuery, timestamp, body)),
+              ),
+            )
+            as ECSignature;
     final r = P256.bigIntToBytes(sig.r, P256.fieldBytes);
     final s = P256.bigIntToBytes(_normalizeS(sig.s), P256.fieldBytes);
     return base64.encode(Uint8List.fromList([...r, ...s]));
@@ -55,7 +70,9 @@ class RequestSignature {
     final verifier = ECDSASigner(SHA256Digest());
     verifier.init(false, PublicKeyParameter<ECPublicKey>(pub));
     return verifier.verifySignature(
-      Uint8List.fromList(utf8.encode(canonical(method, pathAndQuery, timestamp, body))),
+      Uint8List.fromList(
+        utf8.encode(canonical(method, pathAndQuery, timestamp, body)),
+      ),
       ECSignature(r, s),
     );
   }

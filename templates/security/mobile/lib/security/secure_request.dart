@@ -10,7 +10,11 @@ import 'crypto/request_signature.dart';
 /// A fully-formed secure request: the headers and exact body bytes to send, plus
 /// the ALE key needed to open the response.
 class SecureRequest {
-  const SecureRequest({required this.headers, required this.body, required this.responseKey});
+  const SecureRequest({
+    required this.headers,
+    required this.body,
+    required this.responseKey,
+  });
 
   final Map<String, String> headers;
   final Uint8List body;
@@ -43,7 +47,13 @@ class SecureRequestBuilder {
       iv,
     );
     final body = Uint8List.fromList(utf8.encode(jsonEncode(envelope.toJson())));
-    final signature = RequestSignature.sign(deviceScalar, method, pathAndQuery, timestamp, body);
+    final signature = RequestSignature.sign(
+      deviceScalar,
+      method,
+      pathAndQuery,
+      timestamp,
+      body,
+    );
 
     return SecureRequest(
       headers: <String, String>{

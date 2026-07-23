@@ -14,8 +14,16 @@ class FakeProfileRepository implements ProfileRepository {
   Future<ProfileData> get() async => _data;
 
   @override
-  Future<ProfileData> update({required String displayName, String? bio, String? avatarUrl}) async {
-    _data = ProfileData(displayName: displayName, bio: bio, avatarUrl: avatarUrl);
+  Future<ProfileData> update({
+    required String displayName,
+    String? bio,
+    String? avatarUrl,
+  }) async {
+    _data = ProfileData(
+      displayName: displayName,
+      bio: bio,
+      avatarUrl: avatarUrl,
+    );
     return _data;
   }
 }
@@ -23,7 +31,9 @@ class FakeProfileRepository implements ProfileRepository {
 void main() {
   blocTest<ProfileCubit, ProfileState>(
     'load fetches the current profile',
-    build: () => ProfileCubit(FakeProfileRepository(const ProfileData(displayName: 'Ada'))),
+    build: () => ProfileCubit(
+      FakeProfileRepository(const ProfileData(displayName: 'Ada')),
+    ),
     act: (cubit) => cubit.load(),
     expect: () => [
       const ProfileState(status: ProfileStatus.loading),
@@ -35,7 +45,9 @@ void main() {
 
   blocTest<ProfileCubit, ProfileState>(
     'save updates the profile and emits it',
-    build: () => ProfileCubit(FakeProfileRepository(const ProfileData(displayName: 'Ada'))),
+    build: () => ProfileCubit(
+      FakeProfileRepository(const ProfileData(displayName: 'Ada')),
+    ),
     act: (cubit) => cubit.save(displayName: 'Ada Lovelace', bio: 'Analytical.'),
     expect: () => [
       const ProfileState(status: ProfileStatus.saving),

@@ -26,12 +26,12 @@ class MediaItem {
   bool get isImage => contentType.startsWith('image/');
 
   factory MediaItem.fromJson(Map<String, dynamic> json) => MediaItem(
-        id: json['id'] as String,
-        fileName: json['fileName'] as String,
-        contentType: json['contentType'] as String,
-        sizeBytes: (json['sizeBytes'] as num).toInt(),
-        createdAt: DateTime.parse(json['createdAt'] as String),
-      );
+    id: json['id'] as String,
+    fileName: json['fileName'] as String,
+    contentType: json['contentType'] as String,
+    sizeBytes: (json['sizeBytes'] as num).toInt(),
+    createdAt: DateTime.parse(json['createdAt'] as String),
+  );
 }
 
 /// Raised when a media request fails.
@@ -45,7 +45,11 @@ class MediaException implements Exception {
 /// Reads and mutates the signed-in user's stored files.
 abstract class MediaRepository {
   Future<List<MediaItem>> list();
-  Future<MediaItem> upload({required String fileName, required String contentType, required Uint8List bytes});
+  Future<MediaItem> upload({
+    required String fileName,
+    required String contentType,
+    required Uint8List bytes,
+  });
   Future<void> delete(String id);
 
   /// URL for the raw bytes of [id]; the request must still carry the bearer token.
@@ -58,8 +62,13 @@ abstract class MediaRepository {
 /// `secureSend` client, which carries no user identity).
 class HttpMediaRepository implements MediaRepository {
   HttpMediaRepository(this._tokens, {String? baseUrl, http.Client? client})
-      : _baseUrl = baseUrl ?? const String.fromEnvironment('CTX_API_BASE_URL', defaultValue: 'http://localhost:5080'),
-        _http = client ?? http.Client();
+    : _baseUrl =
+          baseUrl ??
+          const String.fromEnvironment(
+            'CTX_API_BASE_URL',
+            defaultValue: 'http://localhost:5080',
+          ),
+      _http = client ?? http.Client();
 
   final TokenStore _tokens;
   final String _baseUrl;
@@ -67,29 +76,42 @@ class HttpMediaRepository implements MediaRepository {
 
   @override
   Future<List<MediaItem>> list() async {
-    final response = await _http.get(Uri.parse('$_baseUrl/v1/media/'), headers: await _headers());
+    final response = await _http.get(
+      Uri.parse('$_baseUrl/v1/media/'),
+      headers: await _headers(),
+    );
     final json = _decode(response);
     final items = (json['items'] as List<dynamic>).cast<Map<String, dynamic>>();
     return items.map(MediaItem.fromJson).toList();
   }
 
   @override
-  Future<MediaItem> upload({required String fileName, required String contentType, required Uint8List bytes}) async {
-    final request = http.MultipartRequest('POST', Uri.parse('$_baseUrl/v1/media/'))
-      ..headers.addAll(await _headers())
-      ..files.add(http.MultipartFile.fromBytes(
-        'file',
-        bytes,
-        filename: fileName,
-        contentType: MediaType.parse(contentType),
-      ));
+  Future<MediaItem> upload({
+    required String fileName,
+    required String contentType,
+    required Uint8List bytes,
+  }) async {
+    final request =
+        http.MultipartRequest('POST', Uri.parse('$_baseUrl/v1/media/'))
+          ..headers.addAll(await _headers())
+          ..files.add(
+            http.MultipartFile.fromBytes(
+              'file',
+              bytes,
+              filename: fileName,
+              contentType: MediaType.parse(contentType),
+            ),
+          );
     final response = await http.Response.fromStream(await _http.send(request));
     return MediaItem.fromJson(_decode(response));
   }
 
   @override
   Future<void> delete(String id) async {
-    final response = await _http.delete(Uri.parse('$_baseUrl/v1/media/$id'), headers: await _headers());
+    final response = await _http.delete(
+      Uri.parse('$_baseUrl/v1/media/$id'),
+      headers: await _headers(),
+    );
     if (response.statusCode >= 400) {
       throw MediaException('Delete failed (${response.statusCode})');
     }

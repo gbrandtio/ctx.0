@@ -26,13 +26,12 @@ final class MediaState extends Equatable {
     List<MediaItem>? items,
     bool? uploading,
     String? error,
-  }) =>
-      MediaState(
-        status: status ?? this.status,
-        items: items ?? this.items,
-        uploading: uploading ?? this.uploading,
-        error: error,
-      );
+  }) => MediaState(
+    status: status ?? this.status,
+    items: items ?? this.items,
+    uploading: uploading ?? this.uploading,
+    error: error,
+  );
 
   @override
   List<Object?> get props => [status, items, uploading, error];
@@ -54,14 +53,34 @@ class MediaCubit extends Cubit<MediaState> {
     }
   }
 
-  Future<void> upload({required String fileName, required String contentType, required Uint8List bytes}) async {
+  Future<void> upload({
+    required String fileName,
+    required String contentType,
+    required Uint8List bytes,
+  }) async {
     emit(state.copyWith(uploading: true, error: null));
     try {
-      await _repository.upload(fileName: fileName, contentType: contentType, bytes: bytes);
+      await _repository.upload(
+        fileName: fileName,
+        contentType: contentType,
+        bytes: bytes,
+      );
       final items = await _repository.list();
-      emit(state.copyWith(status: MediaStatus.ready, items: items, uploading: false));
+      emit(
+        state.copyWith(
+          status: MediaStatus.ready,
+          items: items,
+          uploading: false,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(status: MediaStatus.failure, uploading: false, error: e.toString()));
+      emit(
+        state.copyWith(
+          status: MediaStatus.failure,
+          uploading: false,
+          error: e.toString(),
+        ),
+      );
     }
   }
 

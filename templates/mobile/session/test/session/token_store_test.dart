@@ -52,22 +52,31 @@ InMemoryTokenStore signedIn({required int inMinutes}) => InMemoryTokenStore()
   ..expires = DateTime.now().toUtc().add(Duration(minutes: inMinutes));
 
 String rotatedBody() => jsonEncode({
-      'accessToken': 'jwt-new',
-      'accessTokenExpiresAt': DateTime.now().toUtc().add(const Duration(minutes: 15)).toIso8601String(),
-      'refreshToken': 'refresh-new',
-      'refreshTokenExpiresAt': DateTime.now().toUtc().add(const Duration(days: 14)).toIso8601String(),
-    });
+  'accessToken': 'jwt-new',
+  'accessTokenExpiresAt': DateTime.now()
+      .toUtc()
+      .add(const Duration(minutes: 15))
+      .toIso8601String(),
+  'refreshToken': 'refresh-new',
+  'refreshTokenExpiresAt': DateTime.now()
+      .toUtc()
+      .add(const Duration(days: 14))
+      .toIso8601String(),
+});
 
 void main() {
   group('RefreshingTokenStore', () {
     test('hands back a live token without calling the API', () async {
       final inner = signedIn(inMinutes: 10);
       var calls = 0;
-      final store = RefreshingTokenStore(inner,
-          baseUrl: 'http://api', client: MockClient((_) async {
-        calls++;
-        return http.Response('', 200);
-      }));
+      final store = RefreshingTokenStore(
+        inner,
+        baseUrl: 'http://api',
+        client: MockClient((_) async {
+          calls++;
+          return http.Response('', 200);
+        }),
+      );
 
       expect(await store.readAccessToken(), 'jwt-old');
       expect(calls, 0);
@@ -75,12 +84,18 @@ void main() {
 
     test('rotates an expired token and stores the new pair', () async {
       final inner = signedIn(inMinutes: -1);
-      final store = RefreshingTokenStore(inner,
-          baseUrl: 'http://api', client: MockClient((request) async {
-        expect(request.url.path, '/v1/auth/refresh');
-        expect((jsonDecode(request.body) as Map<String, dynamic>)['refreshToken'], 'refresh-old');
-        return http.Response(rotatedBody(), 200);
-      }));
+      final store = RefreshingTokenStore(
+        inner,
+        baseUrl: 'http://api',
+        client: MockClient((request) async {
+          expect(request.url.path, '/v1/auth/refresh');
+          expect(
+            (jsonDecode(request.body) as Map<String, dynamic>)['refreshToken'],
+            'refresh-old',
+          );
+          return http.Response(rotatedBody(), 200);
+        }),
+      );
 
       expect(await store.readAccessToken(), 'jwt-new');
       expect(inner.refresh, 'refresh-new');
@@ -90,16 +105,22 @@ void main() {
     test('rotates a token that is inside the skew margin of expiry', () async {
       final inner = signedIn(inMinutes: 10)
         ..expires = DateTime.now().toUtc().add(const Duration(seconds: 5));
-      final store = RefreshingTokenStore(inner,
-          baseUrl: 'http://api', client: MockClient((_) async => http.Response(rotatedBody(), 200)));
+      final store = RefreshingTokenStore(
+        inner,
+        baseUrl: 'http://api',
+        client: MockClient((_) async => http.Response(rotatedBody(), 200)),
+      );
 
       expect(await store.readAccessToken(), 'jwt-new');
     });
 
     test('rotates when no expiry was recorded', () async {
       final inner = signedIn(inMinutes: 10)..expires = null;
-      final store = RefreshingTokenStore(inner,
-          baseUrl: 'http://api', client: MockClient((_) async => http.Response(rotatedBody(), 200)));
+      final store = RefreshingTokenStore(
+        inner,
+        baseUrl: 'http://api',
+        client: MockClient((_) async => http.Response(rotatedBody(), 200)),
+      );
 
       expect(await store.readAccessToken(), 'jwt-new');
     });
@@ -108,14 +129,17 @@ void main() {
       final inner = signedIn(inMinutes: -1);
       var calls = 0;
       final gate = Completer<void>();
-      final store = RefreshingTokenStore(inner,
-          baseUrl: 'http://api', client: MockClient((_) async {
-        calls++;
-        // Hold the first request open so the others arrive mid-flight, which is
-        // the case that would replay the refresh token and kill the family.
-        await gate.future;
-        return http.Response(rotatedBody(), 200);
-      }));
+      final store = RefreshingTokenStore(
+        inner,
+        baseUrl: 'http://api',
+        client: MockClient((_) async {
+          calls++;
+          // Hold the first request open so the others arrive mid-flight, which is
+          // the case that would replay the refresh token and kill the family.
+          await gate.future;
+          return http.Response(rotatedBody(), 200);
+        }),
+      );
 
       final reads = Future.wait([
         store.readAccessToken(),
@@ -131,10 +155,16 @@ void main() {
 
     test('a rejected refresh clears the session and reports it lost', () async {
       final inner = signedIn(inMinutes: -1);
-      final store = RefreshingTokenStore(inner,
-          baseUrl: 'http://api',
-          client: MockClient((_) async =>
-              http.Response(jsonEncode({'error': 'Refresh token reuse detected.'}), 401)));
+      final store = RefreshingTokenStore(
+        inner,
+        baseUrl: 'http://api',
+        client: MockClient(
+          (_) async => http.Response(
+            jsonEncode({'error': 'Refresh token reuse detected.'}),
+            401,
+          ),
+        ),
+      );
 
       final lost = expectLater(store.sessionLost, emits(anything));
 
@@ -144,26 +174,36 @@ void main() {
       await lost;
     });
 
-    test('an unreachable API keeps the session and reports nothing lost', () async {
-      final inner = signedIn(inMinutes: -1);
-      final store = RefreshingTokenStore(inner,
+    test(
+      'an unreachable API keeps the session and reports nothing lost',
+      () async {
+        final inner = signedIn(inMinutes: -1);
+        final store = RefreshingTokenStore(
+          inner,
           baseUrl: 'http://api',
-          client: MockClient((_) async => throw const SocketException('offline')));
+          client: MockClient(
+            (_) async => throw const SocketException('offline'),
+          ),
+        );
 
-      store.sessionLost.listen(expectAsync1((_) {}, count: 0));
+        store.sessionLost.listen(expectAsync1((_) {}, count: 0));
 
-      expect(await store.readAccessToken(), isNull);
-      expect(inner.access, 'jwt-old');
-      expect(inner.refresh, 'refresh-old');
-    });
+        expect(await store.readAccessToken(), isNull);
+        expect(inner.access, 'jwt-old');
+        expect(inner.refresh, 'refresh-old');
+      },
+    );
 
     test('no stored session reads as null without calling the API', () async {
       var calls = 0;
-      final store = RefreshingTokenStore(InMemoryTokenStore(),
-          baseUrl: 'http://api', client: MockClient((_) async {
-        calls++;
-        return http.Response('', 200);
-      }));
+      final store = RefreshingTokenStore(
+        InMemoryTokenStore(),
+        baseUrl: 'http://api',
+        client: MockClient((_) async {
+          calls++;
+          return http.Response('', 200);
+        }),
+      );
 
       expect(await store.readAccessToken(), isNull);
       expect(calls, 0);

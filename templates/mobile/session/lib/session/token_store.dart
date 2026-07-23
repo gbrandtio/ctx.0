@@ -27,7 +27,8 @@ abstract class TokenStore {
 
 /// Persists tokens in the platform secure storage.
 class SecureTokenStore implements TokenStore {
-  SecureTokenStore([FlutterSecureStorage? storage]) : _storage = storage ?? const FlutterSecureStorage();
+  SecureTokenStore([FlutterSecureStorage? storage])
+    : _storage = storage ?? const FlutterSecureStorage();
 
   final FlutterSecureStorage _storage;
   static const String _accessKey = 'ctx.auth.access';
@@ -54,7 +55,10 @@ class SecureTokenStore implements TokenStore {
   }) async {
     await _storage.write(key: _accessKey, value: accessToken);
     await _storage.write(key: _refreshKey, value: refreshToken);
-    await _storage.write(key: _expiresKey, value: accessExpiresAt.toUtc().toIso8601String());
+    await _storage.write(
+      key: _expiresKey,
+      value: accessExpiresAt.toUtc().toIso8601String(),
+    );
   }
 
   @override
@@ -78,8 +82,13 @@ class SecureTokenStore implements TokenStore {
 /// [_inFlight] and the app shares one instance of this class ([ctxSession]).
 class RefreshingTokenStore implements TokenStore {
   RefreshingTokenStore(this._inner, {String? baseUrl, http.Client? client})
-      : _baseUrl = baseUrl ?? const String.fromEnvironment('CTX_API_BASE_URL', defaultValue: 'http://localhost:5080'),
-        _http = client ?? http.Client();
+    : _baseUrl =
+          baseUrl ??
+          const String.fromEnvironment(
+            'CTX_API_BASE_URL',
+            defaultValue: 'http://localhost:5080',
+          ),
+      _http = client ?? http.Client();
 
   final TokenStore _inner;
   final String _baseUrl;
@@ -100,7 +109,8 @@ class RefreshingTokenStore implements TokenStore {
     final expiry = await _inner.readAccessExpiry();
     // No expiry recorded means a session stored before expiries were tracked;
     // treat it as due rather than handing out a token that may be dead.
-    if (expiry != null && DateTime.now().toUtc().isBefore(expiry.subtract(_skew))) {
+    if (expiry != null &&
+        DateTime.now().toUtc().isBefore(expiry.subtract(_skew))) {
       return access;
     }
     return _refresh();
@@ -117,8 +127,11 @@ class RefreshingTokenStore implements TokenStore {
     required String accessToken,
     required String refreshToken,
     required DateTime accessExpiresAt,
-  }) =>
-      _inner.save(accessToken: accessToken, refreshToken: refreshToken, accessExpiresAt: accessExpiresAt);
+  }) => _inner.save(
+    accessToken: accessToken,
+    refreshToken: refreshToken,
+    accessExpiresAt: accessExpiresAt,
+  );
 
   @override
   Future<void> clear() => _inner.clear();
@@ -164,7 +177,9 @@ class RefreshingTokenStore implements TokenStore {
     await _inner.save(
       accessToken: access,
       refreshToken: json['refreshToken'] as String,
-      accessExpiresAt: DateTime.parse(json['accessTokenExpiresAt'] as String).toUtc(),
+      accessExpiresAt: DateTime.parse(
+        json['accessTokenExpiresAt'] as String,
+      ).toUtc(),
     );
     return access;
   }

@@ -25,9 +25,12 @@ class CtxHttpException implements Exception {
 /// storage and enrolled with the API), ECDH+HKDF+AES-256-GCM ALE on every body,
 /// and an ECDSA signature over each request. Extend it, but do not bypass it.
 class SecureHttpClient {
-  SecureHttpClient({required this.baseUrl, http.Client? httpClient, FlutterSecureStorage? storage})
-      : _http = httpClient ?? http.Client(),
-        _storage = storage ?? const FlutterSecureStorage();
+  SecureHttpClient({
+    required this.baseUrl,
+    http.Client? httpClient,
+    FlutterSecureStorage? storage,
+  }) : _http = httpClient ?? http.Client(),
+       _storage = storage ?? const FlutterSecureStorage();
 
   final String baseUrl;
 
@@ -50,12 +53,18 @@ class SecureHttpClient {
 
   /// Send [body] to [path] under the full wire protocol and return the decrypted
   /// JSON reply.
-  Future<Map<String, dynamic>> secureSend(String method, String path, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>> secureSend(
+    String method,
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     await _ensureDeviceEnrolled();
     final serverKey = await _ensureServerAleKey();
 
     final ephemeral = _generateKeyPair();
-    final ephemeralPublic = P256.uncompressed(ephemeral.publicKey as ECPublicKey);
+    final ephemeralPublic = P256.uncompressed(
+      ephemeral.publicKey as ECPublicKey,
+    );
     final iv = _randomBytes(12);
     final timestamp = DateTime.now().toUtc().millisecondsSinceEpoch.toString();
 
@@ -83,7 +92,9 @@ class SecureHttpClient {
     if (response.statusCode >= 400) {
       throw CtxHttpException(response.statusCode, response.body);
     }
-    final envelope = AleEnvelope.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    final envelope = AleEnvelope.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
     final plaintext = AleCipher.openResponse(envelope, request.responseKey);
     return jsonDecode(utf8.decode(plaintext)) as Map<String, dynamic>;
   }
@@ -95,11 +106,16 @@ class SecureHttpClient {
     final storedId = await _storage.read(key: _deviceIdKey);
     if (storedScalar != null && storedId != null) {
       _deviceScalar = base64.decode(storedScalar);
-      _devicePublic = P256.uncompressed(P256.publicKeyFromScalar(_deviceScalar!));
+      _devicePublic = P256.uncompressed(
+        P256.publicKeyFromScalar(_deviceScalar!),
+      );
       _deviceId = storedId;
     } else {
       final pair = _generateKeyPair();
-      final scalar = P256.bigIntToBytes((pair.privateKey as ECPrivateKey).d!, P256.fieldBytes);
+      final scalar = P256.bigIntToBytes(
+        (pair.privateKey as ECPrivateKey).d!,
+        P256.fieldBytes,
+      );
       _deviceScalar = scalar;
       _devicePublic = P256.uncompressed(pair.publicKey as ECPublicKey);
       _deviceId = const Uuid().v4();
@@ -110,7 +126,10 @@ class SecureHttpClient {
     final response = await _http.post(
       Uri.parse('$baseUrl/v1/security/devices'),
       headers: const {'Content-Type': 'application/json'},
-      body: jsonEncode({'deviceId': _deviceId, 'publicKey': base64.encode(_devicePublic!)}),
+      body: jsonEncode({
+        'deviceId': _deviceId,
+        'publicKey': base64.encode(_devicePublic!),
+      }),
     );
     if (response.statusCode >= 400) {
       throw CtxHttpException(response.statusCode, response.body);
@@ -119,7 +138,9 @@ class SecureHttpClient {
 
   Future<Uint8List> _ensureServerAleKey() async {
     if (_serverAlePublic != null) return _serverAlePublic!;
-    final response = await _http.get(Uri.parse('$baseUrl/v1/security/ale-public-key'));
+    final response = await _http.get(
+      Uri.parse('$baseUrl/v1/security/ale-public-key'),
+    );
     if (response.statusCode >= 400) {
       throw CtxHttpException(response.statusCode, response.body);
     }
@@ -130,7 +151,9 @@ class SecureHttpClient {
 
   AsymmetricKeyPair<PublicKey, PrivateKey> _generateKeyPair() {
     final generator = ECKeyGenerator()
-      ..init(ParametersWithRandom(ECKeyGeneratorParameters(P256.domain), _random));
+      ..init(
+        ParametersWithRandom(ECKeyGeneratorParameters(P256.domain), _random),
+      );
     return generator.generateKeyPair();
   }
 

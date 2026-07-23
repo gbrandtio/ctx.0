@@ -15,7 +15,8 @@ abstract class LocaleStore {
 /// the session already uses, so the choice survives restarts without pulling in a
 /// second persistence dependency.
 class SecureLocaleStore implements LocaleStore {
-  SecureLocaleStore([FlutterSecureStorage? storage]) : _storage = storage ?? const FlutterSecureStorage();
+  SecureLocaleStore([FlutterSecureStorage? storage])
+    : _storage = storage ?? const FlutterSecureStorage();
 
   final FlutterSecureStorage _storage;
   static const String _key = 'ctx.l10n.locale';
@@ -24,7 +25,8 @@ class SecureLocaleStore implements LocaleStore {
   Future<String?> read() => _storage.read(key: _key);
 
   @override
-  Future<void> write(String languageCode) => _storage.write(key: _key, value: languageCode);
+  Future<void> write(String languageCode) =>
+      _storage.write(key: _key, value: languageCode);
 
   @override
   Future<void> clear() => _storage.delete(key: _key);

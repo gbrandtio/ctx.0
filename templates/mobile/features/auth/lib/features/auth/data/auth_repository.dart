@@ -27,18 +27,25 @@ abstract class AuthRepository {
 /// credentials over TLS for a JWT + refresh token, which are stored locally.
 class HttpAuthRepository implements AuthRepository {
   HttpAuthRepository(this._store, {String? baseUrl, http.Client? client})
-      : _baseUrl = baseUrl ?? const String.fromEnvironment('CTX_API_BASE_URL', defaultValue: 'http://localhost:5080'),
-        _http = client ?? http.Client();
+    : _baseUrl =
+          baseUrl ??
+          const String.fromEnvironment(
+            'CTX_API_BASE_URL',
+            defaultValue: 'http://localhost:5080',
+          ),
+      _http = client ?? http.Client();
 
   final TokenStore _store;
   final String _baseUrl;
   final http.Client _http;
 
   @override
-  Future<void> login(String email, String password) => _authenticate('/v1/auth/login', email, password);
+  Future<void> login(String email, String password) =>
+      _authenticate('/v1/auth/login', email, password);
 
   @override
-  Future<void> register(String email, String password) => _authenticate('/v1/auth/register', email, password);
+  Future<void> register(String email, String password) =>
+      _authenticate('/v1/auth/register', email, password);
 
   /// Revokes the refresh token family server-side, then drops the local
   /// session. An unreachable API still ends the session on the device.
@@ -79,7 +86,9 @@ class HttpAuthRepository implements AuthRepository {
     await _store.save(
       accessToken: json['accessToken'] as String,
       refreshToken: json['refreshToken'] as String,
-      accessExpiresAt: DateTime.parse(json['accessTokenExpiresAt'] as String).toUtc(),
+      accessExpiresAt: DateTime.parse(
+        json['accessTokenExpiresAt'] as String,
+      ).toUtc(),
     );
   }
 

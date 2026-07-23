@@ -21,7 +21,9 @@ class AuthGate extends StatelessWidget {
           case SessionStatus.authenticated:
             return child;
           case SessionStatus.unknown:
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           case SessionStatus.anonymous:
             return const LoginPage();
         }

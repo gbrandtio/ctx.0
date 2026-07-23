@@ -36,12 +36,12 @@ class NoopPushService extends PushService {
 }
 
 NotificationItem _item(String id, {bool read = false}) => NotificationItem(
-      id: id,
-      title: 'Title $id',
-      body: 'Body $id',
-      read: read,
-      createdAt: DateTime(2026, 1, 1),
-    );
+  id: id,
+  title: 'Title $id',
+  body: 'Body $id',
+  read: read,
+  createdAt: DateTime(2026, 1, 1),
+);
 
 void main() {
   blocTest<NotificationsCubit, NotificationsState>(

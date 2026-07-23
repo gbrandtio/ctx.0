@@ -47,14 +47,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _save() {
     context.read<ProfileCubit>().save(
-          displayName: _displayName.text.trim(),
-          bio: _bio.text.trim().isEmpty ? null : _bio.text.trim(),
-          avatarUrl: _avatarUrl.text.trim().isEmpty ? null : _avatarUrl.text.trim(),
-        );
+      displayName: _displayName.text.trim(),
+      bio: _bio.text.trim().isEmpty ? null : _bio.text.trim(),
+      avatarUrl: _avatarUrl.text.trim().isEmpty ? null : _avatarUrl.text.trim(),
+    );
   }
 
   void _openSettings() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SettingsPage()));
   }
 
   /// Ends the session and hands control back to the auth gate. The session is
@@ -84,7 +86,9 @@ class _ProfilePageState extends State<ProfilePage> {
         listener: (context, state) {
           if (state.profile != null) _hydrate(state.profile!);
           if (state.status == ProfileStatus.failure && state.error != null) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error!)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.error!)));
           }
         },
         builder: (context, state) {
@@ -98,14 +102,20 @@ class _ProfilePageState extends State<ProfilePage> {
               Center(
                 child: CircleAvatar(
                   radius: 44,
-                  backgroundImage: avatarUrl.isEmpty ? null : NetworkImage(avatarUrl),
-                  child: avatarUrl.isEmpty ? const Icon(Icons.person, size: 44) : null,
+                  backgroundImage: avatarUrl.isEmpty
+                      ? null
+                      : NetworkImage(avatarUrl),
+                  child: avatarUrl.isEmpty
+                      ? const Icon(Icons.person, size: 44)
+                      : null,
                 ),
               ),
               const SizedBox(height: 24),
               TextField(
                 controller: _displayName,
-                decoration: InputDecoration(labelText: l.profileDisplayNameLabel),
+                decoration: InputDecoration(
+                  labelText: l.profileDisplayNameLabel,
+                ),
                 textInputAction: TextInputAction.next,
               ),
               const SizedBox(height: 16),
@@ -125,7 +135,11 @@ class _ProfilePageState extends State<ProfilePage> {
               FilledButton(
                 onPressed: state.status == ProfileStatus.saving ? null : _save,
                 child: state.status == ProfileStatus.saving
-                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : Text(l.commonSave),
               ),
               const SizedBox(height: 8),

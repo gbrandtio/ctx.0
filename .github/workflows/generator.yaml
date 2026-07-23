@@ -1,0 +1,37 @@
+name: Generator
+
+# The composition engine itself: type-checks every package and runs the tests
+# that need nothing but Node. The two tests that shell out to an SDK are
+# excluded here and covered by the API Template and Mobile Template workflows.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: generator-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run lint
+
+      - name: Test
+        run: npm run test:node

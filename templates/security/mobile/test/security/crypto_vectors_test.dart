@@ -17,18 +17,21 @@ void main() {
   group('ALE (ECIES / AES-256-GCM) interop', () {
     final ale = vectors['ale'] as Map<String, dynamic>;
 
-    test('ECDH agreement matches from both sides and equals the golden key', () {
-      final k1 = AleCipher.deriveKey(
-        P256.privateKeyFromScalar(b64(ale['ephemeralPrivateB64'] as String)),
-        b64(ale['serverPublicB64'] as String),
-      );
-      final k2 = AleCipher.deriveKey(
-        P256.privateKeyFromScalar(b64(ale['serverPrivateB64'] as String)),
-        b64(ale['ephemeralPublicB64'] as String),
-      );
-      expect(k1, equals(k2));
-      expect(base64.encode(k1), equals(ale['derivedKeyB64']));
-    });
+    test(
+      'ECDH agreement matches from both sides and equals the golden key',
+      () {
+        final k1 = AleCipher.deriveKey(
+          P256.privateKeyFromScalar(b64(ale['ephemeralPrivateB64'] as String)),
+          b64(ale['serverPublicB64'] as String),
+        );
+        final k2 = AleCipher.deriveKey(
+          P256.privateKeyFromScalar(b64(ale['serverPrivateB64'] as String)),
+          b64(ale['ephemeralPublicB64'] as String),
+        );
+        expect(k1, equals(k2));
+        expect(base64.encode(k1), equals(ale['derivedKeyB64']));
+      },
+    );
 
     test('encrypt reproduces the golden ciphertext + tag', () {
       final (ct, tag) = AleCipher.encrypt(
@@ -57,7 +60,12 @@ void main() {
 
     test('canonical string matches', () {
       expect(
-        RequestSignature.canonical(s['method'] as String, s['path'] as String, s['timestamp'] as String, body),
+        RequestSignature.canonical(
+          s['method'] as String,
+          s['path'] as String,
+          s['timestamp'] as String,
+          body,
+        ),
         equals(s['canonicalString']),
       );
     });

@@ -21,12 +21,11 @@ final class ProfileState extends Equatable {
     ProfileStatus? status,
     ProfileData? profile,
     String? error,
-  }) =>
-      ProfileState(
-        status: status ?? this.status,
-        profile: profile ?? this.profile,
-        error: error,
-      );
+  }) => ProfileState(
+    status: status ?? this.status,
+    profile: profile ?? this.profile,
+    error: error,
+  );
 
   @override
   List<Object?> get props => [status, profile, error];
@@ -48,10 +47,18 @@ class ProfileCubit extends Cubit<ProfileState> {
     }
   }
 
-  Future<void> save({required String displayName, String? bio, String? avatarUrl}) async {
+  Future<void> save({
+    required String displayName,
+    String? bio,
+    String? avatarUrl,
+  }) async {
     emit(state.copyWith(status: ProfileStatus.saving, error: null));
     try {
-      final profile = await _repository.update(displayName: displayName, bio: bio, avatarUrl: avatarUrl);
+      final profile = await _repository.update(
+        displayName: displayName,
+        bio: bio,
+        avatarUrl: avatarUrl,
+      );
       emit(state.copyWith(status: ProfileStatus.ready, profile: profile));
     } catch (e) {
       emit(state.copyWith(status: ProfileStatus.failure, error: e.toString()));

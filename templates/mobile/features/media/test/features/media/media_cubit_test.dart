@@ -18,7 +18,11 @@ class FakeMediaRepository implements MediaRepository {
   Future<List<MediaItem>> list() async => List.of(_items);
 
   @override
-  Future<MediaItem> upload({required String fileName, required String contentType, required Uint8List bytes}) async {
+  Future<MediaItem> upload({
+    required String fileName,
+    required String contentType,
+    required Uint8List bytes,
+  }) async {
     uploads++;
     final item = _item(fileName, contentType: contentType, size: bytes.length);
     _items.add(item);
@@ -35,7 +39,8 @@ class FakeMediaRepository implements MediaRepository {
   Uri downloadUri(String id) => Uri.parse('http://localhost/v1/media/$id');
 }
 
-MediaItem _item(String id, {String contentType = 'image/png', int size = 3}) => MediaItem(
+MediaItem _item(String id, {String contentType = 'image/png', int size = 3}) =>
+    MediaItem(
       id: id,
       fileName: '$id.png',
       contentType: contentType,
@@ -59,7 +64,11 @@ void main() {
   blocTest<MediaCubit, MediaState>(
     'upload stores the file then reloads the list',
     build: () => MediaCubit(FakeMediaRepository([_item('1')])),
-    act: (cubit) => cubit.upload(fileName: 'new.png', contentType: 'image/png', bytes: Uint8List.fromList([1, 2, 3])),
+    act: (cubit) => cubit.upload(
+      fileName: 'new.png',
+      contentType: 'image/png',
+      bytes: Uint8List.fromList([1, 2, 3]),
+    ),
     expect: () => [
       const MediaState(uploading: true),
       isA<MediaState>()

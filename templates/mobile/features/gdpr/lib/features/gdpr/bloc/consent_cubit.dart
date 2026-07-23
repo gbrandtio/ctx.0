@@ -10,7 +10,12 @@ const Set<String> ctxOptionalPurposes = {'analytics', 'marketing'};
 
 /// Whether the banner should be on screen, and what the user last decided.
 final class ConsentState extends Equatable {
-  const ConsentState({this.decision, this.policyVersion, this.prompting = false, this.error});
+  const ConsentState({
+    this.decision,
+    this.policyVersion,
+    this.prompting = false,
+    this.error,
+  });
 
   final ConsentDecision? decision;
 
@@ -27,13 +32,12 @@ final class ConsentState extends Equatable {
     String? policyVersion,
     bool? prompting,
     String? error,
-  }) =>
-      ConsentState(
-        decision: decision ?? this.decision,
-        policyVersion: policyVersion ?? this.policyVersion,
-        prompting: prompting ?? this.prompting,
-        error: error,
-      );
+  }) => ConsentState(
+    decision: decision ?? this.decision,
+    policyVersion: policyVersion ?? this.policyVersion,
+    prompting: prompting ?? this.prompting,
+    error: error,
+  );
 
   /// Whether the user has accepted a given optional purpose.
   bool accepted(String purpose) => decision?.accepted(purpose) ?? false;
@@ -46,9 +50,12 @@ final class ConsentState extends Equatable {
 /// banner works before sign-in, then pushed to the server's audit trail as soon
 /// as a session exists — and re-prompted whenever the notice version changes.
 class ConsentCubit extends Cubit<ConsentState> {
-  ConsentCubit(this._store, this._repository, {String fallbackPolicyVersion = '1'})
-      : _fallbackPolicyVersion = fallbackPolicyVersion,
-        super(const ConsentState());
+  ConsentCubit(
+    this._store,
+    this._repository, {
+    String fallbackPolicyVersion = '1',
+  }) : _fallbackPolicyVersion = fallbackPolicyVersion,
+       super(const ConsentState());
 
   final ConsentStore _store;
   final PrivacyRepository _repository;
@@ -69,11 +76,13 @@ class ConsentCubit extends Cubit<ConsentState> {
       // Signed out or offline: the local decision stands until we can sync it.
     }
 
-    emit(ConsentState(
-      decision: stored,
-      policyVersion: version,
-      prompting: stored == null || stored.policyVersion != version,
-    ));
+    emit(
+      ConsentState(
+        decision: stored,
+        policyVersion: version,
+        prompting: stored == null || stored.policyVersion != version,
+      ),
+    );
   }
 
   /// Accept every optional purpose.
@@ -101,9 +110,15 @@ class ConsentCubit extends Cubit<ConsentState> {
 
   /// Send a decision to the server's audit trail, marking it synced on success.
   /// Returns null when it could not be delivered (signed out or offline).
-  Future<ConsentDecision?> _push(ConsentDecision decision, String policyVersion) async {
+  Future<ConsentDecision?> _push(
+    ConsentDecision decision,
+    String policyVersion,
+  ) async {
     try {
-      await _repository.recordConsent(policyVersion: policyVersion, purposes: decision.purposes);
+      await _repository.recordConsent(
+        policyVersion: policyVersion,
+        purposes: decision.purposes,
+      );
       final synced = decision.copyWith(synced: true);
       await _store.write(synced);
       return synced;

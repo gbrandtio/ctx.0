@@ -23,7 +23,8 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> register(String email, String password) async => login(email, password);
+  Future<void> register(String email, String password) async =>
+      login(email, password);
 
   @override
   Future<void> logout() async => session = false;

@@ -13,11 +13,8 @@ final class PingState extends Equatable {
   final String? echo;
   final String? error;
 
-  PingState copyWith({PingStatus? status, String? echo, String? error}) => PingState(
-        status: status ?? this.status,
-        echo: echo,
-        error: error,
-      );
+  PingState copyWith({PingStatus? status, String? echo, String? error}) =>
+      PingState(status: status ?? this.status, echo: echo, error: error);
 
   @override
   List<Object?> get props => [status, echo, error];

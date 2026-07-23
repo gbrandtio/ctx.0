@@ -14,7 +14,9 @@ class PingPage extends StatefulWidget {
 }
 
 class _PingPageState extends State<PingPage> {
-  final TextEditingController _controller = TextEditingController(text: 'marco');
+  final TextEditingController _controller = TextEditingController(
+    text: 'marco',
+  );
 
   @override
   void dispose() {
@@ -45,13 +47,25 @@ class _PingPageState extends State<PingPage> {
                     FilledButton(
                       onPressed: state.status == PingStatus.sending
                           ? null
-                          : () => context.read<PingCubit>().send(_controller.text),
-                      child: Text(state.status == PingStatus.sending ? l.pingSending : l.pingSend),
+                          : () => context.read<PingCubit>().send(
+                              _controller.text,
+                            ),
+                      child: Text(
+                        state.status == PingStatus.sending
+                            ? l.pingSending
+                            : l.pingSend,
+                      ),
                     ),
                     const SizedBox(height: 16),
-                    if (state.status == PingStatus.success) Text(l.pingEcho(state.echo ?? '')),
+                    if (state.status == PingStatus.success)
+                      Text(l.pingEcho(state.echo ?? '')),
                     if (state.status == PingStatus.failure)
-                      Text(l.commonError(state.error ?? ''), style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                      Text(
+                        l.commonError(state.error ?? ''),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                   ],
                 );
               },

@@ -34,16 +34,21 @@ final class PrivacyState extends Equatable {
     ExportJob? job,
     String? archivePath,
     String? error,
-  }) =>
-      PrivacyState(
-        status: status ?? this.status,
-        job: job ?? this.job,
-        archivePath: archivePath ?? this.archivePath,
-        error: error,
-      );
+  }) => PrivacyState(
+    status: status ?? this.status,
+    job: job ?? this.job,
+    archivePath: archivePath ?? this.archivePath,
+    error: error,
+  );
 
   @override
-  List<Object?> get props => [status, job?.jobId, job?.status, archivePath, error];
+  List<Object?> get props => [
+    status,
+    job?.jobId,
+    job?.status,
+    archivePath,
+    error,
+  ];
 }
 
 /// Drives "download my data" and "delete my account". The export is built on the
@@ -55,10 +60,10 @@ class PrivacyCubit extends Cubit<PrivacyState> {
     Duration pollInterval = const Duration(seconds: 2),
     int maxPolls = 60,
     Future<String> Function(String name, Uint8List bytes)? saveArchive,
-  })  : _pollInterval = pollInterval,
-        _maxPolls = maxPolls,
-        _saveArchive = saveArchive ?? _writeToDocuments,
-        super(const PrivacyState());
+  }) : _pollInterval = pollInterval,
+       _maxPolls = maxPolls,
+       _saveArchive = saveArchive ?? _writeToDocuments,
+       super(const PrivacyState());
 
   final PrivacyRepository _repository;
   final Duration _pollInterval;
@@ -80,7 +85,10 @@ class PrivacyCubit extends Cubit<PrivacyState> {
       }
 
       if (!job.isReady) {
-        throw PrivacyException(job.error ?? 'The export is taking longer than expected — try again shortly.');
+        throw PrivacyException(
+          job.error ??
+              'The export is taking longer than expected — try again shortly.',
+        );
       }
 
       final bytes = await _repository.downloadExport(
@@ -89,7 +97,13 @@ class PrivacyCubit extends Cubit<PrivacyState> {
       );
       final path = await _saveArchive('ctx-export-${job.jobId}.zip', bytes);
 
-      emit(state.copyWith(status: PrivacyStatus.exported, job: job, archivePath: path));
+      emit(
+        state.copyWith(
+          status: PrivacyStatus.exported,
+          job: job,
+          archivePath: path,
+        ),
+      );
     } catch (e) {
       emit(state.copyWith(status: PrivacyStatus.failure, error: e.toString()));
     }

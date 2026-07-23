@@ -28,8 +28,7 @@ class FakeTokenStore implements TokenStore {
     required String accessToken,
     required String refreshToken,
     required DateTime accessExpiresAt,
-  }) async =>
-      access = accessToken;
+  }) async => access = accessToken;
 
   @override
   Future<void> clear() async => access = null;

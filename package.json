@@ -12,6 +12,9 @@
   "scripts": {
     "build": "npm run build -w @ctx0/core && npm run build -w @ctx0/engine-server && npm run build -w ctx0",
     "test": "npm run test --workspaces --if-present",
+    "test:node": "npm run test:node -w @ctx0/core && npm run test -w @ctx0/engine-server && npm run test -w ctx0",
+    "test:api": "npm run test:api -w @ctx0/core",
+    "test:mobile": "npm run test:mobile -w @ctx0/core",
     "lint": "npm run build -w @ctx0/core && npm run lint --workspaces --if-present",
     "ctx0": "node packages/cli/dist/index.js",
     "ctx0-engine": "node packages/engine-server/dist/index.js"

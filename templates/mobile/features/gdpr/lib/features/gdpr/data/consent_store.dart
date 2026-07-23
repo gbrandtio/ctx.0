@@ -26,22 +26,25 @@ class ConsentDecision {
   bool accepted(String purpose) => purposes.contains(purpose);
 
   ConsentDecision copyWith({bool? synced}) => ConsentDecision(
-        policyVersion: policyVersion,
-        purposes: purposes,
-        decidedAt: decidedAt,
-        synced: synced ?? this.synced,
-      );
+    policyVersion: policyVersion,
+    purposes: purposes,
+    decidedAt: decidedAt,
+    synced: synced ?? this.synced,
+  );
 
   Map<String, dynamic> toJson() => {
-        'policyVersion': policyVersion,
-        'purposes': purposes.toList()..sort(),
-        'decidedAt': decidedAt.toIso8601String(),
-        'synced': synced,
-      };
+    'policyVersion': policyVersion,
+    'purposes': purposes.toList()..sort(),
+    'decidedAt': decidedAt.toIso8601String(),
+    'synced': synced,
+  };
 
-  factory ConsentDecision.fromJson(Map<String, dynamic> json) => ConsentDecision(
+  factory ConsentDecision.fromJson(Map<String, dynamic> json) =>
+      ConsentDecision(
         policyVersion: json['policyVersion'] as String,
-        purposes: ((json['purposes'] as List<dynamic>?) ?? const []).cast<String>().toSet(),
+        purposes: ((json['purposes'] as List<dynamic>?) ?? const [])
+            .cast<String>()
+            .toSet(),
         decidedAt: DateTime.parse(json['decidedAt'] as String),
         synced: (json['synced'] as bool?) ?? false,
       );
@@ -58,7 +61,8 @@ abstract class ConsentStore {
 /// first so the banner can be answered before there is an account to attach it
 /// to — the decision is pushed to the server as soon as a session exists.
 class SecureConsentStore implements ConsentStore {
-  SecureConsentStore([FlutterSecureStorage? storage]) : _storage = storage ?? const FlutterSecureStorage();
+  SecureConsentStore([FlutterSecureStorage? storage])
+    : _storage = storage ?? const FlutterSecureStorage();
 
   final FlutterSecureStorage _storage;
   static const String _key = 'ctx.gdpr.consent';

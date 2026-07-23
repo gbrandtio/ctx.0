@@ -25,13 +25,12 @@ final class NotificationsState extends Equatable {
     List<NotificationItem>? items,
     int? unreadCount,
     String? error,
-  }) =>
-      NotificationsState(
-        status: status ?? this.status,
-        items: items ?? this.items,
-        unreadCount: unreadCount ?? this.unreadCount,
-        error: error,
-      );
+  }) => NotificationsState(
+    status: status ?? this.status,
+    items: items ?? this.items,
+    unreadCount: unreadCount ?? this.unreadCount,
+    error: error,
+  );
 
   @override
   List<Object?> get props => [status, items, unreadCount, error];
@@ -40,8 +39,8 @@ final class NotificationsState extends Equatable {
 /// Drives the notifications screen. All I/O lives here; the view only renders.
 class NotificationsCubit extends Cubit<NotificationsState> {
   NotificationsCubit(this._repository, {PushService? push})
-      : _push = push ?? const PushService(),
-        super(const NotificationsState());
+    : _push = push ?? const PushService(),
+      super(const NotificationsState());
 
   final NotificationsRepository _repository;
   final PushService _push;
@@ -57,9 +56,20 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     try {
       final items = await _repository.list();
       final unread = await _repository.unreadCount();
-      emit(state.copyWith(status: NotificationsStatus.ready, items: items, unreadCount: unread));
+      emit(
+        state.copyWith(
+          status: NotificationsStatus.ready,
+          items: items,
+          unreadCount: unread,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(status: NotificationsStatus.failure, error: e.toString()));
+      emit(
+        state.copyWith(
+          status: NotificationsStatus.failure,
+          error: e.toString(),
+        ),
+      );
     }
   }
 
@@ -68,7 +78,12 @@ class NotificationsCubit extends Cubit<NotificationsState> {
       await _repository.markRead(id);
       await refresh();
     } catch (e) {
-      emit(state.copyWith(status: NotificationsStatus.failure, error: e.toString()));
+      emit(
+        state.copyWith(
+          status: NotificationsStatus.failure,
+          error: e.toString(),
+        ),
+      );
     }
   }
 }

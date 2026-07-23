@@ -36,8 +36,8 @@ class RaspGate {
     final artifacts = Platform.isAndroid
         ? _rootArtifacts
         : Platform.isIOS
-            ? _jailbreakArtifacts
-            : const <String>[];
+        ? _jailbreakArtifacts
+        : const <String>[];
 
     for (final path in artifacts) {
       if (await _exists(path)) {

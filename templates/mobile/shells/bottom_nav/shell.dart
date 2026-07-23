@@ -20,9 +20,10 @@ class _CtxShellState extends State<CtxShell> {
     // ctx:gen:pages
   ];
 
-  final List<NavigationDestination> _destinations = const <NavigationDestination>[
-    // ctx:gen:destinations
-  ];
+  final List<NavigationDestination> _destinations =
+      const <NavigationDestination>[
+        // ctx:gen:destinations
+      ];
 
   @override
   Widget build(BuildContext context) {

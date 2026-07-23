@@ -33,19 +33,26 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 ? const SizedBox.shrink()
                 : Padding(
                     padding: const EdgeInsets.only(right: 16),
-                    child: Center(child: Text(l.notificationsUnread(state.unreadCount))),
+                    child: Center(
+                      child: Text(l.notificationsUnread(state.unreadCount)),
+                    ),
                   ),
           ),
         ],
       ),
       body: BlocBuilder<NotificationsCubit, NotificationsState>(
         builder: (context, state) {
-          if (state.status == NotificationsStatus.loading && state.items.isEmpty) {
+          if (state.status == NotificationsStatus.loading &&
+              state.items.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (state.status == NotificationsStatus.failure && state.items.isEmpty) {
+          if (state.status == NotificationsStatus.failure &&
+              state.items.isEmpty) {
             return Center(
-              child: Text(l.commonError(state.error ?? ''), style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              child: Text(
+                l.commonError(state.error ?? ''),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             );
           }
           if (state.items.isEmpty) {
@@ -59,15 +66,27 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 final item = state.items[i];
                 return ListTile(
                   leading: Icon(
-                    item.read ? Icons.notifications_none : Icons.notifications_active,
-                    color: item.read ? null : Theme.of(context).colorScheme.primary,
+                    item.read
+                        ? Icons.notifications_none
+                        : Icons.notifications_active,
+                    color: item.read
+                        ? null
+                        : Theme.of(context).colorScheme.primary,
                   ),
                   title: Text(
                     item.title,
-                    style: TextStyle(fontWeight: item.read ? FontWeight.normal : FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: item.read
+                          ? FontWeight.normal
+                          : FontWeight.bold,
+                    ),
                   ),
                   subtitle: Text(item.body),
-                  onTap: item.read ? null : () => context.read<NotificationsCubit>().markRead(item.id),
+                  onTap: item.read
+                      ? null
+                      : () => context.read<NotificationsCubit>().markRead(
+                          item.id,
+                        ),
                 );
               },
             ),

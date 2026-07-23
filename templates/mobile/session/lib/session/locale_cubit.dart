@@ -13,9 +13,11 @@ import 'locale_store.dart';
 /// override, which is what makes Flutter follow the device language. Anything
 /// else is one of [AppL10nSupport.supportedLocales].
 class LocaleCubit extends Cubit<Locale?> {
-  LocaleCubit(this._store, {void Function(String languageCode)? onLanguageChanged})
-      : _onLanguageChanged = onLanguageChanged,
-        super(null);
+  LocaleCubit(
+    this._store, {
+    void Function(String languageCode)? onLanguageChanged,
+  }) : _onLanguageChanged = onLanguageChanged,
+       super(null);
 
   final LocaleStore _store;
 
@@ -31,7 +33,9 @@ class LocaleCubit extends Cubit<Locale?> {
     final code = await _store.read();
     final matches = code == null
         ? const <Locale>[]
-        : AppL10nSupport.supportedLocales.where((locale) => locale.languageCode == code).toList();
+        : AppL10nSupport.supportedLocales
+              .where((locale) => locale.languageCode == code)
+              .toList();
     if (code != null && matches.isEmpty) {
       await _store.clear();
     }
@@ -56,6 +60,8 @@ class LocaleCubit extends Cubit<Locale?> {
   /// Report the language in force: the override, or the device's own language
   /// when there is none (which is what the app is showing in that case).
   void _announce() {
-    _onLanguageChanged?.call(state?.languageCode ?? PlatformDispatcher.instance.locale.languageCode);
+    _onLanguageChanged?.call(
+      state?.languageCode ?? PlatformDispatcher.instance.locale.languageCode,
+    );
   }
 }

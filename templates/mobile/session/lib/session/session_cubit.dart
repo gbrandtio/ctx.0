@@ -42,13 +42,18 @@ class SessionCubit extends Cubit<SessionState> {
   /// Resolve the initial status from whatever is in secure storage.
   Future<void> restore() async {
     final token = await _credentials.readAccessToken();
-    emit(SessionState(
-      status: token != null ? SessionStatus.authenticated : SessionStatus.anonymous,
-    ));
+    emit(
+      SessionState(
+        status: token != null
+            ? SessionStatus.authenticated
+            : SessionStatus.anonymous,
+      ),
+    );
   }
 
   /// A provider has installed credentials; the session is now authenticated.
-  void signedIn() => emit(const SessionState(status: SessionStatus.authenticated));
+  void signedIn() =>
+      emit(const SessionState(status: SessionStatus.authenticated));
 
   /// A provider has cleared credentials; the session is now anonymous.
   void signedOut() => emit(const SessionState(status: SessionStatus.anonymous));

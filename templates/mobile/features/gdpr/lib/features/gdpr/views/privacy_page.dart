@@ -20,51 +20,71 @@ class PrivacyPage extends StatelessWidget {
       body: BlocConsumer<PrivacyCubit, PrivacyState>(
         listener: (context, state) {
           if (state.status == PrivacyStatus.failure && state.error != null) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.error!)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.error!)));
           }
           if (state.status == PrivacyStatus.deleted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(l.gdprDeleted)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(l.gdprDeleted)));
           }
         },
         builder: (context, state) {
-          final busy = state.status == PrivacyStatus.exporting || state.status == PrivacyStatus.deleting;
+          final busy =
+              state.status == PrivacyStatus.exporting ||
+              state.status == PrivacyStatus.deleting;
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
               const _ConsentSection(),
               const Divider(height: 32),
-              Text(l.gdprYourDataTitle, style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                l.gdprYourDataTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               Text(l.gdprYourDataBody),
               const SizedBox(height: 12),
               FilledButton.icon(
-                onPressed: busy ? null : () => context.read<PrivacyCubit>().downloadMyData(),
+                onPressed: busy
+                    ? null
+                    : () => context.read<PrivacyCubit>().downloadMyData(),
                 icon: const Icon(Icons.download),
                 label: Text(
-                  state.status == PrivacyStatus.exporting ? l.gdprPreparing : l.gdprDownloadMyData,
+                  state.status == PrivacyStatus.exporting
+                      ? l.gdprPreparing
+                      : l.gdprDownloadMyData,
                 ),
               ),
               if (state.archivePath != null) ...[
                 const SizedBox(height: 12),
-                Text(l.gdprSavedTo(state.archivePath!), style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  l.gdprSavedTo(state.archivePath!),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: () => Share.shareXFiles([XFile(state.archivePath!)]),
+                  onPressed: () =>
+                      Share.shareXFiles([XFile(state.archivePath!)]),
                   icon: const Icon(Icons.ios_share),
                   label: Text(l.gdprShareArchive),
                 ),
               ],
               const Divider(height: 32),
-              Text(l.gdprDeleteSectionTitle, style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                l.gdprDeleteSectionTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               Text(l.gdprDeleteSectionBody),
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: busy ? null : () => _confirmDelete(context),
                 icon: const Icon(Icons.delete_forever),
-                style: OutlinedButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
                 label: Text(l.gdprDeleteMyAccount),
               ),
             ],
@@ -98,7 +118,10 @@ class _ConsentSection extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l.gdprConsentSectionTitle, style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l.gdprConsentSectionTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 4),
             Text(
               state.decision == null
@@ -191,7 +214,10 @@ class _DeleteAccountDialogState extends State<_DeleteAccountDialog> {
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l.commonCancel)),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l.commonCancel),
+        ),
         FilledButton(
           onPressed: confirmed && _password.text.isNotEmpty
               ? () => Navigator.of(context).pop(_password.text)

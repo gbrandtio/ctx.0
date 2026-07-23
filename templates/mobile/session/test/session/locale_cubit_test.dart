@@ -47,11 +47,18 @@ void main() {
 
   test('the API client is told which language is in force', () async {
     final announced = <String>[];
-    final cubit = LocaleCubit(FakeLocaleStore(), onLanguageChanged: announced.add);
+    final cubit = LocaleCubit(
+      FakeLocaleStore(),
+      onLanguageChanged: announced.add,
+    );
     await cubit.load();
 
     expect(announced, isNotEmpty);
-    expect(announced.last, isNotEmpty, reason: 'falls back to the device language');
+    expect(
+      announced.last,
+      isNotEmpty,
+      reason: 'falls back to the device language',
+    );
   });
 
   if (second == null) return;

@@ -20,7 +20,8 @@ class NotificationItem {
   final bool read;
   final DateTime createdAt;
 
-  factory NotificationItem.fromJson(Map<String, dynamic> json) => NotificationItem(
+  factory NotificationItem.fromJson(Map<String, dynamic> json) =>
+      NotificationItem(
         id: json['id'] as String,
         title: json['title'] as String,
         body: json['body'] as String,
@@ -51,9 +52,17 @@ abstract class NotificationsRepository {
 /// request carries the access token minted by the auth feature. This uses plain
 /// authenticated JSON (not the ALE `secureSend` client, which carries no user).
 class HttpNotificationsRepository implements NotificationsRepository {
-  HttpNotificationsRepository(this._tokens, {String? baseUrl, http.Client? client})
-      : _baseUrl = baseUrl ?? const String.fromEnvironment('CTX_API_BASE_URL', defaultValue: 'http://localhost:5080'),
-        _http = client ?? http.Client();
+  HttpNotificationsRepository(
+    this._tokens, {
+    String? baseUrl,
+    http.Client? client,
+  }) : _baseUrl =
+           baseUrl ??
+           const String.fromEnvironment(
+             'CTX_API_BASE_URL',
+             defaultValue: 'http://localhost:5080',
+           ),
+       _http = client ?? http.Client();
 
   final TokenStore _tokens;
   final String _baseUrl;
@@ -79,7 +88,10 @@ class HttpNotificationsRepository implements NotificationsRepository {
 
   @override
   Future<void> registerDevice(String platform, String token) async {
-    await _send('POST', '/v1/notifications/devices', {'platform': platform, 'token': token});
+    await _send('POST', '/v1/notifications/devices', {
+      'platform': platform,
+      'token': token,
+    });
   }
 
   @override
@@ -88,11 +100,18 @@ class HttpNotificationsRepository implements NotificationsRepository {
   }
 
   Future<Map<String, dynamic>> _get(String path) async {
-    final response = await _http.get(Uri.parse('$_baseUrl$path'), headers: await _headers());
+    final response = await _http.get(
+      Uri.parse('$_baseUrl$path'),
+      headers: await _headers(),
+    );
     return _decode(response);
   }
 
-  Future<Map<String, dynamic>> _send(String method, String path, [Map<String, dynamic>? body]) async {
+  Future<Map<String, dynamic>> _send(
+    String method,
+    String path, [
+    Map<String, dynamic>? body,
+  ]) async {
     final request = http.Request(method, Uri.parse('$_baseUrl$path'))
       ..headers.addAll(await _headers());
     if (body != null) request.body = jsonEncode(body);
@@ -103,7 +122,10 @@ class HttpNotificationsRepository implements NotificationsRepository {
   Future<Map<String, String>> _headers() async {
     final token = await _tokens.readAccessToken();
     if (token == null) throw const NotificationsException('Not signed in');
-    return {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'};
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
   }
 
   Map<String, dynamic> _decode(http.Response response) {

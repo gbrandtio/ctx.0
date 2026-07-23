@@ -22,7 +22,12 @@ class ConsentBanner extends StatelessWidget {
         return Stack(
           children: [
             child,
-            const Positioned(left: 0, right: 0, bottom: 0, child: _ConsentSheet()),
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _ConsentSheet(),
+            ),
           ],
         );
       },
@@ -47,7 +52,10 @@ class _ConsentSheet extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l.gdprConsentBannerTitle, style: theme.textTheme.titleMedium),
+              Text(
+                l.gdprConsentBannerTitle,
+                style: theme.textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               Text(l.gdprConsentBannerBody, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 16),
@@ -55,7 +63,8 @@ class _ConsentSheet extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () => context.read<ConsentCubit>().essentialOnly(),
+                    onPressed: () =>
+                        context.read<ConsentCubit>().essentialOnly(),
                     child: Text(l.gdprEssentialOnly),
                   ),
                   const SizedBox(width: 8),

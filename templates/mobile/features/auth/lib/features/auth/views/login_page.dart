@@ -60,17 +60,26 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
-                  onPressed: busy ? null : () => cubit.login(_email.text, _password.text),
+                  onPressed: busy
+                      ? null
+                      : () => cubit.login(_email.text, _password.text),
                   child: Text(busy ? l.authSigningIn : l.authSignIn),
                 ),
                 TextButton(
-                  onPressed: busy ? null : () => cubit.register(_email.text, _password.text),
+                  onPressed: busy
+                      ? null
+                      : () => cubit.register(_email.text, _password.text),
                   child: Text(l.authCreateAccount),
                 ),
                 if (state.status == AuthStatus.failure && state.error != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text(state.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                    child: Text(
+                      state.error!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
                   ),
               ],
             );
